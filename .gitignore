@@ -1,0 +1,14 @@
+
+bin/ 
+include/ 
+lib/
+pyvenv.cfg
+
+/**/*.out 
+/**/*.log 
+/**/*.synctex.gz
+/**/*.thm 
+/**/*.toc
+/**/*.aux 
+/**/*.fdb_latexmk
+/**/*.fls
