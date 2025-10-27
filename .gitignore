@@ -4,6 +4,7 @@ include/
 lib/
 pyvenv.cfg
 share/
+src/__pycache__/
 
 /**/*.out 
 /**/*.log 
