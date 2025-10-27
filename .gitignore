@@ -3,6 +3,7 @@ bin/
 include/ 
 lib/
 pyvenv.cfg
+share/
 
 /**/*.out 
 /**/*.log 
