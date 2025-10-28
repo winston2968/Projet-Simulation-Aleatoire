@@ -40,7 +40,7 @@ def choose_action(d, a, f):
 #               - ensures that dx and dy are not both zero (the neutron moves)
 def new_direction(): 
     while True:
-        dx, dy = npr.choice([-1, 0, 1]), npr.choice([-1, 0, 1])
+        dx, dy = npr.choice([-1, 1]), npr.choice([-1,1])
         if dx != 0 or dy != 0:
             return dx, dy
 
@@ -56,7 +56,7 @@ def new_direction():
 # Returns:
 #     - new_pos : tuple (new_x, new_y) or (False, False) if absorbed
 #     - new_neutrons : dictionary of newly created neutrons during fission {id: (x,y)}
-def new_position(state, pos, d, a, f, l, n, m, max_speed=2): 
+def new_position(state, pos, d, a, f, l, n, m, max_speed=1): 
     x, y = pos
     action = choose_action(d, a, f)
     new_pos = (x, y)
@@ -77,7 +77,7 @@ def new_position(state, pos, d, a, f, l, n, m, max_speed=2):
 
     # Fission
     elif action == 2:
-        n_new = int(np.ceil(-(1/l) * np.log(npr.rand())))  # Poisson-like random number
+        n_new = simul_poisson(l)  # Poisson-like random number
         for i in range(len(state), len(state) + n_new):
             new_neutrons[i] = (x, y)
 

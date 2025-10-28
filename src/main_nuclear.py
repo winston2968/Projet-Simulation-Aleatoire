@@ -96,7 +96,8 @@ def make_table(grid):
 # ----------------------------
 # Main execution
 # ----------------------------
+n = 20
 if __name__ == "__main__":
     # Initialize 10 neutrons at the center of a 10x10 grid
-    state = {i: (5, 5) for i in range(50)}
-    simul_reactor(20, 20, state, d=0.1, a=0.1, f=0.5, l=10, n_iter=70)
+    state = {i: (n//2, n//2) for i in range(n)}
+    simul_reactor(n, n, state, d=0.2, a=0.1, f=0.7, l=1000, n_iter=70)
