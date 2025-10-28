@@ -1,5 +1,5 @@
 # ==========================================================================================
-#                                 Nuclear Reactor Simulation
+#                                 Nuclear Reactor Class
 # ==========================================================================================
 
 from matplotlib import pyplot as plt
@@ -13,20 +13,22 @@ from utils import simul_poisson
 
 class Reactor: 
 
-    def __init__(self, live, n=10, m=10, n_initial=10, d=0.5, a=0.5, f=0.5, l=0.5, n_iter=50, max_speed=2, toric=False):
-        self.n = n 
-        self.m = m 
-        self.n_initial = n_initial 
-        self.d = d 
-        self.a = a 
-        self.f = f 
-        self.l = l 
-        self.n_iter = n_iter 
-        self.max_speed = max_speed 
-        self.state = {i: (self.n // 2 + 1 , self.m // 2 + 1) for i in range(n_initial)} 
+    def __init__(self, live, config):
+        self.n = config['n'] 
+        self.m = config['m']
+        self.n_initial = config['n_initial']
+        self.d = config['d']
+        self.a = config['a']
+        self.f = config['f']
+        self.l = config['l']
+        self.n_iter = config['n_iter'] 
+        self.max_speed = config['max_speed']
+        self.state = {i: (self.n // 2 + 1 , self.m // 2 + 1) for i in range(self.n_initial)} 
         self.grid = 0
         self.live = live
-        self.toric = toric
+        self.toric = config['toric']
+        self.history = [self.state]
+        self.display = config['display']
 
     # Choose which action to perform for a neutron at each iteration
     # Inputs: 
@@ -147,7 +149,10 @@ class Reactor:
                 new_state.update(new_neutrons)
 
             self.state = new_state
-            self.display_reactor()
+            self.history.append(self.state)
+            if self.display :
+                self.display_reactor()
+        return self.history
 
     # ----------------------------------
     # Build the grid for visualization
@@ -172,23 +177,3 @@ class Reactor:
             table.add_row(*[str(x) if x > 0 else ' ' for x in line])
         self.live.update(table)
         sleep(0.2)
-    
-
-        
-if __name__ == "__main__": 
-    config = {
-        'n' : 10, 
-        'm' : 10, 
-        'n_initial' : 10, 
-        'd' : 0.5, 
-        'a' : 0.5, 
-        'f' : 0.5, 
-        'l' : 50,
-        'n_iter' : 50, 
-        'max_speed' : 2}
-    with Live(refresh_per_second=10) as live:
-        reactor = Reactor(live, n=10, m=10, n_initial=10, d=0.8, a=0.1, f=0.5, l=50, n_iter=50, max_speed=4, toric=True)
-        reactor.simulate()
-
-
-
