@@ -8,7 +8,12 @@ from numpy import random as npr
 from rich.live import Live
 from rich.table import Table
 from time import sleep
-from reactor import Reactor
+from Reactor import Reactor
+
+
+# ==========================================================================================
+#                          Visualization and Statistical Analysis Tools
+# ==========================================================================================
 
 
 # ---------------------------------------
@@ -22,6 +27,8 @@ from reactor import Reactor
 # Behavior:
 #     - Computes the total number of neutrons for each recorded generation.
 #     - Displays a line plot showing the change in neutron count over time.
+# Output:
+#     - A matplotlib figure displaying the population curve.
 def plot_neutron_count(history): 
     plt.plot([i for i in range(len(history))], [len(state) for state in history])
     plt.title("Number of Neutrons per Generation")
@@ -43,6 +50,8 @@ def plot_neutron_count(history):
 #     - Builds a 2D histogram of neutron positions accumulated over time.
 #     - Displays the result as a heatmap, where color intensity indicates
 #       how frequently a cell was occupied by a neutron.
+# Output:
+#     - A heatmap representing the mean occupancy of each cell in the grid.
 def plot_spatial_distribution(config, history): 
     grid_sum = np.zeros((config['n'], config['m']))
     for state in history: 
@@ -68,6 +77,8 @@ def plot_spatial_distribution(config, history):
 # Behavior:
 #     - Tracks the movement of the first n_traj neutrons that appear in the
 #       initial state and plots their paths over time.
+# Output:
+#     - A matplotlib plot showing neutron trajectories.
 def plot_trajectories(history, n_traj=5):
     trajectories = {i: [] for i in list(history[0].keys())[:n_traj]}
     for state in history:
@@ -85,7 +96,27 @@ def plot_trajectories(history, n_traj=5):
     plt.show()
 
 
-def extinction_probability(config, n_runs=100): 
+# ==========================================================================================
+#                        Statistical Analysis: Extinction and Mean Lifetime
+# ==========================================================================================
+
+
+# ---------------------------------------
+# Estimate the Extinction Probability
+# ---------------------------------------
+# Description:
+#     Runs multiple independent simulations and computes the probability
+#     that the neutron population eventually goes extinct.
+# Inputs:
+#     - config : dictionary containing simulation parameters
+#     - n_runs : number of independent simulations to perform
+# Behavior:
+#     - Runs the reactor simulation n_runs times without display.
+#     - Counts the proportion of simulations where the neutron population
+#       reaches zero by the end of the simulation.
+# Output:
+#     - Float value representing the estimated extinction probability.
+def extinction_probability(config, n_runs=20): 
     extinct = 0 
     for _ in range(n_runs): 
         reactor = Reactor(None, config)
@@ -94,37 +125,62 @@ def extinction_probability(config, n_runs=100):
             extinct += 1
     return extinct / n_runs 
 
-def mean_times_to_extinction(config, n_runs=100): 
+
+# ---------------------------------------
+# Compute the Mean Time to Extinction
+# ---------------------------------------
+# Description:
+#     Estimates the average number of generations required for the neutron
+#     population to go extinct.
+# Inputs:
+#     - config : dictionary containing simulation parameters
+#     - n_runs : number of independent simulations to perform
+# Behavior:
+#     - Runs n_runs simulations.
+#     - Records the iteration index (generation) where extinction occurs.
+#     - Prints the iteration index for each completed run.
+# Output:
+#     - Mean extinction time (float) across all runs, or infinity if no extinction occurred.
+def mean_times_to_extinction(config, n_runs=20): 
     times = []
     for i in range(n_runs): 
         reactor = Reactor(None, config)
         history = reactor.simulate()
         # Get the extinction time 
-        for t,state in enumerate(history): 
-            if len(state) == 0 :
+        for t, state in enumerate(history): 
+            if len(state) == 0:
                 times.append(t)
                 break 
-        print("Iteration : ", i)
+        print("Iteration:", i)
     return np.mean(times) if times else np.inf
 
-def average_growth_rate(config, n_runs=20):
-    growth_rates = []
-    sizes = []
-    for i in range(n_runs): 
-        reactor = Reactor(None, config)
-        history = reactor.simulate()
-        sizes = np.array([len(state) for state in history if len(state) > 0])
-        if len(sizes) > 2 :
-            g = np.mean(sizes[1:] / sizes[:-1])
-            growth_rates.append(g)
-        print("Iteration : ", i)
-    return growth_rates
-
-
 
 # ---------------------------------------
-# Simulation Configuration
+# Combined Plot Function
 # ---------------------------------------
+# Description:
+#     Runs a single simulation and generates all three main visualizations:
+#     - Neutron count over generations,
+#     - Spatial distribution of neutrons,
+#     - Individual neutron trajectories.
+# Inputs:
+#     - config  : dictionary containing simulation parameters
+#     - n_runs  : number of independent runs (used for label consistency)
+# Output:
+#     - Displays the three matplotlib plots sequentially.
+def plot_infos(config, n_runs): 
+    reactor = Reactor(None, config)
+    history = reactor.simulate()
+    plot_neutron_count(history)
+    plot_spatial_distribution(config, history)
+    plot_trajectories(history, 10)
+
+
+
+# ==========================================================================================
+#                             Simulation Configuration and Execution
+# ==========================================================================================
+
 # Description:
 #     This section defines the parameters used to initialize and run the
 #     nuclear reactor simulation.
@@ -137,6 +193,7 @@ def average_growth_rate(config, n_runs=20):
 #     - max_speed   : maximum movement step per iteration
 #     - toric       : whether the grid has toric (wrap-around) boundaries
 #     - display     : if True, display the grid in real-time using Rich
+
 config = {
     'n' : 10, 
     'm' : 10, 
@@ -152,34 +209,10 @@ config = {
 }
 
 
-
-# with Live(refresh_per_second=10) as live:
-#     reactor = Reactor(live, config)
-#     history = reactor.simulate()
-
-# Visualization of simulation results
-# plot_neutron_count(history)
-# plot_spatial_distribution(config, history)
-# plot_trajectories(history, 10)
-
-
-# Sweep over fission probabilities
-fs = np.linspace(0.1, 0.9, 9)
-proba_ext = []
-growth_rates = []
-
-for f in fs:
-    config['f'] = f
-    config['a'] = 1 - f - 0.1  # keep diffusion small constant
-    p_ext = extinction_probability(config, n_runs=10)
-    # g_mean = average_growth_rate(config, n_runs=20)
-    proba_ext.append(p_ext)
-    # growth_rates.append(g_mean)
-
-print('figure')
-plt.figure()
-plt.plot(fs, proba_ext, 'o-', label="Extinction probability")
-# plt.plot(fs, growth_rates, 's-', label="Average growth rate")
-plt.xlabel('Fission probability f')
-plt.legend()
-plt.show()
+# ---------------------------------------
+# Run the Experiment
+# ---------------------------------------
+# Description:
+#     Executes the reactor simulation with the given configuration
+#     and generates all the associated plots for analysis.
+plot_infos(config, n_runs=20)
