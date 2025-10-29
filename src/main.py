@@ -3,6 +3,7 @@ import numpy.random as npr
 from time import sleep 
 from rich.live import Live
 from rich.table import Table
+from rich import box 
 from utils import simul_poisson
 
 from Reactor import Reactor
@@ -16,13 +17,15 @@ config = {
     'm' : 10, 
     'n_initial' : 10, 
     'd' : 0.5, 
-    'a' : 0.2, 
-    'f' : 0.5, 
-    'l' : 10,
+    'a' : 0.1, 
+    'f' : 0.8, 
+    'l' : 20,
     'n_iter' : 50, 
     'max_speed' : 2, 
     'toric' : False, 
-    'display' : True
+    'display' : True, 
+    'colorized' : True, 
+    'thermalization_probs': {'fast_to_epi': 0.5, 'epi_to_thermal': 0.5}
 }
 
 with Live(refresh_per_second=10) as live: 

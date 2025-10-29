@@ -14,12 +14,15 @@ class Neutron:
         simulate different reators types. 
     """
 
-    def __init__(self, id, x, y, type="thermal", speed=1.0):
+    def __init__(self, id, x, y,thermalization_probs, type="fast", speed=1.0):
         self.x = x 
         self.y = y 
         self.id = id 
         self.speed = speed 
         self.type = type # "thermal", "fast", "epithermal"
+        
+        # Probability to change state 
+        self.thermalization_probs = thermalization_probs
 
         # Tajectory history for plotting 
         self.traj = [(self.x, self.y)]
@@ -55,4 +58,12 @@ class Neutron:
     # ----------------------- 
     def evolve(self): 
         """Update the neutron internal property over time."""
-        pass 
+
+        self.age += 1
+        self.speed *= 0.98 
+
+        if self.type == "fast" and npr.rand() < self.thermalization_probs['fast_to_epi']: 
+            self.type = "epithermal"
+
+        elif self.type == "epithermal" and npr.rand() < self.thermalization_probs['epi_to_thermal'] :
+            self.type = "thermal" 
