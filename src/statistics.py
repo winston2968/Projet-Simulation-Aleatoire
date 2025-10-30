@@ -160,4 +160,4 @@ with Live(refresh_per_second=10) as live:
     reactorV2 = ReactorV2(live, config)
     history = reactorV2.simulate()
 
-# plot_infos(config)
+plot_infos(config)

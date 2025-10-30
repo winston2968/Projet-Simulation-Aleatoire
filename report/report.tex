@@ -269,6 +269,69 @@ du modérateur, afin de maintenir un équilibre critique stable (\( k = 1 \)) lo
 
 \section{Modélisation}
 
+\subsection{Objectif et principe}
+
+L'objectif est maintenant de modéliser toutes les notions vues précédement. 
+Nous étudierons l'évolution d'une population de neutrons dans un environnement représentant
+le réacteur. L'évolution de cette population dépendra de différents paramètres donnés à l'initialisation 
+ou grâce au modérateur utilisé. 
+Deux version du modèle existent. La première, expérimentale est très simple. La seconde, celle que nous 
+détaillerons ici est un système à base d'agents (les neutrons) et implémente plus de mécanismes. 
+
+\subsection{Représentation}
+
+Le système est donc composé de 3 éléments : les neutrons, le réacteur et le modérateur. Chacun est représenté de façon 
+individuelle par un objet en Python. 
+
+\medskip 
+
+Premièrement, une classe \texttt{Neutron} a été créé pour représenter individuellement chaque individu de la population. 
+Elle permet d'attribuer des valeurs de vitesse, position, type au autres à chaque neutron présent dans le réacteur. 
+Différentes méthodes existent donc pour mettre à jour ces valeurs, même si la plupart des calculs sont effectués dans 
+la classe \texttt{ReactorV2}. 
+
+L'espace de vie des neutrons est, quand à lui, représenté par une grille 2D (un tableau en Python) sauvegardé 
+dans la classe \texttt{ReactorV2}. Un paramètre de celle-ci permet de la rendre torique. 
+
+Le modérateur est lui aussi modélisé par une classe appelée \texttt{Moderator}. Un modérateur 
+est simplement défini par ses probabilités d'absorption, de diffusion, de fission des neutrons ainsi 
+que par des propriétés de changement d'état de ceux-ci. 
+L'ensemble des modérateurs possibles est stocké dans un dictionnaire de la classe \texttt{Reactor}. 
+Le modérateur choisi influcence directement l'évolution de la population de neutrons ainsi que 
+leur comportement au cours du temps. 
+
+Enfin, le réacteur est simulé par la classe \texttt{ReactorV2}. Outre des paramètres classiques tels que sa taille, 
+le nombre d'itérations de la simulation ou autre, celle-ci stocke un dictionnaire de neutrons représentant l'état 
+du réacteur à un moment donné. Pour conserver l'historique de son état, on stocke la suite de ces dictionnaires dans 
+une liste \texttt{history}. 
+
+\medskip
+
+Pour conclure sur cette partie, le coeur de la simulation se situe dans la classe \texttt{ReactorV2}. Chaque 
+ajout de fonctionnalité (modérateur, neutron, etc...) est représentée par une classe ajoutée en paramètre. 
+
+
+\subsection{Dynnamique}
+
+Penchons nous maintenant sur la dynnamique du modèle. Nous allons ici détailler le cycle d'une génération de neutrons. 
+Tout commence par l'initialisation du modèle : on choisit de positionner un certain nombre de neutrons 
+sur la grille du réacteur. 
+
+À chaque pas de temps, on considère chaque neutron indépendament des autres. Si l'on a spécifié un modérateur lors de 
+l'initialisation du modèle, on choisit une action pour ce neutron par un tirate aléatoire dépendant des 
+différentes probabilités données par le modérateur. Si aucun modérateur n'est spécifié, on utilise les probabilités 
+données par défaut. Ainsi, un neutron peut effectuer une seule action à chaque pas de temps : 
+\begin{itemize} 
+    \item \textbf{Diffusion} : le neutron continue à se déplacer dans le milieu en tirant aléatoirement une direction et 
+    une distance qui détermineront sa position au prochain pas de temps. 
+    \item \textbf{Absorption} : le neutron est absorbé par le modérateur, il disparaît du modèle. 
+    \item \textbf{Fission} : le neutron rencontre un isotope et produit une réaction de fusion. 
+    Il disparaît donc et un nombre aléatoire (suivant une loi de Poisson) de nouveaux neutrons est produit 
+    sur la même case. À noter que seuls les neutrons thermiques peuvent réagir. 
+\end{itemize}
+
+
+\subsection{Limitations et hypothèses}
 
 
 % ==================================================================================================================================

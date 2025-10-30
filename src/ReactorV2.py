@@ -153,7 +153,11 @@ class ReactorV2:
                     self.display_reactor_colorized()
                 else:
                     self.display_reactor()
-
+            if self.verbose: 
+                system('clear')
+                print("=========== Running Class II Reactor ===========")
+                print("Iteration : ", len(self.history))
+                print("Nb of neutrons : ", len(self.history[-1]))
 
 
         return self.history
