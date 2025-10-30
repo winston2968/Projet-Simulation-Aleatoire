@@ -39,7 +39,7 @@ class ReactorV2:
 
         # Create neutrons 
         self.neutrons = [
-            Neutron(i, self.n // 2, self.m // 2, self.thermalization_probs, npr.choice(["fast", "epithermal"])) for i in range(self.n_initial)
+            Neutron(i, self.n // 2, self.m // 2, self.thermalization_probs, "fast") for i in range(self.n_initial)
         ]
 
         # Save neutron differents states to display grid 
@@ -200,9 +200,9 @@ class ReactorV2:
         # Calculate average type 
         table = Table(show_header=False, show_lines=True, box=box.SQUARE)
         color = {
-            "fast": "red",
-            "epithermal": "yellow",
-            "thermal": "blue"
+            "fast": "#B22222",
+            "epithermal": "#FFD700",
+            "thermal": "#1E90FF"
         }
 
         for i in range(self.n): 

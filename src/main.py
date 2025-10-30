@@ -13,14 +13,14 @@ from Neutron import Neutron
 
 
 config = {
-    'n' : 10, 
-    'm' : 10, 
+    'n' : 15, 
+    'm' : 15, 
     'n_initial' : 10, 
     'd' : 0.5, 
     'a' : 0.1, 
-    'f' : 0.8, 
+    'f' : 0.6, 
     'l' : 20,
-    'n_iter' : 50, 
+    'n_iter' : 200, 
     'max_speed' : 2, 
     'toric' : False, 
     'display' : True, 

@@ -18,6 +18,219 @@
 % ==================================================================================================================================
 % Introduction 
 
-coucou
+\section*{Introduction}
+
+
+
+
+\newpage 
+
+% ==================================================================================================================================
+% La fission nucléaire
+
+\section{La fission nucléaire}
+
+\subsection{Un peu de chimie}
+
+Avant de modéliser un réacteur nucléaire, commençons par nous pencher sur ses mécanismes internes pour comprendre 
+leur fonctionnement. 
+
+En physique, il existe plusieurs réactions dites chimiques (évaporation, solidification, transcendance, etc...) que nous 
+connaissons depuis la maternelle. Ces réactions font partie de la vie courante et sont de fait, très intuitives. 
+Elles altèrent et modifient les propriétés physiques macroscopiques des matériaux : il est facile de distinguer de l'eau 
+liquide de l'eau solide. 
+Si l'on regarde du côté microscopique, elles modifient directement l'agencement des molécules dans l'espace. 
+À l'état gazeux, les molécules bougent de manière frénétique dans l'espace sans structure apparente. À l'état liquide, elles 
+se présentent sous une forme plus compacte comparable à un tas de sable où les grains représentent les molécules. 
+Enfin, l'état solide se caractérise par un agencement très précis des molécules en une structure géométrique.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.4]{images/etats_matiere.png}
+    \caption{États de la matière}
+\end{figure}
+
+Cependant, certaines transformations mettent en jeu non plus les molécules, mais les noyaux des atomes eux-mêmes. 
+Ces réactions, dites nucléaires, libèrent des quantités d’énergie bien supérieures aux réactions chimiques.
+
+\subsection{La fission} 
+
+Il existe deux types de réactions nucléaires : la \emph{fission} et la \emph{fusion}. 
+La {fission nucléaire} fut découverte en 1938 par des physiciens allemands sur le travail de Enrico Fermi datant des années 
+1934. Cette découverte fait l'effet d'une bombe (sans mauvais jeu de mots) dans le milieu de la physique moderne et lance 
+aussitôt la course au développement de l'arme atomique dans un contexte tendu de fin seconde guerre mondiale et 
+de début de geurre froide. 
+
+Le principe de la fission nucléaire est assez simple. Partant d'un noyau lourd instable (souvent une isotope 
+de l'uranium ou du plutonium) et en le bombardant de neutrons à très grande vitesse on souhaite séparer le 
+noyau en deux parties approximativement égales d'éléments moins lourds. 
+Lors de cette séparation, des neutrons sont libérés et peuvent, eux aussi, produire de nouvelles réactions de fission 
+avec d'autres atomes lourds. C'est ce que l'on appelle le principe de \emph{réaction en chaîne}. 
+
+Une telle réaction produit énormément d'énergie et de chaleur, à titre d'exemple, la combustion de 1kg de charbon
+produit $3 \times 10^7$ J alors la fission de 1kg d'uranium en produit $ 8 \times 10^{13}$ soit entre 
+100 millions et 1 milliard de fois plus d'énergie libérée. 
+
+Ce surplus d'énergie permet actuellement de produire de l'électricité dans nos centrales nucléaires. La chaleur 
+produite vaporise de l'eau qui fait ensuite tourner des turbines pour produire de l'électricité. 
+
+\subsection{Différents types de neutrons}
+
+Pour induire une réaction en chaîne dans un réacteur et la maintenir, il faut jouer avec différents paramètres tels que 
+la densité du matériaux fissile, la quantité de neutrons introduite au départ, la forme du réacteur, sa température, etc... 
+Nous essaierons d'introduire tout ces paramètres dans notre modèle pour le rendre le plus proche du réel possible. 
+
+Dans cet objectif, nous ne pouvons pas négliger le fait que plusieurs types de neutrons existent dans ce type de réactions. 
+En effet, ceux-ci possèdent une certaine quantité d'énergie et se déplacent à une certaine vitesse qui n'est pas toujours constante. 
+Ainsi, pour pouvoir induire une réaction de fission, un neutron doit être suffisament ralenti pour percuter un atome lourd. 
+Nous différencierons donc 3 types de neutrons : 
+\begin{itemize}
+    \item Les neutrons \textbf{rapides} : produits directement par une réaction de fission, ils possèdent beaucoup 
+    d'énergie, se déplacent vite et ont une très faible probabilité d'être absorbés par le milieu. 
+    \item Les neutrons \textbf{épithermiques} : ce sont des neutrons en ralentissement dans le milieu possédant une 
+    énergie plus faible. Ils ont plus d'interractions avec le milieu. 
+    \item Les neutrons \textbf{thermiques} : ce sont des neutrons complètement ralentis qui se déplacent à la même vitesse 
+    que les isotopes lourds. Ils peuvent donc plus facilement induire des réactions de fission. Ils servent 
+    à maintenir une réaction en chaîne dans le réacteur. 
+\end{itemize}
+
+\begin{table}[H]
+    \centering
+    \begin{adjustbox}{max width=\textwidth}
+        \begin{tabular}{@{}>{\RaggedRight\arraybackslash}p{3cm}
+                            >{\RaggedRight\arraybackslash}p{3.5cm}
+                            >{\RaggedRight\arraybackslash}p{4cm}
+                            >{\RaggedRight\arraybackslash}p{4cm}@{}}
+            \toprule
+            \textbf{Type de neutron} & \textbf{Plage d'énergie typique} & \textbf{Rôle dans le réacteur} & \textbf{Comportement} \\ 
+            \midrule
+            \textbf{Rapide} & $\sim$2\,MeV & Produit directement par la fission & Subit des collisions pour se ralentir (modération) \\
+            \textbf{Épithermique} & 1\,eV – 1\,keV & Phase intermédiaire du ralentissement & Perd progressivement son énergie cinétique \\
+            \textbf{Thermique} & $\sim$0.025\,eV & Provoque efficacement la fission de l'U-235 & Absorbé par les noyaux fissiles \\ 
+            \bottomrule
+        \end{tabular}
+    \end{adjustbox}
+    \caption{Principaux types de neutrons intervenant dans un réacteur nucléaire}
+    \label{tab:types_neutrons}
+\end{table}
+
+
+\subsection{Le rôle du modérateur}
+
+On souhaiterai entretenir une réaction en chaîne dans un réacteur tout en évitant qu'elle s'emballe, nous donc devons 
+introduire un \emph{modérateur}. 
+Son rôle sera de ralentir les neutrons nouvellement créés par fission tout en en absorbant une certaine quantité pour ne 
+pas que la réaction s'emballe. Un modérateur doit donc être assez léger tout en ralentissant suffisament les neutrons. 
+En pratique, différents matériaux sont utilisés, les voici dans le tableau suivant : 
+
+\begin{table}[H]
+    \centering
+    \begin{adjustbox}{max width=\textwidth}
+        \begin{tabular}{@{}>{\RaggedRight\arraybackslash}p{3.2cm}
+                            >{\RaggedRight\arraybackslash}p{3.2cm}
+                            >{\RaggedRight\arraybackslash}p{3cm}
+                            >{\RaggedRight\arraybackslash}p{3cm}
+                            >{\RaggedRight\arraybackslash}p{3cm}@{}}
+            \toprule
+            \textbf{Modérateur} & \textbf{Composition chimique} & \textbf{Pouvoir modérateur} & \textbf{Absorption neutronique} & \textbf{Utilisation typique} \\ 
+            \midrule
+            \textbf{Eau légère (H$_2$O)} & Hydrogène et oxygène & Excellent & Moyenne & Réacteurs à eau pressurisée (REP) \\
+            \textbf{Eau lourde (D$_2$O)} & Deutérium et oxygène & Excellent & Très faible & Réacteurs CANDU (Canada) \\
+            \textbf{Graphite (C)} & Carbone pur & Bon & Très faible & Réacteurs RBMK et AGR \\
+            \textbf{Béryllium (Be)} & Béryllium pur & Bon & Faible & Réacteurs de recherche \\ 
+            \bottomrule
+        \end{tabular}
+    \end{adjustbox}
+    \caption{Caractéristiques comparées des principaux matériaux modérateurs}
+    \label{tab:moderateurs}
+\end{table}
+
+\subsection{La section efficace}
+
+Pour modéliser correctement les interactions entre les neutrons et la matière, il est nécessaire d’introduire la notion de 
+\emph{section efficace}. Celle-ci traduit la probabilité qu’un neutron interagisse avec un noyau lorsqu’il le rencontre. 
+En d'autres termes, elle représente une surface fictive caractérisant la capacité d’un noyau à provoquer une réaction 
+(nucléaire ou non) lorsqu’il est bombardé par des neutrons.
+
+La section efficace, notée $\sigma$, s’exprime en \emph{barn} :
+    \[ 1\,\text{barn} = 10^{-28}\,\text{m}^2 \]
+Plus la valeur de $\sigma$ est grande, plus la probabilité d’interaction est élevée. Elle dépend à la fois :
+\begin{itemize}
+    \item de la nature du noyau cible (Uranium, Plutonium, etc.),
+    \item du type d’interaction considérée (diffusion, capture, fission),
+    \item et surtout de l’énergie du neutron incident.
+\end{itemize}
+
+La figure suivante illustre typiquement la variation de la section efficace de fission en fonction de l’énergie du neutron : 
+elle est très faible pour les neutrons rapides, et augmente considérablement lorsque les neutrons deviennent thermiques. 
+C’est cette dépendance énergétique qui rend le rôle du modérateur essentiel dans les réacteurs à neutrons thermiques.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.25]{images/section_efficace.png}
+    \caption{Évolution typique de la section efficace de fission en fonction de l’énergie du neutron}
+    \label{fig:section_efficace}
+\end{figure}
+
+On distingue généralement plusieurs types de sections efficaces :
+\begin{itemize}
+    \item $\sigma_f$ : \textbf{section efficace de fission}, probabilité qu’un neutron provoque une fission,
+    \item $\sigma_c$ : \textbf{section efficace de capture}, probabilité qu’un neutron soit absorbé sans fission,
+    \item $\sigma_s$ : \textbf{section efficace de diffusion}, probabilité qu’un neutron soit simplement dévié.
+\end{itemize}
+
+Leur somme constitue la \emph{section efficace totale} :
+    \[ \sigma_t = \sigma_f + \sigma_c + \sigma_s \]
+
+Pour illustrer ces valeurs, le tableau suivant compare les sections efficaces de différents isotopes couramment utilisés 
+dans les réacteurs nucléaires pour des neutrons thermiques :
+
+\begin{table}[H]
+    \centering
+    \begin{adjustbox}{max width=\textwidth}
+        \begin{tabular}{@{}>{\RaggedRight\arraybackslash}p{3cm}
+                            >{\RaggedRight\arraybackslash}p{3.5cm}
+                            >{\RaggedRight\arraybackslash}p{3.5cm}
+                            >{\RaggedRight\arraybackslash}p{3.5cm}@{}}
+            \toprule
+            \textbf{Isotope} & \textbf{Section efficace de fission ($\sigma_f$)} & \textbf{Section efficace de capture ($\sigma_c$)} & \textbf{Remarques} \\ 
+            \midrule
+            \textbf{Uranium-235} & $\sim$580 barns & $\sim$100 barns & Très réactif aux neutrons thermiques \\ 
+            \textbf{Uranium-238} & $\sim$0.02 barns & $\sim$2.7 barns & Ne fissionne qu’avec des neutrons rapides \\ 
+            \textbf{Plutonium-239} & $\sim$750 barns & $\sim$270 barns & Fortement fissile, produit secondaire du cycle U-238 \\ 
+            \bottomrule
+        \end{tabular}
+    \end{adjustbox}
+    \caption{Comparaison des sections efficaces pour différents isotopes fissiles}
+    \label{tab:sections_efficaces}
+\end{table}
+
+Ainsi, la grande différence de section efficace entre l’uranium-235 et l’uranium-238 explique pourquoi seul le premier 
+est utilisé comme combustible principal dans les réacteurs à neutrons thermiques. 
+La compréhension et la maîtrise de cette grandeur sont donc essentielles pour modéliser la probabilité d’absorption, 
+de diffusion et de fission dans un réacteur.
+
+
+% ==================================================================================================================================
+% Modélisation 
+
+\section{Modélisation}
+
+
+
+% ==================================================================================================================================
+% Études statistiques 
+
+\section{Études Statistiques}
+
+
+
+
+
+% Sources 
+
+
+% https://fr.wikipedia.org/wiki/Fission_nucl%C3%A9aire
+
 
 \end{document}

@@ -41,8 +41,13 @@
 \usepackage{mdframed}
 \usepackage{xparse} % Nécessaire pour définir des environnements avec arguments optionnels
 \usepackage{booktabs}  % Pour des tableaux plus jolis
+\usepackage{siunitx}
+\usepackage{adjustbox}
 \usepackage{float} % For image positionning
+\usepackage{enumitem}
 
+
+\setlist[itemize]{topsep=0pt,itemsep=2pt}
 
 % \setcounter{secnumdepth}{-1} % Désactive le compteur des parties
 
@@ -125,7 +130,6 @@
 \setlength{\parindent}{0pt}
 \renewcommand{\indent}{\hspace*{\tindent}}
 
-
 \usepackage{fancyvrb}
 \usepackage{tikz-cd} 
 \usepackage{amsmath}
@@ -161,7 +165,6 @@
 
 
 \setlength{\headheight}{1.5cm} % Ajuste la hauteur de l'en-tête
-
 
 
 \definecolor{codegreen}{rgb}{0,0.6,0}
