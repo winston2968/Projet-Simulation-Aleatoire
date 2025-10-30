@@ -8,10 +8,23 @@ from time import sleep
 from rich.table import Table
 from rich import box 
 from rich.text import Text
+from os import system 
 
 from utils import simul_poisson
-
 from Neutron import Neutron
+
+class Moderator: 
+    """
+    Slow down neutrons depending on its efficiency.
+    """
+
+    def __init__(self, name, absorb_coeff, diffuse_coeff, fission_coeff, slow_fast=0.5, slow_epi=0.3): 
+        self.name = name 
+        self.absorb_coeff = absorb_coeff
+        self.diffuse_coeff = diffuse_coeff
+        self.fission_coeff = fission_coeff
+        self.slow_fast = slow_fast 
+        self.slow_epi = slow_epi 
 
 
 class ReactorV2: 
@@ -30,12 +43,26 @@ class ReactorV2:
         self.l = config['l']
         self.n_iter = config['n_iter'] 
         self.max_speed = config['max_speed']
-        self.state = {i: (self.n // 2 + 1 , self.m // 2 + 1) for i in range(self.n_initial)} 
         self.live = live
         self.toric = config['toric']
         self.display = config['display']
         self.colorized = config['colorized']
         self.thermalization_probs = config['thermalization_probs']
+        self.verbose = config['verbose']
+        self.history = []
+        
+        
+        # Different moderator properties 
+        MODERATORS = {
+            "light_water": Moderator("light_water", absorb_coeff=1.0, diffuse_coeff=1.2, fission_coeff=0.8, slow_fast=0.3, slow_epi=0.5),
+            "graphite":   Moderator("graphite",   absorb_coeff=0.6, diffuse_coeff=1.0, fission_coeff=0.9, slow_fast=0.15, slow_epi=0.3),
+            "heavy_water": Moderator("heavy_water", absorb_coeff=0.3, diffuse_coeff=1.1, fission_coeff=1.0, slow_fast=0.25, slow_epi=0.4),
+        }
+        if config['moderator'] in MODERATORS.keys(): 
+            self.moderator = MODERATORS[config['moderator']]
+        else : 
+            self.moderator = None 
+        
 
         # Create neutrons 
         self.neutrons = [
@@ -54,7 +81,6 @@ class ReactorV2:
     # Simulate a ReactorV2 process
     # ------------------------------------------------------------------
     def simulate(self): 
-        history = []
         next_id = len(self.neutrons)
 
         for _ in range(self.n_iter): 
@@ -105,7 +131,7 @@ class ReactorV2:
                         continue 
 
                 # Update internal neutron state
-                neutron.evolve()
+                neutron.evolve(self.moderator)
 
                 # Applic toric 
                 if self.toric: 
@@ -120,14 +146,17 @@ class ReactorV2:
 
             # Record history 
             state_snapshot = {n.id : (n.x,n.y,n.type) for n in self.neutrons}
-            history.append(state_snapshot)
+            self.history.append(state_snapshot)
 
             if self.display == True: 
                 if self.colorized:
                     self.display_reactor_colorized()
                 else:
                     self.display_reactor()
-        return history
+
+
+
+        return self.history
             
 
 
@@ -142,22 +171,54 @@ class ReactorV2:
     # Returns:
     #     - 0 for diffusion, 1 for absorption, 2 for fission
     def choose_action_thermal(self): 
-        total = self.d + self.a + self.f
-        d1, a1 = self.d/total, self.a/total
-        u = npr.rand()
-        if u < d1: 
-            return 0 
-        elif u < a1 + d1: 
-            return 1 
-        return 2
+        """
+        Choose an action to perform depending on the 
+        moderator used. 
+        """
+        if self.moderator is None :
+            total = self.d + self.a + self.f
+            d1, a1 = self.d/total, self.a/total
+            u = npr.rand()
+            if u < d1: 
+                # Diffuse
+                return 0 
+            elif u < a1 + d1: 
+                # Absorb 
+                return 1 
+            # Fission
+            return 2
+        else: 
+            a,d,f = self.moderator.absorb_coeff, self.moderator.diffuse_coeff, self.moderator.fission_coeff
+            total = a + d + f 
+            d1, a1 = d/total, a/total 
+            u = npr.rand()
+            if u < d1: 
+                # Diffuse
+                return 0
+            elif u < a1:
+                # Absorb  
+                return 1 
+            # Fission
+            return 2 
+            
     
     def choose_action_other(self): 
-        total = self.d + self.a
-        d1 = self.d/total
-        u = npr.rand()
-        if u < d1: 
-            return 0 
-        return 1
+        if self.moderator is None : 
+            total = self.d + self.a
+            d1 = self.d/total
+            u = npr.rand()
+            if u < d1: 
+                return 0 
+            return 1
+        else: 
+            a,d = self.moderator.absorb_coeff, self.moderator.diffuse_coeff
+            total = a + d 
+            d1 = d/total 
+            u = npr.rand()
+            if u < d1 : 
+                return 0 
+            return 1
+
     
     # -----------------------------------------
     # Check if a position is within the grid

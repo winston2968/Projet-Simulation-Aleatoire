@@ -56,14 +56,23 @@ class Neutron:
     # -----------------------
     # Evolution Step 
     # ----------------------- 
-    def evolve(self): 
-        """Update the neutron internal property over time."""
+    def evolve(self, moderator=None): 
+        """
+        Update the neutron internal property over time depending on the moderator 
+        used in the reactor or just with a thermalisation prob. 
+        """
+        if moderator is None : 
+            self.age += 1
+            self.speed *= 0.98 
 
-        self.age += 1
-        self.speed *= 0.98 
+            if self.type == "fast" and npr.rand() < self.thermalization_probs['fast_to_epi']: 
+                self.type = "epithermal"
 
-        if self.type == "fast" and npr.rand() < self.thermalization_probs['fast_to_epi']: 
-            self.type = "epithermal"
-
-        elif self.type == "epithermal" and npr.rand() < self.thermalization_probs['epi_to_thermal'] :
-            self.type = "thermal" 
+            elif self.type == "epithermal" and npr.rand() < self.thermalization_probs['epi_to_thermal'] :
+                self.type = "thermal" 
+        
+        else: 
+            if self.type == "fast" and npr.rand() < moderator.slow_fast:
+                self.type = "epithermal"
+            elif self.type == "epithermal" and npr.rand() < moderator.slow_epi:
+                self.type = "thermal"

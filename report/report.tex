@@ -210,6 +210,59 @@ est utilisé comme combustible principal dans les réacteurs à neutrons thermiq
 La compréhension et la maîtrise de cette grandeur sont donc essentielles pour modéliser la probabilité d’absorption, 
 de diffusion et de fission dans un réacteur.
 
+\subsection{Le facteur de multiplication \( k \)}
+
+Le \emph{facteur de multiplication} \( k \) est une grandeur fondamentale dans l’étude des réacteurs nucléaires.  
+Il caractérise l’évolution de la population de neutrons d’une génération à la suivante et permet de déterminer 
+si la réaction en chaîne s’amplifie, se stabilise ou s’éteint.  
+
+On définit \( k \) comme le rapport entre le nombre moyen de neutrons produits par fission à une génération \( n+1 \) 
+et le nombre de neutrons présents à la génération \( n \) :
+    \[
+        k = \frac{\text{Nombre de neutrons à la génération } (n+1)}{\text{Nombre de neutrons à la génération } n}.
+    \]
+Ce facteur dépend directement de la composition du combustible, du taux d’absorption, du pouvoir modérateur et de la géométrie du réacteur.  
+\begin{itemize}
+    \item Si \( k < 1 \) : chaque génération produit moins de neutrons que la précédente, la réaction en chaîne finit par s’éteindre.  
+    \item Si \( k = 1 \) : la population de neutrons reste constante — le réacteur est dit \emph{critique}.  
+    \item Si \( k > 1 \) : la population augmente de génération en génération — le réacteur devient \emph{sur-critique}, 
+    conduisant potentiellement à une réaction incontrôlée si aucune régulation n’est effectuée.  
+\end{itemize}
+
+\begin{table}[H]
+    \centering
+    \begin{adjustbox}{max width=\textwidth}
+        \begin{tabular}{@{}>{\RaggedRight\arraybackslash}p{3.5cm}
+                            >{\RaggedRight\arraybackslash}p{4cm}
+                            >{\RaggedRight\arraybackslash}p{6cm}@{}}
+            \toprule
+            \textbf{Régime du réacteur} & \textbf{Valeur du facteur \( k \)} & \textbf{Conséquence physique} \\ 
+            \midrule
+            \textbf{Sous-critique} & \( k < 1 \) & La réaction en chaîne s’éteint progressivement (extinction). \\ 
+            \textbf{Critique} & \( k = 1 \) & La réaction est stable : la puissance du réacteur est constante. \\ 
+            \textbf{Sur-critique} & \( k > 1 \) & La réaction s’emballe : augmentation exponentielle du nombre de neutrons. \\ 
+            \bottomrule
+        \end{tabular}
+    \end{adjustbox}
+    \caption{Différents régimes du réacteur selon la valeur du facteur de multiplication \( k \)}
+    \label{tab:facteur_k}
+\end{table}
+ 
+En pratique, on décompose le facteur de multiplication en plusieurs composantes physiques :
+    \[
+        k = \eta \, f \, p \, \varepsilon,
+    \]
+où :
+\begin{itemize}
+    \item \( \eta \) : nombre moyen de neutrons produits par fission et disponibles pour entretenir la réaction,  
+    \item \( f \) : fraction des neutrons absorbés dans le combustible fissile,  
+    \item \( p \) : probabilité qu’un neutron échappe à la résonance d’absorption pendant son ralentissement,  
+    \item \( \varepsilon \) : facteur de multiplication rapide (neutrons produits par fissions induites par des neutrons rapides).  
+\end{itemize}
+
+Le contrôle du facteur \( k \) est au cœur de la sûreté des réacteurs.  
+Il est ajusté à l’aide de barres de contrôle absorbant les neutrons (souvent en bore ou en cadmium) et du réglage 
+du modérateur, afin de maintenir un équilibre critique stable (\( k = 1 \)) lors du fonctionnement nominal.  
 
 % ==================================================================================================================================
 % Modélisation 
@@ -228,7 +281,6 @@ de diffusion et de fission dans un réacteur.
 
 
 % Sources 
-
 
 % https://fr.wikipedia.org/wiki/Fission_nucl%C3%A9aire
 
