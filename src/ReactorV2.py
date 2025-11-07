@@ -12,6 +12,7 @@ from os import system
 
 from utils import simul_poisson
 from Neutron import Neutron
+from controlRod import ControlRod
 
 class Moderator: 
     """
@@ -50,7 +51,15 @@ class ReactorV2:
         self.thermalization_probs = config['thermalization_probs']
         self.verbose = config['verbose']
         self.history = []
+
+        self.rod_active = config['rod_active']
+        self.control_rods = config['control_rods']
         
+        self.regulation_rods = [rod for rod in self.control_rods if rod['type'] == 'regulation']
+        self.scram_rods = [rod for rod in self.control_rods if rod['type'] == 'scram']
+        
+        self.scram_threshold = config.get('scram_threshold', 1.5)
+        self.scram_triggered = False    # Flag to indicate if scram has been triggered
         
         # Different moderator properties 
         MODERATORS = {
@@ -200,8 +209,6 @@ class ReactorV2:
         return self.history
             
 
-
-
     # ------------------------------------------------------------------
     # Choose which action to perform for a neutron at each iteration
     # ------------------------------------------------------------------
@@ -322,5 +329,33 @@ class ReactorV2:
         self.live.update(table)
         sleep(0.2)
 
+# -----------------------------------------------------------------------------------------------------------------
+    def update_automatic_control_rods(self):
+        """
+            Update control rods positions based on power error
+        """     
+
+        pass
 
 
+    def check_emergency_scram(self):
+        """
+            Check if an emergency scram is needed based on reactor conditions
+            If so, insert scram rods fully and immediately
+        """
+
+        if self.scram_rods:
+            return "Alerte : emergency scram undected."
+
+        if self.power_level > self.scram_threshold and not self.scram_triggered:
+        
+            
+
+            print("!!! EMERGENCY SCRAM ACTIVATED !!!")
+            self.scram_triggered = True
+
+            for rod in self.scram_rods:
+                rod.target_position = 0.0  # Fully inserted
+
+            self.regulation_rods = None  # Disable regulation rods after scram
+        pass

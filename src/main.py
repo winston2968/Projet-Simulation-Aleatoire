@@ -18,9 +18,17 @@ config = {
     'display' : True, 
     'colorized' : True, 
     'thermalization_probs': {'fast_to_epi': 0.5, 'epi_to_thermal': 0.5}, 
-    'moderator' : 'heavy_water', #graphite, light_water, heavy_water
-    'initial_distribution' : 'uniform', #center, uniform, normal
-    'verbose' : False
+    'moderator' : 'heavy_water', # 'graphite', 'light_water', 'heavy_water'
+    'initial_distribution' : 'uniform', # 'center', 'uniform', 'normal'
+    'verbose' : False,
+
+    'rod_active' : False,       # 'True', 'False'
+    'scram_threshold' : 1.5,    # Threshold for emergency scram
+    'control_rods' : [
+        {'id': 'RE01', 'type': 'regulation'},
+        {'id': 'CP01', 'type': 'compensation'},
+        {'id': 'SC01', 'type': 'scram'}
+    ]
 }
 
 
