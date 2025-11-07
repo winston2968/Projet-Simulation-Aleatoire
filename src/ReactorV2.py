@@ -62,12 +62,46 @@ class ReactorV2:
             self.moderator = MODERATORS[config['moderator']]
         else : 
             self.moderator = None 
-        
 
-        # Create neutrons 
-        self.neutrons = [
-            Neutron(i, self.n // 2, self.m // 2, self.thermalization_probs, "fast") for i in range(self.n_initial)
-        ]
+
+        # Create neutrons according to the associated law
+        self.neutrons = []
+
+        if config['initial_distribution'] == 'center':
+            self.neutrons = [
+                Neutron(n, self.n // 2, self.m // 2, self.thermalization_probs, "fast") for n in range(self.n_initial)
+            ]
+        elif config['initial_distribution'] == 'uniform':    
+            for n in range(self.n_initial):
+                # A coordinate is randomly pull from the grid
+                start_x = npr.randint(0, self.n)
+                start_y = npr.randint(0, self.m)
+
+                self.neutrons.append(
+                    Neutron(n, start_x, start_y, self.thermalization_probs, "fast")
+                )
+        elif config['initial_distribution'] == 'normal':
+            """
+                We center the distribution in the middle of the grid with a small std
+                The neutrons will be in [7 - 3, 7 + 3] = [4, 10]
+                This creates a central cluster approximately 7 squares wide
+            """
+            
+            mean_x, mean_y = self.n//2, self.m//2   # If the reactor remains a square, we can simplify (to optimize the code) : mean_x = mean_y & std_x = std_y
+            std_x, std_y = 1, 1
+
+            for n in range(self.n_initial):
+                raw_x = int(np.round(npr.normal(mean_x, std_x)))    # Round up to the nearest integer
+                raw_y = int(np.round(npr.normal(mean_y, std_y)))
+
+                start_x = np.clip(raw_x, 0, self.n - 1)     # Clip to be sure to be in the grid
+                start_y = np.clip(raw_y, 0, self.m - 1)
+
+                self.neutrons.append(
+                    Neutron(n, start_x, start_y, self.thermalization_probs, "fast")
+            )
+        else :
+            raise ValueError("Initial distribution not recognized. Choose between 'center', 'uniform' or 'normal'.")
 
         # Save neutron differents states to display grid 
         self.neutron_states = {"fast" : 0, "thermal" : 1, "epithermal" : 2}
@@ -140,9 +174,13 @@ class ReactorV2:
                 
                 if self.is_in_the_grid(neutron.x, neutron.y): 
                     alive_neutrons.append(neutron)
-                
-            # Update population 
-            self.neutrons = new_neutrons + alive_neutrons
+
+            # Update population
+            #------------
+            new_neutrons.extend(alive_neutrons) # More efficient
+            self.neutrons = new_neutrons
+            #self.neutrons = new_neutrons + alive_neutrons
+            #------------
 
             # Record history 
             state_snapshot = {n.id : (n.x,n.y,n.type) for n in self.neutrons}
