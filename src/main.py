@@ -18,7 +18,8 @@ config = {
     'display' : True, 
     'colorized' : True, 
     'thermalization_probs': {'fast_to_epi': 0.5, 'epi_to_thermal': 0.5}, 
-    'moderator' : None
+    'moderator' : 'graphite', 
+    'verbose' : False
 }
 
 
@@ -26,3 +27,16 @@ config = {
 with Live(refresh_per_second=10) as live: 
     reactorV2 = ReactorV2(live, config)
     history = reactorV2.simulate()
+
+
+
+# ==================== TODO ====================
+# 
+# - rajouter répartition aléatoire des neutrons au départ 
+# - (Axel) calculer la température moyenne à chaque iter 
+# - changer loi du nb de neutrons générées lors de la fission 
+# - intégrer les barres de contrôle
+# - (Axel) exporter trajectoire dans un fichier 
+#
+#
+# - (passer en 3D et en continu)

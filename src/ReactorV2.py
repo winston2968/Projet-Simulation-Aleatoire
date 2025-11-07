@@ -159,7 +159,6 @@ class ReactorV2:
                 print("Iteration : ", len(self.history))
                 print("Nb of neutrons : ", len(self.history[-1]))
 
-
         return self.history
             
 
