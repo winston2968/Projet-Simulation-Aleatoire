@@ -18,7 +18,8 @@ config = {
     'display' : True, 
     'colorized' : True, 
     'thermalization_probs': {'fast_to_epi': 0.5, 'epi_to_thermal': 0.5}, 
-    'moderator' : 'graphite', 
+    'moderator' : 'heavy_water', #graphite, light_water, heavy_water
+    'initial_distribution' : 'uniform', #center, uniform, normal
     'verbose' : False
 }
 
@@ -32,10 +33,12 @@ with Live(refresh_per_second=10) as live:
 
 # ==================== TODO ====================
 # 
-# - rajouter répartition aléatoire des neutrons au départ 
+# - [DONE] rajouter répartition aléatoire des neutrons au départ 
 # - (Axel) calculer la température moyenne à chaque iter 
 # - changer loi du nb de neutrons générées lors de la fission 
 # - intégrer les barres de contrôle
+# -         Ces barres pourraient être introduites automatiquement dans le réacteur si la réacteur dépasse une 
+# -         certaine température ou un certain nombre de neutrons
 # - (Axel) exporter trajectoire dans un fichier 
 #
 #
