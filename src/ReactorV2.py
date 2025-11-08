@@ -52,6 +52,7 @@ class ReactorV2:
         self.verbose = config['verbose']
         self.history = []
 
+        # === Controls Rods Parameters ===
         self.rod_active = config['rod_active']
         self.control_rods = config['control_rods']
         
@@ -61,18 +62,14 @@ class ReactorV2:
         self.scram_threshold = config.get('scram_threshold', 1.5)
         self.scram_triggered = False    # Flag to indicate if scram has been triggered
 
+        # === We have to ajust this parameters ===
         self.reg_base_position = 50.0   # Base position for regulation rods (in percent)
-        self.reg_kp = 100.0              # Proportional gain for regulation rods
-        self.reg_ki = 50.0               # Integral gain for regulation rods
-        self.reg_integral_error = 0.0    # Memory of the integral error
-
+        self.reg_kp = 100.0             # Proportional gain for
+        self.reg_ki = 50.0              # Integral gain
+        self.reg_integral_error = 0.0   # Memory of the integral error
         self.nominal_neutron_count = 500.0  # Nominal neutron count for power level calculation
-
-        self.dt = 0.1  # Time step for control rod updates
-        #secondes
-
-
-
+                                            # The reactor is as 100% power when there is this number of neutrons
+        self.dt = 0.1  # Time step for control rod updates (seconds)
 
         # Different moderator properties 
         MODERATORS = {
@@ -342,7 +339,7 @@ class ReactorV2:
         self.live.update(table)
         sleep(0.2)
 
-# -----------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------
     def update_automatic_control_rods(self):
         """
             Update control rods positions based on power error
