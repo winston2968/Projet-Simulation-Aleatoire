@@ -1,5 +1,5 @@
 # ==========================================================================================
-#                                      Control Rod (v2)
+#                                      Control Rod
 # ==========================================================================================
 
 import numpy as np 
@@ -47,7 +47,6 @@ class ControlRod:
         if abs(error) < maxMove:
             # Reach target position
             self.positionPercent = self.targetPosition
-        
         elif error > 0:
             # Move rod up
             self.positionPercent += maxMove
@@ -57,8 +56,6 @@ class ControlRod:
         
         # Clamp position between 0 and 100%
         self.positionPercent = max(0.0, min(100.0, self.positionPercent))
-
-
 
     def getReactivityPcm(self):
         """

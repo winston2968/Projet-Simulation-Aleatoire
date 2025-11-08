@@ -60,7 +60,20 @@ class ReactorV2:
         
         self.scram_threshold = config.get('scram_threshold', 1.5)
         self.scram_triggered = False    # Flag to indicate if scram has been triggered
-        
+
+        self.reg_base_position = 50.0   # Base position for regulation rods (in percent)
+        self.reg_kp = 100.0              # Proportional gain for regulation rods
+        self.reg_ki = 50.0               # Integral gain for regulation rods
+        self.reg_integral_error = 0.0    # Memory of the integral error
+
+        self.nominal_neutron_count = 500.0  # Nominal neutron count for power level calculation
+
+        self.dt = 0.1  # Time step for control rod updates
+        #secondes
+
+
+
+
         # Different moderator properties 
         MODERATORS = {
             "light_water": Moderator("light_water", absorb_coeff=1.0, diffuse_coeff=1.2, fission_coeff=0.8, slow_fast=0.3, slow_epi=0.5),
@@ -333,9 +346,27 @@ class ReactorV2:
     def update_automatic_control_rods(self):
         """
             Update control rods positions based on power error
-        """     
+        """
 
-        pass
+        if not self.regulation_rods:
+            return
+        
+        # 1. Calculate error between current power and target power
+        error = self.power_setpoint - self.power_level
+
+        # 2. Simple proportional control
+        kp = self.reg_kp * error
+
+        # 3. Integral term (with anti-windup)
+        self.reg_integral_error += error * self.dt
+        self.reg_integral_error = max(-1.0, min(1.0, self.reg_integral_error))
+        i_term = self.reg_ki * self.reg_integral_error
+
+        # 4. Calculate new target position for regulation rods
+        target_position = self.reg_base_position + kp + i_term
+
+        # 5. Send instruction to each regulation rod
+        self.regulation_rods.target_position = max(0.0, min(100.0, target_position))  # Clamp between 0 and 100%
 
 
     def check_emergency_scram(self):
@@ -344,13 +375,10 @@ class ReactorV2:
             If so, insert scram rods fully and immediately
         """
 
-        if self.scram_rods:
+        if not self.scram_rods:
             return "Alerte : emergency scram undected."
 
         if self.power_level > self.scram_threshold and not self.scram_triggered:
-        
-            
-
             print("!!! EMERGENCY SCRAM ACTIVATED !!!")
             self.scram_triggered = True
 
@@ -358,4 +386,3 @@ class ReactorV2:
                 rod.target_position = 0.0  # Fully inserted
 
             self.regulation_rods = None  # Disable regulation rods after scram
-        pass
