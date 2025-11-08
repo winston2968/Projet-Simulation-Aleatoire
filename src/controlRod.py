@@ -7,7 +7,7 @@ import numpy as np
 typeRod = {
     'regulation' : {'totalWorthPcm' : -500, 'maxSpeed' : 1.5},
     'compensation' : {'totalWorthPcm' : -1000, 'maxSpeed' : 0.2},
-    'scram' : {'totalWorthPcm' : -2000, 'maxSpeed' : 50.0}
+    'scram' : {'totalWorthPcm' : -20000, 'maxSpeed' : 100.0}
 }
 
 class ControlRod:
@@ -30,8 +30,8 @@ class ControlRod:
         self.maxSpeed = typeRod[type]['maxSpeed']
 
         # === 2. Dynamic attributes ===
-        # 0.0 = fully withdrawn
-        # 100.0 = fully inserted
+        # 100.0 = fully withdrawn
+        # 0.0 = fully inserted
         self.positionPercent = 100.0   # current position
         self.targetPosition = 100.0    # target position
 
@@ -57,13 +57,13 @@ class ControlRod:
         # Clamp position between 0 and 100%
         self.positionPercent = max(0.0, min(100.0, self.positionPercent))
 
-    def getReactivityPcm(self):
+    def get_reactivity_pcm(self):
         """
             Calculate the reactivity worth of the control rod based on its position
             Use S approximation
         """
 
-        # Conversion percent to fraction
+        # Conversion percent (100=OUT, 0=IN) to fraction (0=OUT, 1=IN)
         fractionInserted = (100.0 - self.positionPercent) / 100.0
 
         # S-curve formula (cosinus) (simplified, normalized from 0 to 1)

@@ -53,11 +53,17 @@ class ReactorV2:
         self.history = []
 
         # === Controls Rods Parameters ===
-        self.rod_active = config['rod_active']
-        self.control_rods = config['control_rods']
+        self.rod_active = config.get('rod_active', False)
+
+        self.control_rods = []
+        config_rods_list = config.get('control_rods', [])
+        for rod_config in config_rods_list:
+            self.control_rods.append(
+                ControlRod(id = rod_config['id'], type=rod_config['type'])
+            )
         
-        self.regulation_rods = [rod for rod in self.control_rods if rod['type'] == 'regulation']
-        self.scram_rods = [rod for rod in self.control_rods if rod['type'] == 'scram']
+        self.regulation_rods = [rod for rod in self.control_rods if rod.type == 'regulation']
+        self.scram_rods = [rod for rod in self.control_rods if rod.type == 'scram']
         
         self.scram_threshold = config.get('scram_threshold', 1.5)
         self.scram_triggered = False    # Flag to indicate if scram has been triggered
@@ -67,6 +73,7 @@ class ReactorV2:
         self.reg_kp = 100.0             # Proportional gain for
         self.reg_ki = 50.0              # Integral gain
         self.reg_integral_error = 0.0   # Memory of the integral error
+        self.power_setpoint = 1.0      # Target power level (1.0 = 100%)
         self.nominal_neutron_count = 500.0  # Nominal neutron count for power level calculation
                                             # The reactor is as 100% power when there is this number of neutrons
         self.dt = 0.1  # Time step for control rod updates (seconds)
@@ -136,7 +143,48 @@ class ReactorV2:
     def simulate(self): 
         next_id = len(self.neutrons)
 
-        for _ in range(self.n_iter): 
+        base_a = self.a
+        base_f = self.f
+
+        for _ in range(self.n_iter):
+            # 1. Measure power level
+            # Power level = % of nominal neutron count
+            self.power_level = len(self.neutrons) / self.nominal_neutron_count
+
+            # 2. Launch automatic control rods
+            self.update_automatic_control_rods()
+
+            # 3. Actualise control rods positions
+            for rod in self.control_rods:
+                rod.step(self.dt)
+            
+            # 4. Check emergency scram ?
+            self.check_emergency_scram()
+            # -------------------------------------
+
+            # 5. Calculate rods effect
+            rho_rods_pcm = sum(rod.get_reactivity_pcm() for rod in self.control_rods)
+
+            # 6. Convert pcm to reactivity probabilities
+            # 1 pcm = 1e-5 delta k/k
+            # if rho_rods_pcm is negative, it means we have less fission reactions
+            rho_rods_abs = rho_rods_pcm / 1e5
+
+            # Adjust absorption and fission coefficients
+            reactivity_factor = 1.0 + rho_rods_abs
+            if reactivity_factor < 0.0: reactivity_factor = 0.0
+
+            current_f = base_f * reactivity_factor
+            current_a = base_a + (base_f - current_f)  # To keep the same ratio between a and f
+            #l'antiréactivité des barres transforme de la fission en absorption
+
+
+
+
+
+
+
+            #-------------------------------------
             new_neutrons = []
             alive_neutrons = []
 
@@ -153,7 +201,7 @@ class ReactorV2:
 
                 if neutron.type == "thermal": 
                     # Choose an action for a thermak one 
-                    action = self.choose_action_thermal()
+                    action = self.choose_action_thermal(current_a, current_f)   ###### MODIFICATION ICI ######
 
                     if action == 0: 
                         # Diffusion 
@@ -172,7 +220,7 @@ class ReactorV2:
                             )
                             next_id += 1
                 else : 
-                    action = self.choose_action_other()
+                    action = self.choose_action_other(current_a)    ###### MODIFICATION ICI ######
 
                     if action == 0: 
                         # Diffusion 
@@ -215,6 +263,8 @@ class ReactorV2:
                 print("=========== Running Class II Reactor ===========")
                 print("Iteration : ", len(self.history))
                 print("Nb of neutrons : ", len(self.history[-1]))
+                
+                
 
         return self.history
             
@@ -228,14 +278,15 @@ class ReactorV2:
     #     - f : fission probability
     # Returns:
     #     - 0 for diffusion, 1 for absorption, 2 for fission
-    def choose_action_thermal(self): 
+    def choose_action_thermal(self, current_a, current_f):      ###### MODIFICATION ICI ######
+
         """
         Choose an action to perform depending on the 
         moderator used. 
         """
         if self.moderator is None :
-            total = self.d + self.a + self.f
-            d1, a1 = self.d/total, self.a/total
+            total = self.d + current_a + current_f
+            d1, a1 = self.d/total, current_a/total
             u = npr.rand()
             if u < d1: 
                 # Diffuse
@@ -246,30 +297,32 @@ class ReactorV2:
             # Fission
             return 2
         else: 
-            a,d,f = self.moderator.absorb_coeff, self.moderator.diffuse_coeff, self.moderator.fission_coeff
+            #a,d,f = self.moderator.absorb_coeff, self.moderator.diffuse_coeff, self.moderator.fission_coeff
+            a, d, f = current_a, self.moderator.diffuse_coeff, current_f
             total = a + d + f 
             d1, a1 = d/total, a/total 
             u = npr.rand()
             if u < d1: 
                 # Diffuse
                 return 0
-            elif u < a1:
+            elif u < a1 + d1:
                 # Absorb  
                 return 1 
             # Fission
             return 2 
             
     
-    def choose_action_other(self): 
+    def choose_action_other(self, current_a):      ###### MODIFICATION ICI ######
         if self.moderator is None : 
-            total = self.d + self.a
+            total = self.d + current_a
             d1 = self.d/total
             u = npr.rand()
             if u < d1: 
                 return 0 
             return 1
         else: 
-            a,d = self.moderator.absorb_coeff, self.moderator.diffuse_coeff
+            #a,d = self.moderator.absorb_coeff, self.moderator.diffuse_coeff
+            a, d = current_a, self.moderator.diffuse_coeff
             total = a + d 
             d1 = d/total 
             u = npr.rand()
@@ -351,6 +404,7 @@ class ReactorV2:
         # 1. Calculate error between current power and target power
         error = self.power_setpoint - self.power_level
 
+        print("errror", error)
         # 2. Simple proportional control
         kp = self.reg_kp * error
 
@@ -361,10 +415,13 @@ class ReactorV2:
 
         # 4. Calculate new target position for regulation rods
         target_position = self.reg_base_position + kp + i_term
+        print("target_position", target_position)
 
         # 5. Send instruction to each regulation rod
-        self.regulation_rods.target_position = max(0.0, min(100.0, target_position))  # Clamp between 0 and 100%
-
+        clamped_target = max(0.0, min(100.0, target_position))
+        print("clamped_target", clamped_target)
+        for rod in self.regulation_rods:
+            rod.target_position = clamped_target
 
     def check_emergency_scram(self):
         """
@@ -377,6 +434,12 @@ class ReactorV2:
 
         if self.power_level > self.scram_threshold and not self.scram_triggered:
             print("!!! EMERGENCY SCRAM ACTIVATED !!!")
+            
+            #-------------
+            print("scram_threshold", self.scram_threshold)
+            print("scram_triggered", self.scram_triggered)
+            #-------------
+
             self.scram_triggered = True
 
             for rod in self.scram_rods:
