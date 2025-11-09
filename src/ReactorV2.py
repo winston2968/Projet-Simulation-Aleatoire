@@ -8,6 +8,8 @@ from time import sleep
 from rich.table import Table
 from rich import box 
 from rich.text import Text
+from rich.panel import Panel 
+from rich.console import Group 
 from os import system 
 
 from utils import simul_poisson
@@ -50,6 +52,14 @@ class ReactorV2:
         self.thermalization_probs = config['thermalization_probs']
         self.verbose = config['verbose']
         self.history = []
+
+        # Reactor informations to display 
+        self.n_fissions = 0 
+        self.fission_energy = 3.2 * 10**(-11)
+        self.temp_history = []
+        self.power_history = []
+        self.thermic_capacity = config["thermic_capacity"]
+        self.loss_factor = config['loss_factor']
         
         
         # Different moderator properties 
@@ -63,6 +73,22 @@ class ReactorV2:
         else : 
             self.moderator = None 
 
+
+        # Save neutron differents states to display grid 
+        self.neutron_states = {"fast" : 0, "thermal" : 1, "epithermal" : 2}
+
+        # Init neutrons position 
+        self.init_neutrons(config)
+
+        """
+            We instanciate Neutrons list with only fast and epithermal neutrons with will need to 
+            slow down to produce fission reactions. 
+        """
+
+    # ------------------------------------------------------------------
+    # Init Neutron Position
+    # ------------------------------------------------------------------
+    def init_neutrons(self, config): 
 
         # Create neutrons according to the associated law
         self.neutrons = []
@@ -103,13 +129,6 @@ class ReactorV2:
         else :
             raise ValueError("Initial distribution not recognized. Choose between 'center', 'uniform' or 'normal'.")
 
-        # Save neutron differents states to display grid 
-        self.neutron_states = {"fast" : 0, "thermal" : 1, "epithermal" : 2}
-
-        """
-            We instanciate Neutrons list with only fast and epithermal neutrons with will need to 
-            slow down to produce fission reactions. 
-        """
 
     # ------------------------------------------------------------------
     # Simulate a ReactorV2 process
@@ -122,58 +141,7 @@ class ReactorV2:
             alive_neutrons = []
 
             for neutron in self.neutrons: 
-                
-                # Check if neutron is alive
-                if not neutron.is_alive: 
-                    continue 
-                
-                """
-                Neutron react only if it's a thermal one. 
-                In the other cases, it diffuse or it's absobrd by the reactor.
-                """
-
-                if neutron.type == "thermal": 
-                    # Choose an action for a thermak one 
-                    action = self.choose_action_thermal()
-
-                    if action == 0: 
-                        # Diffusion 
-                        neutron.diffuse(self.max_speed)
-                    
-                    elif action == 1: 
-                        # Absorption 
-                        neutron.is_alive = False 
-                        continue 
-
-                    else :
-                        n_new = simul_poisson(self.l)
-                        for _ in range(n_new): 
-                            new_neutrons.append(
-                                Neutron(next_id, neutron.x, neutron.y, self.thermalization_probs, type='fast', speed=1.0)
-                            )
-                            next_id += 1
-                else : 
-                    action = self.choose_action_other()
-
-                    if action == 0: 
-                        # Diffusion 
-                        neutron.diffuse(self.max_speed)
-                    
-                    elif action == 1: 
-                        # Absorption 
-                        neutron.is_alive = False 
-                        continue 
-
-                # Update internal neutron state
-                neutron.evolve(self.moderator)
-
-                # Applic toric 
-                if self.toric: 
-                    neutron.x %= self.n 
-                    neutron.y %= self.m
-                
-                if self.is_in_the_grid(neutron.x, neutron.y): 
-                    alive_neutrons.append(neutron)
+                next_id, new_neutrons, alive_neutrons = self.update_neutron(neutron, next_id, new_neutrons, alive_neutrons)
 
             # Update population
             #------------
@@ -185,6 +153,10 @@ class ReactorV2:
             # Record history 
             state_snapshot = {n.id : (n.x,n.y,n.type) for n in self.neutrons}
             self.history.append(state_snapshot)
+
+            # Update reactor infos
+            self.update_power()
+            self.update_temperature()
 
             if self.display == True: 
                 if self.colorized:
@@ -198,7 +170,64 @@ class ReactorV2:
                 print("Nb of neutrons : ", len(self.history[-1]))
 
         return self.history
+    
+    # ------------------------------------------------------------------
+    # Update neutron position/state at each iteration
+    # ------------------------------------------------------------------
+    def update_neutron(self, neutron, next_id, new_neutrons, alive_neutrons):
+        # Check if neutron is alive
+        if not neutron.is_alive: 
+            return next_id, new_neutrons, alive_neutrons
+        
+        """
+        Neutron react only if it's a thermal one. 
+        In the other cases, it diffuse or it's absobrd by the reactor.
+        """
+
+        if neutron.type == "thermal": 
+            # Choose an action for a thermak one 
+            action = self.choose_action_thermal()
+
+            if action == 0: 
+                # Diffusion 
+                neutron.diffuse(self.max_speed)
             
+            elif action == 1: 
+                # Absorption 
+                neutron.is_alive = False 
+                return next_id, new_neutrons, alive_neutrons 
+
+            else :
+                n_new = simul_poisson(self.l)
+                for _ in range(n_new): 
+                    new_neutrons.append(
+                        Neutron(next_id, neutron.x, neutron.y, self.thermalization_probs, type='fast', speed=1.0)
+                    )
+                    next_id += 1
+        else : 
+            action = self.choose_action_other()
+
+            if action == 0: 
+                # Diffusion 
+                neutron.diffuse(self.max_speed)
+            
+            elif action == 1: 
+                # Absorption 
+                neutron.is_alive = False 
+                return next_id, new_neutrons, alive_neutrons 
+
+        # Update internal neutron state
+        neutron.evolve(self.moderator)
+
+        # Applic toric 
+        if self.toric: 
+            neutron.x %= self.n 
+            neutron.y %= self.m
+        
+        if self.is_in_the_grid(neutron.x, neutron.y): 
+            alive_neutrons.append(neutron)
+        
+        return next_id, new_neutrons, alive_neutrons
 
 
 
@@ -227,6 +256,7 @@ class ReactorV2:
                 # Absorb 
                 return 1 
             # Fission
+            self.n_fissions += 1
             return 2
         else: 
             a,d,f = self.moderator.absorb_coeff, self.moderator.diffuse_coeff, self.moderator.fission_coeff
@@ -240,6 +270,7 @@ class ReactorV2:
                 # Absorb  
                 return 1 
             # Fission
+            self.n_fissions += 1
             return 2 
             
     
@@ -272,6 +303,21 @@ class ReactorV2:
     def is_in_the_grid(self, i, j): 
         return 0 <= i < self.n and 0 <= j < self.m
 
+
+    # ------------------------------------------------------------------
+    # Calculate current reactor power
+    # ------------------------------------------------------------------
+    def update_power(self):
+        self.power_history.append((self.n_fissions * self.fission_energy) / 1e6)
+
+
+    # ------------------------------------------------------------------
+    # Calculate current reactor temperature of the reactor 
+    # ------------------------------------------------------------------
+    def update_temperature(self):
+        self.temp_history.append((self.power_history[-1] * (1 - self.loss_factor)) / self.thermic_capacity)
+
+
     # -----------------------
     # Display Reactor State
     # ----------------------- 
@@ -289,6 +335,7 @@ class ReactorV2:
         self.live.update(table)
         sleep(0.2)
     
+  
     # -------------------------------------
     # Display Reactor State with colors 
     # -------------------------------------
@@ -319,8 +366,31 @@ class ReactorV2:
                     text = Text(str(total), style=f"bold {color[dominant]}")
                     row.append(text)
             table.add_row(*row)
-        self.live.update(table)
+        
+        # Adding reactor infos on panel 
+        total_neutrons = sum(1 for n in self.neutrons if n.is_alive)
+        power = self.power_history[-1]
+        temperature = self.temp_history[-1]
+        control_depth = getattr(self, "control_depth", 0)
+        info_text = (
+            f"[bold cyan]Temperature :[/bold cyan] {temperature} K\n"
+            f"[bold yellow]Power :[/bold yellow] {power} MW\n"
+            f"[bold magenta]Neutrons :[/bold magenta] {total_neutrons}\n"
+            f"[bold green]Depth of bars :[/bold green] {control_depth:.2f}\n"
+        )
+        info_panel = Panel(info_text, title="[bold white]Reactor State[/bold white]", border_style="bright_blue")
+
+        # Compose different displays 
+        display = Group(
+            Panel(table, title="[bold]Neutrons Distribution[/]"), 
+            info_panel
+        )
+        # Display infos and reactor 
+        self.live.update(display)
         sleep(0.2)
+
+
+
 
 
 
