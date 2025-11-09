@@ -6,6 +6,9 @@ import numpy as np
 from rich.live import Live
 from ReactorV2 import ReactorV2
 from matplotlib import pyplot as plt
+from utils import export_react_traj
+from utils import export_neutrons_traj
+from utils import export_reactor
 
 
 # ==========================================================================================
@@ -141,23 +144,28 @@ def plot_infos(config, n_runs=20):
 config = {
     'n' : 15, 
     'm' : 15, 
-    'n_initial' : 10, 
+    'n_initial' : 50, 
     'd' : 0.5,
     'a' : 0.1,
     'f' : 0.6,
     'l' : 3,
-    'n_iter' : 100, 
+    'thermic_capacity' : 1e7, 
+    'loss_factor' : 0.1,
+    'n_iter' : 60, 
     'max_speed' : 2, 
     'toric' : False, 
     'display' : True, 
     'colorized' : True, 
     'thermalization_probs': {'fast_to_epi': 0.5, 'epi_to_thermal': 0.5}, 
-    'moderator' : 'graphite', 
-    'verbose' : True
+    'moderator' : 'heavy_water', #graphite, light_water, heavy_water
+    'initial_distribution' : 'normal', #center, uniform, normal
+    'verbose' : False
 }
 
-with Live(refresh_per_second=10) as live: 
-    reactorV2 = ReactorV2(live, config)
-    history = reactorV2.simulate()
+# with Live(refresh_per_second=10) as live: 
+#     reactorV2 = ReactorV2(live, config)
+#     history = reactorV2.simulate()
 
-plot_infos(config)
+# plot_infos(config)
+
+export_reactor(config, "cache/neutron_export.csv", "cache/reactor_export.csv", True, True)
