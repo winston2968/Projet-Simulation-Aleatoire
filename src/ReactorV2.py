@@ -167,6 +167,10 @@ class ReactorV2:
         base_f = self.f
 #-------------------------------------------------------------------
         for _ in range(self.n_iter):
+
+            self.n_fissions = 0     ####MODIFICATION ICI########
+
+
             # 1. Measure power level
             # Power level = % of nominal neutron count
             self.power_level = len(self.neutrons) / self.nominal_neutron_count
@@ -209,14 +213,11 @@ class ReactorV2:
             alive_neutrons = []
 
             for neutron in self.neutrons: 
-                next_id, new_neutrons, alive_neutrons = self.update_neutron(neutron, next_id, new_neutrons, alive_neutrons)
+                next_id, new_neutrons, alive_neutrons = self.update_neutron(neutron, next_id, new_neutrons, alive_neutrons, current_a, current_f)
 
             # Update population
-            #------------
-            new_neutrons.extend(alive_neutrons) # More efficient
+            new_neutrons.extend(alive_neutrons)
             self.neutrons = new_neutrons
-            #self.neutrons = new_neutrons + alive_neutrons
-            #------------
 
             # Record history 
             state_snapshot = {n.id : (n.x,n.y,n.type) for n in self.neutrons}
@@ -242,7 +243,7 @@ class ReactorV2:
     # ------------------------------------------------------------------
     # Update neutron position/state at each iteration
     # ------------------------------------------------------------------
-    def update_neutron(self, neutron, next_id, new_neutrons, alive_neutrons):
+    def update_neutron(self, neutron, next_id, new_neutrons, alive_neutrons, current_a, current_f):
         # Check if neutron is alive
         if not neutron.is_alive: 
             return next_id, new_neutrons, alive_neutrons
@@ -254,8 +255,8 @@ class ReactorV2:
 
         if neutron.type == "thermal": 
             # Choose an action for a thermak one 
-            action = self.choose_action_thermal()
-            #action = self.choose_action_thermal(current_a, current_f)   ###### MODIFICATION ICI ######
+            #action = self.choose_action_thermal()
+            action = self.choose_action_thermal(current_a, current_f)   ###### MODIFICATION ICI ######
 
             if action == 0: 
                 # Diffusion 
@@ -274,8 +275,8 @@ class ReactorV2:
                     )
                     next_id += 1
         else : 
-            action = self.choose_action_other()
-            #action = self.choose_action_other(current_a)    ###### MODIFICATION ICI ######
+            #action = self.choose_action_other()
+            action = self.choose_action_other(current_a)    ###### MODIFICATION ICI ######
             if action == 0: 
                 # Diffusion 
                 neutron.diffuse(self.max_speed)
@@ -443,12 +444,19 @@ class ReactorV2:
         total_neutrons = sum(1 for n in self.neutrons if n.is_alive)
         power = self.power_history[-1]
         temperature = self.temp_history[-1]
+        
+        #-----------------------------------------------
         control_depth = getattr(self, "control_depth", 0)
+        rod_depth = "N/A"
+        if self.regulation_rods:
+            rod_depth = f"{100.0 - self.regulation_rods[0].positionPercent:.1f}%"               ###ATTENTION####
+        #-----------------------------------------------
+
         info_text = (
             f"[bold cyan]Temperature :[/bold cyan] {temperature} K\n"
             f"[bold yellow]Power :[/bold yellow] {power} MW\n"
             f"[bold magenta]Neutrons :[/bold magenta] {total_neutrons}\n"
-            f"[bold green]Depth of bars :[/bold green] {control_depth:.2f}\n"
+            f"[bold green]Depth of bars :[/bold green] {rod_depth}\n"
         )
         info_panel = Panel(info_text, title="[bold white]Reactor State[/bold white]", border_style="bright_blue")
 

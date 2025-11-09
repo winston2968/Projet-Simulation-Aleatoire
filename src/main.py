@@ -24,7 +24,7 @@ config = {
     'initial_distribution' : 'uniform', # 'center', 'uniform', 'normal'
     'verbose' : True,
 
-    'rod_active' : True,       # 'True', 'False'
+    'rod_active' : True,
     'scram_threshold' : 1.5,    # Threshold for emergency scram
     'control_rods' : [
         {'id': 'RE01', 'type': 'regulation'},
