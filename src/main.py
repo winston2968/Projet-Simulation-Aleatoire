@@ -7,7 +7,7 @@ from ReactorV2 import ReactorV2
 config = {
     'n' : 15, 
     'm' : 15, 
-    'n_initial' : 50, 
+    'n_initial' : 200, 
     'd' : 0.5,
     'a' : 0.1,
     'f' : 0.6,
@@ -22,7 +22,7 @@ config = {
     'thermalization_probs': {'fast_to_epi': 0.5, 'epi_to_thermal': 0.5}, 
     'moderator' : 'heavy_water', # 'graphite', 'light_water', 'heavy_water'
     'initial_distribution' : 'uniform', # 'center', 'uniform', 'normal'
-    'verbose' : True,
+    'verbose' : False,
 
     'rod_active' : True,
     'scram_threshold' : 1.5,    # Threshold for emergency scram

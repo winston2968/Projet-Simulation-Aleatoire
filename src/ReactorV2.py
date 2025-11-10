@@ -54,9 +54,9 @@ class ReactorV2:
         self.verbose = config['verbose']
         self.history = []
 #-------------------------------------------------------------------
-        self.nominal_power_mw= 1000.0   #.MW
-        self.power_level = 0.0          # Actual power in %
-        self.current_power_mw = 0.0     # Actual power in MW 
+        self.nominal_power_mw= 1000.0       #.MW
+        self.power_level = 0.0              # Actual power in %
+        self.current_power_mw = 0.0         # Actual power in MW 
         self.current_temperature = 300.0    #Temperature in Kelvin at t=0
         
         # Reactor informations to display 
@@ -90,7 +90,7 @@ class ReactorV2:
         self.reg_integral_error = 0.0   # Memory of the integral error
         self.power_setpoint = 1.0       # Target power level (1.0 = 100%)
         self.dt = 0.1                   # Time step for control rod updates (seconds)
-
+        self.power_scaling_factor = 1.5e17
 #-------------------------------------------------------------------
         # Different moderator properties 
         MODERATORS = {
@@ -207,7 +207,14 @@ class ReactorV2:
             self.check_emergency_scram()
 
             # Launch automatic pilote
-            self.update_automatic_control_rods
+            self.update_automatic_control_rods()
+            
+            
+            for rod in self.control_rods:
+                print(rod.targetPosition)
+
+
+
 
             # Move the bars accordingly
             # Their new position will be taken into account in the next round. 
@@ -229,14 +236,6 @@ class ReactorV2:
                 print("=========== Running Class II Reactor ===========")
                 print(f"Iteration : {len(self.history)} / {self.n_iter}")
                 print(f"Nb of neutrons : {len(self.neutrons)}")
-                print(f"Power (MW) : {self.current_power_mw:.2f} MW")
-                print(f"Power Level : {self.power_level*100:.1f} % (Consigne: {self.power_setpoint*100}%)")
-                print(f"Temperature : {self.current_temperature:.1f} K")
-                if self.regulation_rods:
-                     print(f"Reg. Rod (IN) : {100.0 - self.regulation_rods[0].positionPercent:.2f}%")
-                if self.scram_triggered:
-                     print("[bold red]SCRAM DÉCLENCHÉ[/bold red]")
-
         return self.history
     
     # ------------------------------------------------------------------
@@ -388,8 +387,14 @@ class ReactorV2:
         # 1. Calculate power (MW)
         # (Energie totale) / (Temps)
         energy_joules_per_step = self.n_fissions * self.fission_energy  # .Joules
-        power_watts = energy_joules_per_step / self.dt                  # .Watts
+        power_watts_micro = energy_joules_per_step / self.dt                  # .Watts
+
+        ####################""""
+        power_watts = power_watts_micro * self.power_scaling_factor
+        ####################
+
         self.current_power_mw = power_watts / 1e6                       # Conversion between W -> MW
+        self.power_history.append(self.current_power_mw)
 
         # 2. Maj power level(%) for the regulator rod
         if self.nominal_power_mw > 0:
@@ -523,6 +528,7 @@ class ReactorV2:
         """
 
         if not self.regulation_rods:
+            print("bonjour")
             return
         
         # 1. Calculate error between current power and target power
