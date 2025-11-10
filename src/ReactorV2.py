@@ -211,10 +211,7 @@ class ReactorV2:
             
             
             for rod in self.control_rods:
-                print(rod.targetPosition)
-
-
-
+                print(f"target position {rod.id}", rod.targetPosition)
 
             # Move the bars accordingly
             # Their new position will be taken into account in the next round. 
@@ -528,13 +525,12 @@ class ReactorV2:
         """
 
         if not self.regulation_rods:
-            print("bonjour")
             return
         
         # 1. Calculate error between current power and target power
         error = self.power_setpoint - self.power_level
+        print("power error", error)
 
-        print("errror", error)
         # 2. Simple proportional control
         kp = self.reg_kp * error
 
@@ -551,7 +547,7 @@ class ReactorV2:
         clamped_target = max(0.0, min(100.0, target_position))
         print("clamped_target", clamped_target)
         for rod in self.regulation_rods:
-            rod.target_position = clamped_target
+            rod.targetPosition = clamped_target
 
     def check_emergency_scram(self):
         """
@@ -573,6 +569,6 @@ class ReactorV2:
             self.scram_triggered = True
 
             for rod in self.scram_rods:
-                rod.target_position = 0.0  # Fully inserted
+                rod.targetPosition = 0.0  # Fully inserted
 
             self.regulation_rods = None  # Disable regulation rods after scram

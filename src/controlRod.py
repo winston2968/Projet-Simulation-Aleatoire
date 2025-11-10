@@ -5,8 +5,8 @@
 import numpy as np 
 
 typeRod = {
-    'regulation' : {'totalWorthPcm' : -500, 'maxSpeed' : 1.5},
-    'compensation' : {'totalWorthPcm' : -1000, 'maxSpeed' : 0.2},
+    'regulation' : {'totalWorthPcm' : -2000, 'maxSpeed' : 2.0},
+    'compensation' : {'totalWorthPcm' : -10000, 'maxSpeed' : 0.2},
     'scram' : {'totalWorthPcm' : -20000, 'maxSpeed' : 100.0}
 }
 
