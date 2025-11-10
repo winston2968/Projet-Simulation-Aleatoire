@@ -85,8 +85,8 @@ class ReactorV2:
 
         # === We have to ajust this parameters ===
         self.reg_base_position = 50.0   # Base position for regulation rods (in percent)
-        self.reg_kp = 100.0             # Proportional gain for
-        self.reg_ki = 50.0              # Integral gain
+        self.reg_kp = 10.0              # Proportional gain for
+        self.reg_ki = 1.0               # Integral gain
         self.reg_integral_error = 0.0   # Memory of the integral error
         self.power_setpoint = 1.0       # Target power level (1.0 = 100%)
         self.dt = 0.1                   # Time step for control rod updates (seconds)
@@ -212,7 +212,7 @@ class ReactorV2:
             
             for rod in self.control_rods:
                 print(f"target position {rod.id}", rod.targetPosition)
-
+                print(f"current position {rod.id}", rod.positionPercent)
             # Move the bars accordingly
             # Their new position will be taken into account in the next round. 
             for rod in self.control_rods:
@@ -495,10 +495,11 @@ class ReactorV2:
         temperature = self.temp_history[-1]
         
         #-----------------------------------------------
-        control_depth = getattr(self, "control_depth", 0)
+        #control_depth = getattr(self, "control_depth", 0)
         rod_depth = "N/A"
         if self.regulation_rods:
-            rod_depth = f"{100.0 - self.regulation_rods[0].positionPercent:.1f}%"               ###ATTENTION####
+            rod_depth = f"{100.0 - self.regulation_rods[0].positionPercent:.2f}%" 
+            print(f"reg {self.regulation_rods[0].positionPercent:.2f}")              ###ATTENTION####
         #-----------------------------------------------
 
         info_text = (
@@ -542,7 +543,6 @@ class ReactorV2:
         # 4. Calculate new target position for regulation rods
         target_position = self.reg_base_position + kp + i_term
         print("target_position", target_position)
-
         # 5. Send instruction to each regulation rod
         clamped_target = max(0.0, min(100.0, target_position))
         print("clamped_target", clamped_target)
