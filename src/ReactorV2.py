@@ -56,11 +56,16 @@ class ReactorV2:
 #-------------------------------------------------------------------
         # Reactor informations to display 
         self.n_fissions = 0 
-        self.fission_energy = 3.2 * 10**(-11)
-        self.temp_history = []
-        self.power_history = []
+        self.fission_energy = 3.2 * 10**(-11)   # .Joules
+        self.temp_history = [self.current_temperature]  # Initialisation with temperature at t=0 (parameters)
+        self.power_history = [self.current_power_mw]    # Initialisation with power at t=0 (parameters)
         self.thermic_capacity = config["thermic_capacity"]
         self.loss_factor = config['loss_factor']
+
+        self.nominal_power_mw= 1000.0   #.MW
+        self.power_level = 0.0          # Actual power in %
+        self.current_power_mw = 0.0     # Actual power in MW 
+        self.current_temperature = 300.0    #Temperature in Kelvin at t=0
 
 #-------------------------------------------------------------------
         # === Controls Rods Parameters ===
@@ -85,9 +90,10 @@ class ReactorV2:
         self.reg_ki = 50.0              # Integral gain
         self.reg_integral_error = 0.0   # Memory of the integral error
         self.power_setpoint = 1.0      # Target power level (1.0 = 100%)
-        self.nominal_neutron_count = 500.0  # Nominal neutron count for power level calculation
-                                            # The reactor is as 100% power when there is this number of neutrons
+        #self.nominal_neutron_count = 500.0  # Nominal neutron count for power level calculation
+        #                                    # The reactor is as 100% power when there is this number of neutrons
         self.dt = 0.1  # Time step for control rod updates (seconds)
+
 #-------------------------------------------------------------------
         # Different moderator properties 
         MODERATORS = {
@@ -224,8 +230,9 @@ class ReactorV2:
             self.history.append(state_snapshot)
 
             # Update reactor infos
-            self.update_power()
-            self.update_temperature()
+            #self.update_power()
+            #self.update_temperature()
+            self.update_temperature_and_power_level()           ######MODIFICIATION
 
             if self.display == True: 
                 if self.colorized:
@@ -376,7 +383,40 @@ class ReactorV2:
     def is_in_the_grid(self, i, j): 
         return 0 <= i < self.n and 0 <= j < self.m
 
+    # ------------------------------------------------------------------
+    # New function to calculate :
+    # Calculate current reactor power
+    # Calculate current reactor temperature of the reactor
+    # ------------------------------------------------------------------
+    def update_temperature_and_power_level(self):
+        """
+            Updates power (MW), power level (%), and temperature (K)
+        """
 
+        # 1. Calculate power (MW)
+        # (Energie totale) / (Temps)
+        energy_joules_per_step = self.n_fissions * self.fission_energy  # .Joules
+        power_watts = energy_joules_per_step / self.dt                  # .Watts
+        self.current_power_mw = power_watts / 1e6                       # Conversion between W -> MW
+
+        # 2. Maj power level(%) for the regulator rod
+        if self.nominal_power_mw > 0:
+            self.power_level = self.current_power_mw / self.nominal_power_mw
+        else:
+            self.power_level = 0.0
+
+        # 3. Maj temperature (based on power in watts)
+        power_net_watts = power_watts * (1 - self.loss_factor)
+
+        # 4. Temperature variation
+        # dT = (P_net / C) * dt
+        dT_per_step = (power_net_watts / self.thermic_capacity) * self.dt
+
+        self.current_temperature += dT_per_step
+        self.temp_history.append(self.current_temperature)
+
+
+    """
     # ------------------------------------------------------------------
     # Calculate current reactor power
     # ------------------------------------------------------------------
@@ -388,8 +428,23 @@ class ReactorV2:
     # Calculate current reactor temperature of the reactor 
     # ------------------------------------------------------------------
     def update_temperature(self):
-        self.temp_history.append((self.power_history[-1] * (1 - self.loss_factor)) / self.thermic_capacity)
+        if not self.power_history:
+            self.temp_history.append(self.current_temperature)
+            return
+        
+        # Power in watts (pwoer_history is in MW)
+        power_watts = (self.power_history[-1] * 1e6) * (1 - self.loss_factor)
 
+        # Temperature variation (dT/dt)
+        dT_per_step = (power_watts / self.thermic_capacity) * self.dt
+
+        # New temperature
+        self.current_temperature += dT_per_step
+        self.temp_history.append(self.current_temperature)
+        # ---------Previous version---------
+        #self.temp_history.append((self.power_history[-1] * (1 - self.loss_factor)) / self.thermic_capacity)
+
+    """
 
     # -----------------------
     # Display Reactor State
