@@ -54,19 +54,18 @@ class ReactorV2:
         self.verbose = config['verbose']
         self.history = []
 #-------------------------------------------------------------------
-        # Reactor informations to display 
-        self.n_fissions = 0 
-        self.fission_energy = 3.2 * 10**(-11)   # .Joules
-        self.temp_history = [self.current_temperature]  # Initialisation with temperature at t=0 (parameters)
-        self.power_history = [self.current_power_mw]    # Initialisation with power at t=0 (parameters)
-        self.thermic_capacity = config["thermic_capacity"]
-        self.loss_factor = config['loss_factor']
-
         self.nominal_power_mw= 1000.0   #.MW
         self.power_level = 0.0          # Actual power in %
         self.current_power_mw = 0.0     # Actual power in MW 
         self.current_temperature = 300.0    #Temperature in Kelvin at t=0
-
+        
+        # Reactor informations to display 
+        self.n_fissions = 0 
+        self.fission_energy = 3.2 * 10**(-11)           # .Joules
+        self.temp_history = [self.current_temperature]  # Initialisation with temperature at t=0 (parameters)
+        self.power_history = [self.current_power_mw]    # Initialisation with power at t=0 (parameters)
+        self.thermic_capacity = config["thermic_capacity"]
+        self.loss_factor = config['loss_factor']
 #-------------------------------------------------------------------
         # === Controls Rods Parameters ===
         self.rod_active = config.get('rod_active', False)
@@ -89,10 +88,8 @@ class ReactorV2:
         self.reg_kp = 100.0             # Proportional gain for
         self.reg_ki = 50.0              # Integral gain
         self.reg_integral_error = 0.0   # Memory of the integral error
-        self.power_setpoint = 1.0      # Target power level (1.0 = 100%)
-        #self.nominal_neutron_count = 500.0  # Nominal neutron count for power level calculation
-        #                                    # The reactor is as 100% power when there is this number of neutrons
-        self.dt = 0.1  # Time step for control rod updates (seconds)
+        self.power_setpoint = 1.0       # Target power level (1.0 = 100%)
+        self.dt = 0.1                   # Time step for control rod updates (seconds)
 
 #-------------------------------------------------------------------
         # Different moderator properties 
@@ -122,7 +119,6 @@ class ReactorV2:
     # Init Neutron Position
     # ------------------------------------------------------------------
     def init_neutrons(self, config): 
-
         # Create neutrons according to the associated law
         self.neutrons = []
 
@@ -153,7 +149,7 @@ class ReactorV2:
                 raw_x = int(np.round(npr.normal(mean_x, std_x)))    # Round up to the nearest integer
                 raw_y = int(np.round(npr.normal(mean_y, std_y)))
 
-                start_x = np.clip(raw_x, 0, self.n - 1)     # Clip to be sure to be in the grid
+                start_x = np.clip(raw_x, 0, self.n - 1)             # Clip to be sure to be in the grid
                 start_y = np.clip(raw_y, 0, self.m - 1)
 
                 self.neutrons.append(
@@ -168,53 +164,30 @@ class ReactorV2:
     # ------------------------------------------------------------------
     def simulate(self): 
         next_id = len(self.neutrons)
-#-------------------------------------------------------------------
         base_a = self.a
         base_f = self.f
-#-------------------------------------------------------------------
+
+        # Initialization of probabilities at the first turn
+        current_a = self.a
+        current_f = self.f
+
         for _ in range(self.n_iter):
+            # 1. Reset the counters
+            self.n_fissions = 0
 
-            self.n_fissions = 0     ####MODIFICATION ICI########
-
-
-            # 1. Measure power level
-            # Power level = % of nominal neutron count
-            self.power_level = len(self.neutrons) / self.nominal_neutron_count
-
-            # 2. Launch automatic control rods
-            self.update_automatic_control_rods()
-
-            # 3. Actualise control rods positions
-            for rod in self.control_rods:
-                rod.step(self.dt)
-            
-            # 4. Check emergency scram ?
-            self.check_emergency_scram()
-            # -------------------------------------
-
-            # 5. Calculate rods effect
-            rho_rods_pcm = sum(rod.get_reactivity_pcm() for rod in self.control_rods)
-
-            # 6. Convert pcm to reactivity probabilities
+            # 2. Calculate rods effects on the previous turn
             # 1 pcm = 1e-5 delta k/k
             # if rho_rods_pcm is negative, it means we have less fission reactions
+            rho_rods_pcm = sum(rod.get_reactivity_pcm() for rod in self.control_rods)
             rho_rods_abs = rho_rods_pcm / 1e5
-
-            # Adjust absorption and fission coefficients
             reactivity_factor = 1.0 + rho_rods_abs
-            if reactivity_factor < 0.0: reactivity_factor = 0.0
+            if reactivity_factor < 0.0 : reactivity_factor = 0.0
 
+            # Actualisation of the probabilities
             current_f = base_f * reactivity_factor
-            current_a = base_a + (base_f - current_f)  # To keep the same ratio between a and f
-            #l'antiréactivité des barres transforme de la fission en absorption
+            current_a = base_a + (base_f - current_f)   # To keep the same ratio between a and f
 
-
-
-
-
-
-#-------------------------------------------------------------------
-            #-------------------------------------
+            # 3. Simulate neutrons with new probabilities
             new_neutrons = []
             alive_neutrons = []
 
@@ -225,25 +198,44 @@ class ReactorV2:
             new_neutrons.extend(alive_neutrons)
             self.neutrons = new_neutrons
 
-            # Record history 
+            # 4. Physical measurement
+            # We calculate : P(MW), P(%), T(K)
+            self.update_temperature_and_power_level()
+
+            # 5. Rods pilotage
+            # Check scram level
+            self.check_emergency_scram()
+
+            # Launch automatic pilote
+            self.update_automatic_control_rods
+
+            # Move the bars accordingly
+            # Their new position will be taken into account in the next round. 
+            for rod in self.control_rods:
+                rod.step(self.dt)
+            
+            # 6. History and display
             state_snapshot = {n.id : (n.x,n.y,n.type) for n in self.neutrons}
             self.history.append(state_snapshot)
-
-            # Update reactor infos
-            #self.update_power()
-            #self.update_temperature()
-            self.update_temperature_and_power_level()           ######MODIFICIATION
 
             if self.display == True: 
                 if self.colorized:
                     self.display_reactor_colorized()
                 else:
                     self.display_reactor()
+            
             if self.verbose: 
                 system('clear')
                 print("=========== Running Class II Reactor ===========")
-                print("Iteration : ", len(self.history))
-                print("Nb of neutrons : ", len(self.history[-1]))
+                print(f"Iteration : {len(self.history)} / {self.n_iter}")
+                print(f"Nb of neutrons : {len(self.neutrons)}")
+                print(f"Power (MW) : {self.current_power_mw:.2f} MW")
+                print(f"Power Level : {self.power_level*100:.1f} % (Consigne: {self.power_setpoint*100}%)")
+                print(f"Temperature : {self.current_temperature:.1f} K")
+                if self.regulation_rods:
+                     print(f"Reg. Rod (IN) : {100.0 - self.regulation_rods[0].positionPercent:.2f}%")
+                if self.scram_triggered:
+                     print("[bold red]SCRAM DÉCLENCHÉ[/bold red]")
 
         return self.history
     
