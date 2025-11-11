@@ -1,4 +1,3 @@
-import numpy as np 
 from rich.live import Live
 from ReactorV2 import ReactorV2
 

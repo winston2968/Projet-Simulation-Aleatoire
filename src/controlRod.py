@@ -72,6 +72,3 @@ class ControlRod:
         
         # Reactivity is the total "weight" * efficiency
         return self.totalWorthPcm * sCurveFactor
-    
-
-
