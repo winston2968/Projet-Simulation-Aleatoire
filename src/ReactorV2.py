@@ -53,11 +53,12 @@ class ReactorV2:
         self.thermalization_probs = config['thermalization_probs']
         self.verbose = config['verbose']
         self.history = []
-#-------------------------------------------------------------------
+
+        # === Reactor parameters ===
         self.nominal_power_mw= 1000.0       #.MW
         self.power_level = 0.0              # Actual power in %
         self.current_power_mw = 0.0         # Actual power in MW 
-        self.current_temperature = 300.0    #Temperature in Kelvin at t=0
+        self.current_temperature = 300.0    #Temperature in Kelvin at t=0 (approx. 26.8°C)
         
         # Reactor informations to display 
         self.n_fissions = 0 
@@ -66,9 +67,10 @@ class ReactorV2:
         self.power_history = [self.current_power_mw]    # Initialisation with power at t=0 (parameters)
         self.thermic_capacity = config["thermic_capacity"]
         self.loss_factor = config['loss_factor']
-#-------------------------------------------------------------------
+
+#--------------------EN TRAVAUX-----------------------------------------------
         # === Controls Rods Parameters ===
-        self.rod_active = config.get('rod_active', False)
+        self.rod_active = config.get('rod_active', False)   # If we want to use control rod (no implemented yet)
 
         self.control_rods = []
         config_rods_list = config.get('control_rods', [])
@@ -77,13 +79,16 @@ class ReactorV2:
                 ControlRod(id = rod_config['id'], type=rod_config['type'])
             )
         
+        # To simplify, we will only use these two types of bars
         self.regulation_rods = [rod for rod in self.control_rods if rod.type == 'regulation']
         self.scram_rods = [rod for rod in self.control_rods if rod.type == 'scram']
         
+        # This is the threshold beyond which the emergency bars activate
+        # It represente 1.5 * max_power
         self.scram_threshold = config.get('scram_threshold', 1.5)
         self.scram_triggered = False    # Flag to indicate if scram has been triggered
 
-        # === We have to ajust this parameters ===
+        # !!! We have to ajust this parameters !!!
         self.reg_base_position = 50.0   # Base position for regulation rods (in percent)
         self.reg_kp = 10.0              # Proportional gain for
         self.reg_ki = 1.0               # Integral gain
@@ -92,6 +97,7 @@ class ReactorV2:
         self.dt = 0.1                   # Time step for control rod updates (seconds)
         self.power_scaling_factor = 1.5e17
 #-------------------------------------------------------------------
+
         # Different moderator properties 
         MODERATORS = {
             "light_water": Moderator("light_water", absorb_coeff=1.0, diffuse_coeff=1.2, fission_coeff=0.8, slow_fast=0.3, slow_epi=0.5),
@@ -103,7 +109,6 @@ class ReactorV2:
         else : 
             self.moderator = None 
 
-
         # Save neutron differents states to display grid 
         self.neutron_states = {"fast" : 0, "thermal" : 1, "epithermal" : 2}
 
@@ -114,6 +119,7 @@ class ReactorV2:
             We instanciate Neutrons list with only fast and epithermal neutrons with will need to 
             slow down to produce fission reactions. 
         """
+
 
     # ------------------------------------------------------------------
     # Init Neutron Position
@@ -154,7 +160,7 @@ class ReactorV2:
 
                 self.neutrons.append(
                     Neutron(n, start_x, start_y, self.thermalization_probs, "fast")
-            )
+                )
         else :
             raise ValueError("Initial distribution not recognized. Choose between 'center', 'uniform' or 'normal'.")
 
@@ -181,7 +187,8 @@ class ReactorV2:
             rho_rods_pcm = sum(rod.get_reactivity_pcm() for rod in self.control_rods)
             rho_rods_abs = rho_rods_pcm / 1e5
             reactivity_factor = 1.0 + rho_rods_abs
-            if reactivity_factor < 0.0 : reactivity_factor = 0.0
+            if reactivity_factor < 0.0 : 
+                reactivity_factor = 0.0
 
             # Actualisation of the probabilities
             current_f = base_f * reactivity_factor
@@ -209,12 +216,14 @@ class ReactorV2:
             # Launch automatic pilote
             self.update_automatic_control_rods()
             
-            
+            #-------------------DEBUG-------------------
             for rod in self.control_rods:
                 print(f"target position {rod.id}", rod.targetPosition)
                 print(f"current position {rod.id}", rod.positionPercent)
+            #------------------------------------------
+
             # Move the bars accordingly
-            # Their new position will be taken into account in the next round. 
+            # Their new position will be taken into account in the next round
             for rod in self.control_rods:
                 rod.step(self.dt)
             
@@ -237,6 +246,7 @@ class ReactorV2:
     
     # ------------------------------------------------------------------
     # Update neutron position/state at each iteration
+    # current_a & current_f are the new probabilities
     # ------------------------------------------------------------------
     def update_neutron(self, neutron, next_id, new_neutrons, alive_neutrons, current_a, current_f):
         # Check if neutron is alive
@@ -244,13 +254,13 @@ class ReactorV2:
             return next_id, new_neutrons, alive_neutrons
         
         """
-        Neutron react only if it's a thermal one. 
-        In the other cases, it diffuse or it's absobrd by the reactor.
+            Neutron react only if it's a thermal one. 
+            In the other cases, it diffuse or it's absobrd by the reactor.
         """
 
         if neutron.type == "thermal": 
             # Choose an action for a thermak one 
-            #action = self.choose_action_thermal()
+            # action = self.choose_action_thermal()
             action = self.choose_action_thermal(current_a, current_f)   ###### MODIFICATION ICI ######
 
             if action == 0: 
@@ -301,16 +311,15 @@ class ReactorV2:
     # ------------------------------------------------------------------
     # Inputs: 
     #     - d : diffusion probability
-    #     - a : absorption probability
-    #     - f : fission probability
+    #     - current_a : absorption probability
+    #     - current_f : fission probability
     # Returns:
     #     - 0 for diffusion, 1 for absorption, 2 for fission
     def choose_action_thermal(self, current_a, current_f):      ###### MODIFICATION ICI ######
+        """
+            Choose an action to perform depending on the moderator used. 
+        """
 
-        """
-        Choose an action to perform depending on the 
-        moderator used. 
-        """
         if self.moderator is None :
             total = self.d + current_a + current_f
             d1, a1 = self.d/total, current_a/total
@@ -326,7 +335,7 @@ class ReactorV2:
             return 2
         else: 
             #a,d,f = self.moderator.absorb_coeff, self.moderator.diffuse_coeff, self.moderator.fission_coeff
-            a, d, f = current_a, self.moderator.diffuse_coeff, current_f
+            a, d, f = current_a, self.moderator.diffuse_coeff, current_f            #######MODIFICATION ICI#########
             total = a + d + f 
             d1, a1 = d/total, a/total 
             u = npr.rand()
@@ -351,7 +360,7 @@ class ReactorV2:
             return 1
         else: 
             #a,d = self.moderator.absorb_coeff, self.moderator.diffuse_coeff
-            a, d = current_a, self.moderator.diffuse_coeff
+            a, d = current_a, self.moderator.diffuse_coeff           ###### MODIFICATION ICI ######
             total = a + d 
             d1 = d/total 
             u = npr.rand()
@@ -373,7 +382,7 @@ class ReactorV2:
 
     # ------------------------------------------------------------------
     # New function to calculate :
-    # Calculate current reactor power
+    # Calculate current reactor power in MW & %
     # Calculate current reactor temperature of the reactor
     # ------------------------------------------------------------------
     def update_temperature_and_power_level(self):
@@ -383,12 +392,14 @@ class ReactorV2:
 
         # 1. Calculate power (MW)
         # (Energie totale) / (Temps)
-        energy_joules_per_step = self.n_fissions * self.fission_energy  # .Joules
-        power_watts_micro = energy_joules_per_step / self.dt                  # .Watts
+        energy_joules_per_step = self.n_fissions * self.fission_energy          # .Joules
+        power_watts_micro = energy_joules_per_step / self.dt                    # .Watts
 
-        ####################""""
+        #------------------TEST--------------
+        # les valeurs sont trop basses donc j'ai utilisé un facteur 
+        # multiplicateur pour augmenter la puissance et voir ce que ca donne
         power_watts = power_watts_micro * self.power_scaling_factor
-        ####################
+        #------------------------------------
 
         self.current_power_mw = power_watts / 1e6                       # Conversion between W -> MW
         self.power_history.append(self.current_power_mw)
@@ -495,7 +506,6 @@ class ReactorV2:
         temperature = self.temp_history[-1]
         
         #-----------------------------------------------
-        #control_depth = getattr(self, "control_depth", 0)
         rod_depth = "N/A"
         if self.regulation_rods:
             rod_depth = f"{100.0 - self.regulation_rods[0].positionPercent:.2f}%" 
@@ -506,8 +516,10 @@ class ReactorV2:
             f"[bold cyan]Temperature :[/bold cyan] {temperature} K\n"
             f"[bold yellow]Power :[/bold yellow] {power} MW\n"
             f"[bold magenta]Neutrons :[/bold magenta] {total_neutrons}\n"
-            f"[bold green]Depth of bars :[/bold green] {rod_depth}\n"
+            f"[bold green]Depth of regulating bars :[/bold green] {rod_depth}\n"
+            f"[red]SCRAM bars used :[/red] {self.scram_triggered}\n"
         )
+
         info_panel = Panel(info_text, title="[bold white]Reactor State[/bold white]", border_style="bright_blue")
 
         # Compose different displays 
@@ -530,7 +542,7 @@ class ReactorV2:
         
         # 1. Calculate error between current power and target power
         error = self.power_setpoint - self.power_level
-        print("power error", error)
+        print("test power error", error)
 
         # 2. Simple proportional control
         kp = self.reg_kp * error
@@ -542,10 +554,11 @@ class ReactorV2:
 
         # 4. Calculate new target position for regulation rods
         target_position = self.reg_base_position + kp + i_term
-        print("target_position", target_position)
+        print("test target_position", target_position)
+
         # 5. Send instruction to each regulation rod
         clamped_target = max(0.0, min(100.0, target_position))
-        print("clamped_target", clamped_target)
+        print("test clamped_target", clamped_target)
         for rod in self.regulation_rods:
             rod.targetPosition = clamped_target
 
@@ -571,4 +584,6 @@ class ReactorV2:
             for rod in self.scram_rods:
                 rod.targetPosition = 0.0  # Fully inserted
 
+            #--------------
             self.regulation_rods = None  # Disable regulation rods after scram
+            #--------------

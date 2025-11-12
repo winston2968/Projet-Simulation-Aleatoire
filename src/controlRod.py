@@ -7,7 +7,7 @@ import numpy as np
 typeRod = {
     'regulation' : {'totalWorthPcm' : -100, 'maxSpeed' : 5.0},
     'compensation' : {'totalWorthPcm' : -1000, 'maxSpeed' : 0.2},
-    'scram' : {'totalWorthPcm' : -2000, 'maxSpeed' : 100.0}
+    'scram' : {'totalWorthPcm' : -25000, 'maxSpeed' : 100.0}
 }
 
 class ControlRod:

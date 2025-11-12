@@ -4,30 +4,33 @@ from ReactorV2 import ReactorV2
 
 # Configuration parameters for a class II Reactor
 config = {
-    'n' : 15, 
-    'm' : 15, 
-    'n_initial' : 100, 
-    'd' : 0.5,
+    # === Simulation settings ===
+    'n_iter' : 200,
+    'n_initial' : 100,
     'a' : 0.1,
     'f' : 0.6,
     'l' : 1.1,
+    # === Reactor settings ===
+    'n' : 15, 
+    'm' : 15, 
+    'd' : 0.5,
     'thermic_capacity' : 1e7, 
     'loss_factor' : 0.1,
-    'n_iter' : 200, 
-    'max_speed' : 2, 
-    'toric' : False, 
-    'display' : True, 
-    'colorized' : True, 
-    'thermalization_probs': {'fast_to_epi': 0.5, 'epi_to_thermal': 0.5}, 
+    'toric' : False,
     'moderator' : 'heavy_water', # 'graphite', 'light_water', 'heavy_water'
     'initial_distribution' : 'uniform', # 'center', 'uniform', 'normal'
+    # === Neutrons settings ===
+    'max_speed' : 2,      
+    'thermalization_probs': {'fast_to_epi': 0.5, 'epi_to_thermal': 0.5}, 
+    # === Display settings ===
+    'display' : True, 
+    'colorized' : True,
     'verbose' : False,
-
+    # === Control rods settings ===
     'rod_active' : True,
     'scram_threshold' : 1.5,    # Threshold for emergency scram
-    'control_rods' : [
+    'control_rods' : [          # Initialisation of rods
         {'id': 'RE01', 'type': 'regulation'},
-        {'id': 'CP01', 'type': 'compensation'},
         {'id': 'SC01', 'type': 'scram'}
     ]
 }
