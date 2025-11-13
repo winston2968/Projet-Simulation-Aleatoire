@@ -218,8 +218,8 @@ class ReactorV2:
             
             #-------------------DEBUG-------------------
             for rod in self.control_rods:
-                print(f"target position {rod.id}", rod.targetPosition)
-                print(f"current position {rod.id}", rod.positionPercent)
+                print(f"target position {rod.id}", rod.target_position)
+                print(f"current position {rod.id}", rod.position_percent)
             #------------------------------------------
 
             # Move the bars accordingly
@@ -508,8 +508,8 @@ class ReactorV2:
         #-----------------------------------------------
         rod_depth = "N/A"
         if self.regulation_rods:
-            rod_depth = f"{100.0 - self.regulation_rods[0].positionPercent:.2f}%" 
-            print(f"reg {self.regulation_rods[0].positionPercent:.2f}")              ###ATTENTION####
+            rod_depth = f"{100.0 - self.regulation_rods[0].position_percent:.2f}%" 
+            print(f"reg {self.regulation_rods[0].position_percent:.2f}")              ###ATTENTION####
         #-----------------------------------------------
 
         info_text = (
@@ -560,7 +560,7 @@ class ReactorV2:
         clamped_target = max(0.0, min(100.0, target_position))
         print("test clamped_target", clamped_target)
         for rod in self.regulation_rods:
-            rod.targetPosition = clamped_target
+            rod.target_position = clamped_target
 
     def check_emergency_scram(self):
         """
@@ -582,7 +582,7 @@ class ReactorV2:
             self.scram_triggered = True
 
             for rod in self.scram_rods:
-                rod.targetPosition = 0.0  # Fully inserted
+                rod.target_position = 0.0  # Fully inserted
 
             #--------------
             self.regulation_rods = None  # Disable regulation rods after scram
