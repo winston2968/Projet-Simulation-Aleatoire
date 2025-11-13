@@ -68,7 +68,7 @@ class ReactorV2:
         self.thermic_capacity = config["thermic_capacity"]
         self.loss_factor = config['loss_factor']
 
-#--------------------EN TRAVAUX-----------------------------------------------
+#--------------------------------EN TRAVAUX-----------------------------------------------
         # === Controls Rods Parameters ===
         self.rod_active = config.get('rod_active', False)   # If we want to use control rod (no implemented yet)
 
@@ -96,7 +96,7 @@ class ReactorV2:
         self.power_setpoint = 1.0       # Target power level (1.0 = 100%)
         self.dt = 0.1                   # Time step for control rod updates (seconds)
         self.power_scaling_factor = 1.5e17
-#-------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------
 
         # Different moderator properties 
         MODERATORS = {
@@ -509,7 +509,7 @@ class ReactorV2:
         rod_depth = "N/A"
         if self.regulation_rods:
             rod_depth = f"{100.0 - self.regulation_rods[0].position_percent:.2f}%" 
-            print(f"reg {self.regulation_rods[0].position_percent:.2f}")              ###ATTENTION####
+            print(f"reg {self.regulation_rods[0].position_percent:.2f}")
         #-----------------------------------------------
 
         info_text = (
@@ -574,16 +574,16 @@ class ReactorV2:
         if self.power_level > self.scram_threshold and not self.scram_triggered:
             print("!!! EMERGENCY SCRAM ACTIVATED !!!")
             
-            #-------------
+            #-------------DEBUG--------
             print("scram_threshold", self.scram_threshold)
             print("scram_triggered", self.scram_triggered)
-            #-------------
+            #--------------------------
 
             self.scram_triggered = True
 
             for rod in self.scram_rods:
                 rod.target_position = 0.0  # Fully inserted
 
-            #--------------
+            #--------------TEST------------
             self.regulation_rods = None  # Disable regulation rods after scram
-            #--------------
+            #------------------------------
