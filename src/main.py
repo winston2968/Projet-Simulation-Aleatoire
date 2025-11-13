@@ -40,16 +40,15 @@ with Live(refresh_per_second=10) as live:
     history = reactorV2.simulate()
 
 
-
 # ==================== TODO ====================
 # 
 # - [DONE] rajouter répartition aléatoire des neutrons au départ 
 # - [DONE] calculer la température moyenne à chaque iter 
-# - changer loi du nb de neutrons générées lors de la fission 
+# - changer loi du nb de neutrons générées lors de la fission
 # - intégrer les barres de contrôle
 # -         Ces barres pourraient être introduites automatiquement dans le réacteur si la réacteur dépasse une 
 # -         certaine température ou un certain nombre de neutrons
-# - (Axel) exporter trajectoire dans un fichier 
+# - (Axel) exporter trajectoire dans un fichier
 #
 #
 # - (passer en 3D et en continu)

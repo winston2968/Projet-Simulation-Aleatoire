@@ -12,12 +12,13 @@ type_rod = {
 
 class ControlRod:
 
-    def __init__(self, id, type='regulation'):
+    def __init__(self, id, x_pos, type='regulation'):   #MODIF
         """
             Model a control bar in a nuclear reactor
         """
 
         self.id = id
+        self.x_pos = x_pos  #MODIF
         self.type = type  # 'regulation', 'compensation', 'scram'
 
         # === 1. Attributes specific to the type of control rod ===
@@ -35,6 +36,27 @@ class ControlRod:
         self.position_percent = 100.0   # current position
         self.target_position = 100.0    # target position
 
+    def is_neutron_absorbed(self, neutron_x, neutron_y, grid_height):
+        """
+            Check if a neutron at coordinates (x, y) is absorbed by the bar
+        """
+
+        # 
+        if neutron_x != self.x_pos:
+            return False
+        
+        # 2. Calculer la profondeur de la barre
+        # (100% = OUT = 0 case)
+        # (0% = IN = grid_height cases)
+        insertion_fraction = (100.0 - self.positionPercent) / 100.0
+        depth = insertion_fraction * grid_height # ex: 0.5 * 15 = 7.5
+
+        # 3. Le neutron est-il dans la zone insérée ?
+        # (On suppose que la barre rentre par le haut, y=0)
+        if neutron_y < depth:
+            return True
+            
+        return False
 
     def step(self, dt):
         """
