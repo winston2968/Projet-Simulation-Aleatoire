@@ -6,7 +6,6 @@ import numpy as np
 
 type_rod = {
     'regulation' : {'total_worth_pcm' : -100, 'max_speed' : 5.0},
-    'compensation' : {'total_worth_pcm' : -1000, 'max_speed' : 0.2},
     'scram' : {'total_worth_pcm' : -25000, 'max_speed' : 100.0}
 }
 
