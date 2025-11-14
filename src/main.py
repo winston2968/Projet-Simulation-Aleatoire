@@ -46,8 +46,8 @@ with Live(refresh_per_second=10) as live:
 # - [DONE] calculer la température moyenne à chaque iter 
 # - changer loi du nb de neutrons générées lors de la fission
 # - intégrer les barres de contrôle
-# -         Ces barres pourraient être introduites automatiquement dans le réacteur si la réacteur dépasse une 
-# -         certaine température ou un certain nombre de neutrons
+# -     [DONE] modele calculatoire
+# -     modele spatial
 # - (Axel) exporter trajectoire dans un fichier
 #
 #

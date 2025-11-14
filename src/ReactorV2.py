@@ -248,8 +248,18 @@ class ReactorV2:
     # Update neutron position/state at each iteration
     # current_a & current_f are the new probabilities
     # ------------------------------------------------------------------
+    # ------------------------------------------------------------------
+    # Update neutron position/state at each iteration
+    # ------------------------------------------------------------------
+    # Inputs: 
+    #     - neutron : neutron we will update
+    #     - next_id : id of the new generation
+    #     - new_neutrons : list containing the new neutrons
+    #     - alive_neutrons : neutrons still alive
+    # Returns:
+    #     - 0 for diffusion, 1 for absorption, 2 for fission
     def update_neutron(self, neutron, next_id, new_neutrons, alive_neutrons, current_a, current_f):
-        # Check if neutron is alive
+        # === 1. Check if neutron is alive ===
         if not neutron.is_alive: 
             return next_id, new_neutrons, alive_neutrons
         
@@ -258,8 +268,9 @@ class ReactorV2:
             In the other cases, it diffuse or it's absobrd by the reactor.
         """
 
+        # === 2. Choose action based on his type ===
         if neutron.type == "thermal": 
-            # Choose an action for a thermak one 
+            # Choose an action for a thermal one 
             # action = self.choose_action_thermal()
             action = self.choose_action_thermal(current_a, current_f)   ###### MODIFICATION ICI ######
 
@@ -291,7 +302,7 @@ class ReactorV2:
                 neutron.is_alive = False 
                 return next_id, new_neutrons, alive_neutrons 
 
-        # Update internal neutron state
+        # === 3. Update internal neutron state ===
         neutron.evolve(self.moderator)
 
         # Applic toric 
@@ -299,11 +310,11 @@ class ReactorV2:
             neutron.x %= self.n 
             neutron.y %= self.m
         
+        # === 4. Test if the neutron is in the grid ===
         if self.is_in_the_grid(neutron.x, neutron.y): 
             alive_neutrons.append(neutron)
         
         return next_id, new_neutrons, alive_neutrons
-
 
 
     # ------------------------------------------------------------------
@@ -369,9 +380,9 @@ class ReactorV2:
             return 1
 
     
-    # -----------------------------------------
+    # ------------------------------------------------------------------
     # Check if a position is within the grid
-    # -----------------------------------------
+    # ------------------------------------------------------------------
     # Inputs:
     #     - x, y : coordinates to check
     #     - n, m : size of the grid
@@ -390,7 +401,7 @@ class ReactorV2:
             Updates power (MW), power level (%), and temperature (K)
         """
 
-        # 1. Calculate power (MW)
+        # === 1. Calculate power (MW) ===
         # (Energie totale) / (Temps)
         energy_joules_per_step = self.n_fissions * self.fission_energy          # .Joules
         power_watts_micro = energy_joules_per_step / self.dt                    # .Watts
@@ -404,16 +415,16 @@ class ReactorV2:
         self.current_power_mw = power_watts / 1e6                       # Conversion between W -> MW
         self.power_history.append(self.current_power_mw)
 
-        # 2. Maj power level(%) for the regulator rod
+        # === 2. Maj power level(%) for the regulator rod ===
         if self.nominal_power_mw > 0:
             self.power_level = self.current_power_mw / self.nominal_power_mw
         else:
             self.power_level = 0.0
 
-        # 3. Maj temperature (based on power in watts)
+        # === 3. Maj temperature (based on power in watts) ===
         power_net_watts = power_watts * (1 - self.loss_factor)
 
-        # 4. Temperature variation
+        # === 4. Temperature variation ===
         # dT = (P_net / C) * dt
         dT_per_step = (power_net_watts / self.thermic_capacity) * self.dt
 
@@ -451,9 +462,9 @@ class ReactorV2:
 
     """
 
-    # -----------------------
+    # ------------------------------------------------------------------
     # Display Reactor State
-    # ----------------------- 
+    # ------------------------------------------------------------------ 
     def display_reactor(self): 
         # Build grid 
         grid = np.zeros((self.n, self.m))
@@ -469,9 +480,9 @@ class ReactorV2:
         sleep(0.2)
     
   
-    # -------------------------------------
+    # ------------------------------------------------------------------
     # Display Reactor State with colors 
-    # -------------------------------------
+    # ------------------------------------------------------------------
     def display_reactor_colorized(self): 
         grid = [[{"fast" : 0, "thermal" : 0, "epithermal" : 0} for _ in range(self.n)] for _ in range(self.m)]
         # Add neutron type on the grid 
@@ -532,44 +543,43 @@ class ReactorV2:
         sleep(0.2)
 
 # -----------------------------------------------------------------------------------------------
-    def update_automatic_control_rods(self):
-        """
-            Update control rods positions based on power error
-        """
 
+    # ------------------------------------------------------------------
+    # Update control rods positions based on power error
+    # ------------------------------------------------------------------
+    def update_automatic_control_rods(self):
         if not self.regulation_rods:
-            return
+            return "ALERT : No control bar was detected"
         
-        # 1. Calculate error between current power and target power
+        # === 1. Calculate error between current power and target power ===
         error = self.power_setpoint - self.power_level
         print("test power error", error)
 
-        # 2. Simple proportional control
+        # === 2. Simple proportional control ===
         kp = self.reg_kp * error
 
-        # 3. Integral term (with anti-windup)
+        # === 3. Integral term (with anti-windup) ===
         self.reg_integral_error += error * self.dt
         self.reg_integral_error = max(-1.0, min(1.0, self.reg_integral_error))
         i_term = self.reg_ki * self.reg_integral_error
 
-        # 4. Calculate new target position for regulation rods
+        # === 4. Calculate new target position for regulation rods ===
         target_position = self.reg_base_position + kp + i_term
         print("test target_position", target_position)
 
-        # 5. Send instruction to each regulation rod
+        # === 5. Send instruction to each regulation rod ===
         clamped_target = max(0.0, min(100.0, target_position))
         print("test clamped_target", clamped_target)
         for rod in self.regulation_rods:
             rod.target_position = clamped_target
 
+    # ------------------------------------------------------------------
+    # Check if an emergency scram is needed based on reactor conditions
+    # If so, insert scram rods fully and immediately
+    # ------------------------------------------------------------------
     def check_emergency_scram(self):
-        """
-            Check if an emergency scram is needed based on reactor conditions
-            If so, insert scram rods fully and immediately
-        """
-
         if not self.scram_rods:
-            return "Alerte : emergency scram undected."
+            return "ALERT : emergency scram undected."
 
         if self.power_level > self.scram_threshold and not self.scram_triggered:
             print("!!! EMERGENCY SCRAM ACTIVATED !!!")
