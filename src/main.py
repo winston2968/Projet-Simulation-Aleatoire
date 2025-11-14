@@ -30,8 +30,8 @@ config = {
     'rod_active' : True,
     'scram_threshold' : 1.5,    # Threshold for emergency scram
     'control_rods' : [          # Initialisation of rods
-        {'id': 'RE01', 'type': 'regulation'},
-        {'id': 'SC01', 'type': 'scram'}
+        {'id': 'RE01', 'type': 'regulation', 'x_pos' : 6},
+        {'id': 'SC01', 'type': 'scram', 'x_pos' : 7}
     ]
 }
 
