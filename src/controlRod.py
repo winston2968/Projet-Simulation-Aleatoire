@@ -36,14 +36,15 @@ class ControlRod:
         self.target_position = 100.0    # target position
 
 
+    # ------------------------------------------------------------------
+    # Move the control rod towards its target position based on its speed
+    # ------------------------------------------------------------------
     def step(self, dt):
-        """
-            Move the control rod towards its target position based on its speed
-        """
-
+        # === 1. Calculate distance error ===
         error = self.target_position - self.position_percent
         max_move = self.max_speed * dt
 
+        # === 2. Update new position percent ===
         if abs(error) < max_move:
             # Reach target position
             self.position_percent = self.target_position
@@ -54,15 +55,15 @@ class ControlRod:
             # Move rod down
             self.position_percent -= max_move
         
-        # Clamp position between 0 and 100%
+        # === 3. Clamp position between 0 and 100% ===
         self.position_percent = max(0.0, min(100.0, self.position_percent))
 
-    def get_reactivity_pcm(self):
-        """
-            Calculate the reactivity worth of the control rod based on its position
-            Use S approximation
-        """
 
+    # ------------------------------------------------------------------
+    # Calculate the reactivity worth of the control rod based on its position
+    # Use S approximation
+    # ------------------------------------------------------------------
+    def get_reactivity_pcm(self):
         # Conversion percent (100=OUT, 0=IN) to fraction (0=OUT, 1=IN)
         fraction_inserted = (100.0 - self.position_percent) / 100.0
 
