@@ -59,10 +59,10 @@ Il existe deux types de réactions nucléaires : la \emph{fission} et la \emph{f
 La {fission nucléaire} fut découverte en 1938 par des physiciens allemands sur le travail de Enrico Fermi datant des années 
 1934. Cette découverte fait l'effet d'une bombe (sans mauvais jeu de mots) dans le milieu de la physique moderne et lance 
 aussitôt la course au développement de l'arme atomique dans un contexte tendu de fin seconde guerre mondiale et 
-de début de geurre froide. 
+de début de guerre froide. 
 
-Le principe de la fission nucléaire est assez simple. Partant d'un noyau lourd instable (souvent une isotope 
-de l'uranium ou du plutonium) et en le bombardant de neutrons à très grande vitesse on souhaite séparer le 
+Le principe de la fission nucléaire est assez simple. Partant d'un noyau lourd instable (souvent un isotope 
+d'uranium ou de plutonium) et en le bombardant de neutrons à très grande vitesse on souhaite séparer le 
 noyau en deux parties approximativement égales d'éléments moins lourds. 
 Lors de cette séparation, des neutrons sont libérés et peuvent, eux aussi, produire de nouvelles réactions de fission 
 avec d'autres atomes lourds. C'est ce que l'on appelle le principe de \emph{réaction en chaîne}. 
@@ -261,12 +261,93 @@ où :
 \end{itemize}
 
 Le contrôle du facteur \( k \) est au cœur de la sûreté des réacteurs.  
-Il est ajusté à l’aide de barres de contrôle absorbant les neutrons (souvent en bore ou en cadmium) et du réglage 
+Il est ajusté à l’aide de barres de contrôle et du réglage 
 du modérateur, afin de maintenir un équilibre critique stable (\( k = 1 \)) lors du fonctionnement nominal.  
 
-\subsection{Les barres de contrôles \( k \)}
+\subsection{Les barres de contrôle}
 
-TEXTE A VENIR
+Les barres de contrôle sont le principal mécanisme de pilotage et d'arrêt d'urgence d'un réacteur nucléaire. 
+Elles servent à contrôler la population de neutrons et, par conséquent, la puissance thermique du cœur.
+
+\subsubsection{Principe de Fonctionnement}
+Leur fonctionnement repose sur l'\textbf{absorption neutronique}. 
+Elles sont fabriquées à partir de matériaux dits \textbf{poisons à neutrons}, c'est-à-dire des matériaux ayant
+une très haute probabilité d'absorber les neutrons sans provoquer de fission.\\
+
+
+Les matériaux couramment utilisés sont le Bore (B), le Cadmium (Cd), l'Hafnium (Hf) ou le Gadolinium (Gd).\\
+
+
+En insérant ces barres dans le cœur du réacteur, on introduit un \textbf{puits} à neutrons :
+\begin{itemize}
+    \item Les neutrons entrant en contact avec la barre sont capturés par cette dernière.
+    \item La réaction en chaîne ralentit (le facteur de multiplication $k$ diminue).
+    \item Le nombre total de fissions par seconde diminue, ce qui réduit la puissance du réacteur.
+\end{itemize}
+A l'inverse, en les retirant, on augmente la réactivité et la puissance croît.
+
+\subsubsection{Types et Rôles des Barres de contrôle}
+Les barres ne sont pas toutes identiques et ont chacune une vitesse de déplacement ainsi qu'une amplitude différente :\\
+
+\begin{description}
+    \item[Barres de Régulation (ou de Pilotage)] 
+    Ont un "poids" (valeur d'antiréactivité) relativement faible. Elles sont conçues pour se déplacer rapidement, continuellement et sont 
+    pilotées par un automate. Leur rôle est de compenser les petites fluctuations de puissance 
+    pour maintenir le réacteur au niveau attendu.
+
+    \item[Barres de Compensation (ou "Shim")] 
+    Ont un poids antiréactif beaucoup plus important. Elles sont déplacées très lentement pour compenser les grands 
+    changements de réactivité à long terme, comme l'usure du combustible ou l'empoisonnement des barres.
+    
+    \item[Barres d'Arrêt d'Urgence (SCRAM)] 
+    représentent la solution de dernier recours. Elles ont un poids antiréactif très important et sont 
+    conçues pour s'insérer extrêmement rapidement. Leur rôle principal est de stopper la réaction en chaîne de manière 
+    quasi instantanée en cas d'anomalie grave (ex: puissance dépassant le seuil de sécurité).\\
+\end{description}
+
+
+Pour des raisons pratiques, nous choisirons d'implémenter uniquement les barres de régulation ainsi que les barres SCRAM.
+En effet, les barres de compensation sont utilisées sur des temps très long et pour des taches qui dépassent notre simulation.
+
+\subsubsection{Modélisation de l'Efficacité}
+L'un des défis de la modélisation de cette fonctionnalité a été que l'efficacité d'une barre n'est pas linéaire. En effet, passé le coeur du réacteur,
+l'antiréactivité ne croît plus à la même vitesse. Aussi, il a fallu prendre en compte cet aspect en trouvant des alternatives.
+
+\paragraph{Modèle Global}
+Une approche générale (que nous avions d'abord implémentée) consiste à calculer un "poids" global, noté \(\rho\). 
+L'efficacité de la barre en fonction de sa profondeur d'insertion \(z\) (où \(z=0\) pour "sorti" et \(z=1\) pour "inséré") 
+suit une \textbf{courbe en S}, pouvant être approximée par :
+
+$$ \rho(z) = \rho_{total} \times \frac{1}{2} (1 - \cos(\pi z)) $$
+
+Cette antiréactivité globale \(\rho\) est ensuite utilisée pour réduire la probabilité de fission \(f\) 
+dans tout le réacteur.
+
+\paragraph{Modèle Spatial}
+L'approche que nous avons finalement retenue colle davantage à la réalité car elle prend en compte l'aspect spatial du réacteur. 
+Les barres de contrôle sont modélisées comme des objets physiques avec des coordonnées \((x, y)\) sur la grille :
+\begin{itemize}
+    \item \textbf{Avantage~:} Ce modèle est plus réaliste. Une barre n'absorbe que les neutrons qui la "touchent". 
+    \item \textbf{Inconvénient~:} Il est plus lourd en calcul, car il nécessite de vérifier la position de chaque 
+    neutron par rapport à chaque barre à chaque étape de la simulation.
+\end{itemize}
+Dans notre code, la fonction \texttt{update\_neutron} vérifie si les coordonnées du neutron coïncident avec les coordonnées d'une barre insérée. 
+Si c'est le cas, le neutron est absorbé, ce qui le retire de la simulation et fait donc baisser la puissance du réacteur.
+
+\subsubsection[Utilisation en Europe]{Qu'en est-il de notre système d'urgence européen ?}
+En Europe, et particulièrement en France, le type de réacteur dominant est le \textbf{Réacteur à Eau Pressurisée} (REP).\\
+
+Dans un REP, le contrôle de la réactivité est géré par deux systèmes complémentaires :
+\begin{enumerate}
+    \item \textbf{Le Bore Soluble :} De l'acide borique (un absorbeur de neutrons) est dissous dans l'eau du circuit primaire. 
+    C'est un "poison" liquide qui sert de barre de compensation principale pour les ajustements lents.
+    \item \textbf{Les Barres Mécaniques :} Les barres sont utilisées pour la régulation et l'arrêt d'urgence (SCRAM).
+\end{enumerate}\\
+
+Le mécanisme de SCRAM sur un REP est un exemple de \textbf{sécurité passive} : les barres d'arrêt sont maintenues en position 
+haute (hors du cœur) par des électroaimants. En cas d'arrêt d'urgence, le courant est coupé, les aimants lâchent les barres, qui tombent alors par
+simple gravité dans le cœur, assurant l'arrêt du réacteur même en cas de panne de courant totale. 
+Nous nous sommes basé sur ce système pour implémenter notre fonctionnalité permettant une auto-régulation de la puissance en fonction de celle souhaitée.
 
 % ==================================================================================================================================
 % Modélisation 
@@ -284,7 +365,7 @@ détaillerons ici est un système à base d'agents (les neutrons) et implémente
 
 \subsection{Représentation}
 
-Le système est donc composé de 3 éléments : les neutrons, le réacteur et le modérateur. Chacun est représenté de façon 
+Le système est donc composé de 4 éléments : les neutrons, le réacteur le modérateur ainsi que les barres de contrôle. Chacun est représenté de façon 
 individuelle par un objet en Python. 
 
 \medskip 
@@ -304,6 +385,9 @@ L'ensemble des modérateurs possibles est stocké dans un dictionnaire de la cla
 Le modérateur choisi influcence directement l'évolution de la population de neutrons ainsi que 
 leur comportement au cours du temps. 
 
+Les barres de contrôle sont instanciées par la classe \texttt{controlRod} contenant les paramètres de chaque type de barre
+ainsi que différentes fonctions utiles à sa gestion. 
+
 Enfin, le réacteur est simulé par la classe \texttt{ReactorV2}. Outre des paramètres classiques tels que sa taille, 
 le nombre d'itérations de la simulation ou autre, celle-ci stocke un dictionnaire de neutrons représentant l'état 
 du réacteur à un moment donné. Pour conserver l'historique de son état, on stocke la suite de ces dictionnaires dans 
@@ -315,11 +399,11 @@ Pour conclure sur cette partie, le coeur de la simulation se situe dans la class
 ajout de fonctionnalité (modérateur, neutron, etc...) est représentée par une classe ajoutée en paramètre. 
 
 
-\subsection{Dynnamique}
+\subsection{Dynamique}
 
-Penchons nous maintenant sur la dynnamique du modèle. Nous allons ici détailler le cycle d'une génération de neutrons. 
+Penchons nous maintenant sur la dynamique du modèle. Nous allons ici détailler le cycle d'une génération de neutrons. 
 Tout commence par l'initialisation du modèle : on choisit de positionner un certain nombre de neutrons 
-sur la grille du réacteur. 
+sur la grille du réacteur (selon une loi Uniforme, Normale ou centrée). 
 
 À chaque pas de temps, on considère chaque neutron indépendament des autres. Si l'on a spécifié un modérateur lors de 
 l'initialisation du modèle, on choisit une action pour ce neutron par un tirate aléatoire dépendant des 
@@ -330,7 +414,7 @@ données par défaut. Ainsi, un neutron peut effectuer une seule action à chaqu
     une distance qui détermineront sa position au prochain pas de temps. 
     \item \textbf{Absorption} : le neutron est absorbé par le modérateur, il disparaît du modèle. 
     \item \textbf{Fission} : le neutron rencontre un isotope et produit une réaction de fusion. 
-    Il disparaît donc et un nombre aléatoire (suivant une loi de Poisson) de nouveaux neutrons est produit 
+    Il disparaît donc et un nombre aléatoire (suivant une loi de Poisson, \textbf{XXXX RAJOUTER LES LOISXXXXX}) de nouveaux neutrons est produit 
     sur la même case. À noter que seuls les neutrons thermiques peuvent réagir. 
 \end{itemize}
 
@@ -343,7 +427,35 @@ données par défaut. Ainsi, un neutron peut effectuer une seule action à chaqu
 
 \section{Études Statistiques}
 
+\subsection{Paramètres de l'étude}
 
+comment on a fait les fichiers css, quelles données ils contiennent etc
+
+qu'est ce qu'on compte montrer
+
+quelles sont nos conjectures
+
+
+\subsection{Etude}
+
+
+
+
+
+\section{Conclusion}
+
+résumé des résultats obtenus
+
+apports technique et humain
+
+extensions possibles
+limites
+
+\section{Annexe}
+
+table des annexes
+
+1 annexe titrée par page
 
 
 
