@@ -21,7 +21,7 @@ class Moderator:
     Slow down neutrons depending on its efficiency.
     """
 
-    def __init__(self, name, absorb_coeff, diffuse_coeff, fission_coeff, slow_fast=0.5, slow_epi=0.3): 
+    def __init__(self, name:str, absorb_coeff:float, diffuse_coeff:float, fission_coeff:float, slow_fast, slow_epi=0.3): 
         self.name = name 
         self.absorb_coeff = absorb_coeff
         self.diffuse_coeff = diffuse_coeff
@@ -36,7 +36,7 @@ class ReactorV2:
         separately with is own parameters. 
     """
 
-    def __init__(self, live, config): 
+    def __init__(self, live, config:dict): 
         self.n = config['n'] 
         self.m = config['m']
         self.n_initial = config['n_initial']
@@ -90,8 +90,8 @@ class ReactorV2:
 
         # !!! We have to ajust this parameters !!!
         self.reg_base_position = 50.0   # Base position for regulation rods (in percent)
-        self.reg_kp = 10.0              # Proportional gain for
-        self.reg_ki = 1.0               # Integral gain
+        self.reg_kp = 50.0              # Proportional gain for
+        self.reg_ki = 25.0               # Integral gain
         self.reg_integral_error = 0.0   # Memory of the integral error
         self.power_setpoint = 1.0       # Target power level (1.0 = 100%)
         self.dt = 0.1                   # Time step for control rod updates (seconds)
@@ -124,7 +124,7 @@ class ReactorV2:
     # ------------------------------------------------------------------
     # Init Neutron Position
     # ------------------------------------------------------------------
-    def init_neutrons(self, config): 
+    def init_neutrons(self, config:dict): 
         # === 1. Create neutrons according to the associated law ===
         self.neutrons = []
 
@@ -248,7 +248,7 @@ class ReactorV2:
     # Update neutron position/state at each iteration
     # current_a & current_f are the new probabilities
     # ------------------------------------------------------------------
-    def update_neutron(self, neutron, next_id, new_neutrons, alive_neutrons, current_a, current_f):
+    def update_neutron(self, neutron:Neutron, next_id:int, new_neutrons:list, alive_neutrons:bool, current_a:int, current_f:int):
         # === 1. Check if neutron is alive ===
         if not neutron.is_alive: 
             return next_id, new_neutrons, alive_neutrons
@@ -316,7 +316,7 @@ class ReactorV2:
     #     - current_f : fission probability
     # Returns:
     #     - 0 for diffusion, 1 for absorption, 2 for fission
-    def choose_action_thermal(self, current_a, current_f):      ###### MODIFICATION ICI ######
+    def choose_action_thermal(self, current_a:int, current_f:int):      ###### MODIFICATION ICI ######
         """
             Choose an action to perform depending on the moderator used. 
         """
@@ -375,7 +375,7 @@ class ReactorV2:
     # ------------------------------------------------------------------
     # Returns:
     #     - True if the position is inside the grid, False otherwise
-    def is_in_the_grid(self, i, j): 
+    def is_in_the_grid(self, i:int, j:int): 
         return 0 <= i < self.n and 0 <= j < self.m
 
     # ------------------------------------------------------------------
@@ -396,7 +396,8 @@ class ReactorV2:
         # les valeurs sont trop basses donc j'ai utilisé un facteur 
         # multiplicateur pour augmenter la puissance et voir ce que ca donne
         power_watts = power_watts_micro * self.power_scaling_factor
-        #------------------------------------
+        #power_watts = power_watts_micro
+        # ------------------------------------
 
         self.current_power_mw = power_watts / 1e6                       # Conversion between W -> MW
         self.power_history.append(self.current_power_mw)
@@ -550,7 +551,7 @@ class ReactorV2:
         i_term = self.reg_ki * self.reg_integral_error
 
         # === 4. Calculate new target position for regulation rods ===
-        target_position = self.reg_base_position + kp + i_term
+        target_position = max(0.0, min(100.0, self.reg_base_position + kp + i_term))
         print("test target_position", target_position)
 
         # === 5. Send instruction to each regulation rod ===
@@ -568,7 +569,7 @@ class ReactorV2:
             return "ALERT : emergency scram undected."
 
         if self.power_level > self.scram_threshold and not self.scram_triggered:
-            print("!!! EMERGENCY SCRAM ACTIVATED !!!")
+            print(f"!!! EMERGENCY SCRAM ACTIVATED !!!")
             
             #-------------
             print("scram_threshold", self.scram_threshold)
@@ -580,6 +581,7 @@ class ReactorV2:
             for rod in self.scram_rods:
                 rod.target_position = 0.0  # Fully inserted
 
+            #AJOUTER TARGET POSITION DES CONTROLES RODS à 0
             #--------------
             self.regulation_rods = None  # Disable regulation rods after scram
             #--------------

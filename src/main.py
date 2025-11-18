@@ -5,7 +5,7 @@ from ReactorV2 import ReactorV2
 # Configuration parameters for a class II Reactor
 config = {
     # === Simulation settings ===
-    'n_iter' : 200,
+    'n_iter' : 500, # = 50 seconds
     'n_initial' : 100,
     'a' : 0.1,
     'f' : 0.6,

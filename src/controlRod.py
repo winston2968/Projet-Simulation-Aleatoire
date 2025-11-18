@@ -5,14 +5,13 @@
 import numpy as np 
 
 type_rod = {
-    'regulation' : {'total_worth_pcm' : -100, 'max_speed' : 5.0},
-    'compensation' : {'total_worth_pcm' : -1000, 'max_speed' : 0.2},
-    'scram' : {'total_worth_pcm' : -25000, 'max_speed' : 100.0}
+    'regulation' : {'total_worth_pcm' : -500, 'max_speed' : 1.5},
+    'scram' : {'total_worth_pcm' : -20000, 'max_speed' : 100.0}
 }
 
 class ControlRod:
 
-    def __init__(self, id, type='regulation'):
+    def __init__(self, id:str, type:str):
         """
             Model a control bar in a nuclear reactor
         """
@@ -39,7 +38,7 @@ class ControlRod:
     # ------------------------------------------------------------------
     # Move the control rod towards its target position based on its speed
     # ------------------------------------------------------------------
-    def step(self, dt):
+    def step(self, dt:float):
         # === 1. Calculate distance error ===
         error = self.target_position - self.position_percent
         max_move = self.max_speed * dt
