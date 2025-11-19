@@ -315,6 +315,8 @@ class ReactorV2:
 
     # ------------------------------------------------------------------
     # Choose which action to perform for a neutron at each iteration
+    # Rods are only useful against thermal neutrons
+    # For other types, the probabilities of fission and absorption remain unchanged
     # ------------------------------------------------------------------
     # Inputs: 
     #     - d : diffusion probability
@@ -355,7 +357,7 @@ class ReactorV2:
             self.n_fissions += 1
             return 2 
             
- 
+
     def choose_action_other(self, current_a):      ###### MODIFICATION ICI ######
         if self.moderator is None : 
             total = self.d + current_a
@@ -485,7 +487,7 @@ class ReactorV2:
             rod_depth = "N/A"
             if self.regulation_rods:
                 rod_depth = f"{100.0 - self.regulation_rods[0].position_percent:.2f}%" 
-                print(f"reg {self.regulation_rods[0].position_percent:.2f}")              ###ATTENTION####
+                print(f"reg {self.regulation_rods[0].position_percent:.2f}")
         else:
             rod_depth = "--SYSTEM OFF--"
         #-----------------------------------------------
@@ -548,23 +550,15 @@ class ReactorV2:
         if not self.scram_rods:
             return "ALERT : emergency scram undected."
 
-        if self.power_level > self.scram_threshold and not self.scram_triggered:
+        if self.power_level > self.scram_threshold and not self.scram_triggered:            
+            #-------------DEBUG#-------------
             print(f"!!! EMERGENCY SCRAM ACTIVATED !!!")
-            
-            #-------------
             print("scram_threshold", self.scram_threshold)
             print("scram_triggered", self.scram_triggered)
-            #-------------
+            #--------------------------------
 
             self.scram_triggered = True
             self.regulation_rods = None     # Disable autopilote
             
             for rod in self.control_rods:
                 rod.target_position = 0.0   # Fully inserted
-
-            #AJOUTER TARGET POSITION DES CONTROLES RODS à 0
-            #--------------
-            
-             # Disable regulation rods after scram
-
-            #--------------
