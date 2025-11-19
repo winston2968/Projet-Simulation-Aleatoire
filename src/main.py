@@ -27,7 +27,7 @@ config = {
     'colorized' : True,
     'verbose' : False,
     # === Control rods settings ===
-    'rod_active' : False,
+    'rod_active' : True,
     'scram_threshold' : 1.5,    # Threshold for emergency scram
     'control_rods' : [          # Initialisation of rods
         {'id': 'RE01', 'type': 'regulation'},

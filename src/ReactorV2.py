@@ -170,19 +170,22 @@ class ReactorV2:
     # ------------------------------------------------------------------
     def simulate(self): 
         next_id = len(self.neutrons)
-        base_a = self.a
-        base_f = self.f
 
-        # Initialization of probabilities at the first turn
-        current_a = self.a
-        current_f = self.f
+        # === 0. Initialization of probabilities at the first turn ===
+        if self.moderator:
+            base_a = self.moderator.absorb_coeff
+            base_f = self.moderator.fission_coeff
+            base_d = self.moderator.diffuse_coeff
+        else:
+            base_a = self.a
+            base_f = self.f
+            base_d = self.d        
 
         for _ in range(self.n_iter):
             # === 1. Reset the counters ===
             self.n_fissions = 0
 
             # === 2. Calculate rods effects on the previous turn ===
-
             if self.rod_active:
                 # 1 pcm = 1e-5 delta k/k
                 # if rho_rods_pcm is negative, it means we have less fission reactions
@@ -195,6 +198,7 @@ class ReactorV2:
                 reactivity_factor = 1.0
 
             # Actualisation of the probabilities
+            # Rod have not effect on diffus_coef
             current_f = base_f * reactivity_factor
             current_a = base_a + (base_f - current_f)   # To keep the same ratio between a and f
 
@@ -203,7 +207,7 @@ class ReactorV2:
             alive_neutrons = []
 
             for neutron in self.neutrons: 
-                next_id, new_neutrons, alive_neutrons = self.update_neutron(neutron, next_id, new_neutrons, alive_neutrons, current_a, current_f)
+                next_id, new_neutrons, alive_neutrons = self.update_neutron(neutron, next_id, new_neutrons, alive_neutrons, current_a, current_f, base_d)
 
             # Update population
             new_neutrons.extend(alive_neutrons)
@@ -254,7 +258,7 @@ class ReactorV2:
     # Update neutron position/state at each iteration
     # current_a & current_f are the new probabilities
     # ------------------------------------------------------------------
-    def update_neutron(self, neutron:Neutron, next_id:int, new_neutrons:list, alive_neutrons:bool, current_a:int, current_f:int):
+    def update_neutron(self, neutron:Neutron, next_id:int, new_neutrons:list, alive_neutrons:bool, current_a:float, current_f:float, base_d:float):
         # === 1. Check if neutron is alive ===
         if not neutron.is_alive: 
             return next_id, new_neutrons, alive_neutrons
@@ -266,9 +270,8 @@ class ReactorV2:
 
         # === 2. Choose action based on his type ===
         if neutron.type == "thermal": 
-            # Choose an action for a thermak one 
-            # action = self.choose_action_thermal()
-            action = self.choose_action_thermal(current_a, current_f)
+            # Choose an action for a thermak one
+            action = self.choose_action_thermal(current_a, current_f, base_d)
 
             if action == 0: 
                 # Diffusion 
@@ -287,8 +290,7 @@ class ReactorV2:
                     )
                     next_id += 1
         else : 
-            #action = self.choose_action_other()
-            action = self.choose_action_other(current_a)    ###### MODIFICATION ICI ######
+            action = self.choose_action_other(current_a, base_d)
             if action == 0: 
                 # Diffusion 
                 neutron.diffuse(self.max_speed)
@@ -319,64 +321,38 @@ class ReactorV2:
     # For other types, the probabilities of fission and absorption remain unchanged
     # ------------------------------------------------------------------
     # Inputs: 
-    #     - d : diffusion probability
     #     - current_a : absorption probability
     #     - current_f : fission probability
+    #     - base_d : diffusion probability
     # Returns:
     #     - 0 for diffusion, 1 for absorption, 2 for fission
-    def choose_action_thermal(self, current_a:int, current_f:int):
+    def choose_action_thermal(self, current_a:float, current_f:float, base_d:float):
         """
             Choose an action to perform depending on the moderator used. 
         """
 
-        if self.moderator is None :
-            total = self.d + current_a + current_f
-            d1, a1 = self.d/total, current_a/total
-            u = npr.rand()
-            if u < d1: 
-                # Diffuse
-                return 0 
-            elif u < a1 + d1: 
-                # Absorb 
-                return 1 
-            # Fission
-            self.n_fissions += 1
-            return 2
-        else: 
-            a, d, f = current_a, self.moderator.diffuse_coeff, current_f
-            total = a + d + f 
-            d1, a1 = d/total, a/total 
-            u = npr.rand()
-            if u < d1: 
-                # Diffuse
-                return 0
-            elif u < a1 + d1:
-                # Absorb  
-                return 1 
-            # Fission
-            self.n_fissions += 1
-            return 2 
-            
+        total = current_a + current_f + base_d
+        d1 = base_d/total
+        a1 = current_a/total
+        u = npr.rand()
+        if u < d1:
+            # Diffuse
+            return 0
+        elif u < a1 + d1:
+            # Absorb
+            return 1
+        # Fission
+        self.n_fissions += 1
+        return 2
 
-    def choose_action_other(self, current_a):      ###### MODIFICATION ICI ######
-        if self.moderator is None : 
-            total = self.d + current_a
-            d1 = self.d/total
-            u = npr.rand()
-            if u < d1: 
-                return 0 
-            return 1
-        else:
-            #|---------------------------
-            #a,d = self.moderator.absorb_coeff, self.moderator.diffuse_coeff
-            #a, d = current_a, self.moderator.diffuse_coeff           ###### MODIFICATION ICI ######
-            #|---------------------------
-            total = a + d 
-            d1 = d/total 
-            u = npr.rand()
-            if u < d1 : 
-                return 0 
-            return 1
+
+    def choose_action_other(self, current_a:float, base_d:float):
+        total = current_a + base_d
+        d1 = base_d/total
+        u = npr.rand()
+        if u < d1:
+            return 0
+        return 1
 
     
     # ------------------------------------------------------------------
@@ -478,11 +454,12 @@ class ReactorV2:
             table.add_row(*row)
         
         # === 3. Adding reactor infos on panel ===
+        # Reactor infos
         total_neutrons = sum(1 for n in self.neutrons if n.is_alive)
         power = self.power_history[-1]
         temperature = self.temp_history[-1]
         
-        #-----------------------------------------------
+        # Rods infos
         if self.rod_active:
             rod_depth = "N/A"
             if self.regulation_rods:
@@ -490,7 +467,6 @@ class ReactorV2:
                 print(f"reg {self.regulation_rods[0].position_percent:.2f}")
         else:
             rod_depth = "--SYSTEM OFF--"
-        #-----------------------------------------------
 
         info_text = (
             f"[bold cyan]Temperature :[/bold cyan] {temperature} K\n"
