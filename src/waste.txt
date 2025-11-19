@@ -28,3 +28,148 @@ def update_temperature(self):
     self.temp_history.append(self.current_temperature)
     # ---------Previous version---------
     #self.temp_history.append((self.power_history[-1] * (1 - self.loss_factor)) / self.thermic_capacity)
+
+# ------------------------------------------------------------------
+# Simulate a ReactorV2 process
+# ------------------------------------------------------------------
+def simulate(self): 
+    next_id = len(self.neutrons)
+
+    for _ in range(self.n_iter): 
+        new_neutrons = []
+        alive_neutrons = []
+
+        for neutron in self.neutrons: 
+            
+            # Check if neutron is alive
+            if not neutron.is_alive: 
+                continue 
+            
+            """
+            Neutron react only if it's a thermal one. 
+            In the other cases, it diffuse or it's absobrd by the reactor.
+            """
+
+            if neutron.type == "thermal": 
+                # Choose an action for a thermak one 
+                action = self.choose_action_thermal()
+
+                if action == 0: 
+                    # Diffusion 
+                    neutron.diffuse(self.max_speed)
+                
+                elif action == 1: 
+                    # Absorption 
+                    neutron.is_alive = False 
+                    continue 
+
+                else :
+                    n_new = simul_poisson(self.l)
+                    for _ in range(n_new): 
+                        new_neutrons.append(
+                            Neutron(next_id, neutron.x, neutron.y, self.thermalization_probs, type='fast', speed=1.0)
+                        )
+                        next_id += 1
+            else : 
+                action = self.choose_action_other()
+
+                if action == 0: 
+                    # Diffusion 
+                    neutron.diffuse(self.max_speed)
+                
+                elif action == 1: 
+                    # Absorption 
+                    neutron.is_alive = False 
+                    continue 
+
+            # Update internal neutron state
+            neutron.evolve(self.moderator)
+
+            # Applic toric 
+            if self.toric: 
+                neutron.x %= self.n 
+                neutron.y %= self.m
+            
+            if self.is_in_the_grid(neutron.x, neutron.y): 
+                alive_neutrons.append(neutron)
+
+        # Update population
+        #------------
+        new_neutrons.extend(alive_neutrons) # More efficient
+        self.neutrons = new_neutrons
+        #self.neutrons = new_neutrons + alive_neutrons
+        #------------
+
+        # Record history 
+        state_snapshot = {n.id : (n.x,n.y,n.type) for n in self.neutrons}
+        self.history.append(state_snapshot)
+
+        if self.display == True: 
+            if self.colorized:
+                self.display_reactor_colorized()
+            else:
+                self.display_reactor()
+        if self.verbose: 
+            system('clear')
+            print("=========== Running Class II Reactor ===========")
+            print("Iteration : ", len(self.history))
+            print("Nb of neutrons : ", len(self.history[-1]))
+
+    return self.history
+
+# ------------------------------------------------------------------
+# Choose which action to perform for a neutron at each iteration
+# ------------------------------------------------------------------
+# Inputs: 
+#     - d : diffusion probability
+#     - a : absorption probability
+#     - f : fission probability
+# Returns:
+#     - 0 for diffusion, 1 for absorption, 2 for fission
+def choose_action_thermal(self): 
+    """
+    Choose an action to perform depending on the 
+    moderator used. 
+    """
+    if self.moderator is None :
+        total = self.d + self.a + self.f
+        d1, a1 = self.d/total, self.a/total
+        u = npr.rand()
+        if u < d1: 
+            # Diffuse
+            return 0 
+        elif u < a1 + d1: 
+            # Absorb 
+            return 1 
+        # Fission
+        return 2
+    else: 
+        a,d,f = self.moderator.absorb_coeff, self.moderator.diffuse_coeff, self.moderator.fission_coeff
+        total = a + d + f 
+        d1, a1 = d/total, a/total 
+        u = npr.rand()
+        if u < d1: 
+            # Diffuse
+            return 0
+        elif u < a1:
+            # Absorb  
+            return 1 
+        # Fission
+        return 2 
+
+def choose_action_other(self): 
+    if self.moderator is None : 
+        total = self.d + self.a
+        d1 = self.d/total
+        u = npr.rand()
+        if u < d1: 
+            return 0 
+        return 1
+    else: 
+        a,d = self.moderator.absorb_coeff, self.moderator.diffuse_coeff
+        total = a + d 
+        d1 = d/total 
+        u = npr.rand()
+        if u < d1 : 
+            return 0 
+        return 1

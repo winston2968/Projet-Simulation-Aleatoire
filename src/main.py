@@ -9,11 +9,11 @@ config = {
     'n_initial' : 200,
     'a' : 0.1,
     'f' : 0.6,
+    'd' : 0.5,
     'l' : 1.1,
     # === Reactor settings ===
     'n' : 15, 
-    'm' : 15, 
-    'd' : 0.5,
+    'm' : 15,
     'thermic_capacity' : 1e7, 
     'loss_factor' : 0.1,
     'toric' : False,
@@ -44,12 +44,9 @@ with Live(refresh_per_second=10) as live:
 # ==================== TODO ====================
 # 
 # - [DONE] rajouter répartition aléatoire des neutrons au départ 
-# - [DONE] calculer la température moyenne à chaque iter 
-# - changer loi du nb de neutrons générées lors de la fission 
-# - intégrer les barres de contrôle
-# -         Ces barres pourraient être introduites automatiquement dans le réacteur si la réacteur dépasse une 
-# -         certaine température ou un certain nombre de neutrons
+# - [DONE] calculer la température moyenne à chaque iter  
+# - [DONE] intégrer les barres de contrôle
+# - implémenter l'algo des branchements - Marco
 # - (Axel) exporter trajectoire dans un fichier 
-#
 #
 # - (passer en 3D et en continu)
