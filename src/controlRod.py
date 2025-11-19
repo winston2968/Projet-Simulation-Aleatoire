@@ -17,7 +17,7 @@ class ControlRod:
         """
 
         self.id = id
-        self.type = type  # 'regulation', 'compensation', 'scram'
+        self.type = type  # 'regulation', 'scram'
 
         # === 1. Attributes specific to the type of control rod ===
         if type not in type_rod:
