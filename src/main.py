@@ -5,22 +5,21 @@ from ReactorV2 import ReactorV2
 # Configuration parameters for a class II Reactor
 config = {
     # === Simulation settings ===
-    'n_iter' : 500, # = 50 seconds
-    'n_initial' : 200,
-    'a' : 0.1,
-    'f' : 0.6,
-    'd' : 0.5,
-    'l' : 1.1,
+    'n_iter' : 500,     # = 50 seconds
+    'n_initial' : 200,  # Number of neutrons in the initial state
+    'a' : 0.1,          # proba for absorption
+    'f' : 0.6,          # proba for fission
+    'd' : 0.5,          # proba for diffusion
+    'l' : 1.1,          # Parameter of the fish law
     # === Reactor settings ===
     'n' : 15, 
     'm' : 15,
-    'thermic_capacity' : 1e7, 
-    'loss_factor' : 0.1,
+    'thermic_capacity' : 1e7,
     'toric' : False,
-    'moderator' : 'heavy_water', # 'graphite', 'light_water', 'heavy_water'
+    'moderator' : 'heavy_water',        # 'graphite', 'light_water', 'heavy_water'
     'initial_distribution' : 'uniform', # 'center', 'uniform', 'normal'
     # === Neutrons settings ===
-    'max_speed' : 2,      
+    'max_speed' : 2,
     'thermalization_probs': {'fast_to_epi': 0.5, 'epi_to_thermal': 0.5}, 
     # === Display settings ===
     'display' : True, 

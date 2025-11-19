@@ -55,18 +55,19 @@ class ReactorV2:
         self.history = []
 
         # === Reactor parameters ===
-        self.nominal_power_mw= 1000.0       #.MW
+        self.nominal_power_mw= 1000.0       # .MW
         self.power_level = 0.0              # Actual power in %
         self.current_power_mw = 0.0         # Actual power in MW 
-        self.current_temperature = 300.0    #Temperature in Kelvin at t=0 (approx. 26.8°C)
+        self.current_temperature = 300.0    # Temperature in Kelvin at t=0 (approx. 26.8°C)
         
         # Reactor informations to display 
         self.n_fissions = 0 
-        self.fission_energy = 3.2 * 10**(-11)           # .Joules
-        self.temp_history = [self.current_temperature]  # Initialisation with temperature at t=0 (parameters)
-        self.power_history = [self.current_power_mw]    # Initialisation with power at t=0 (parameters)
+        self.fission_energy = 3.2 * 10**(-11)               # .Joules
+        self.temp_history = [self.current_temperature]      # Initialisation with temperature at t=0 (parameters)
+        self.power_history = [self.current_power_mw]        # Initialisation with power at t=0 (parameters)
         self.thermic_capacity = config["thermic_capacity"]
-        self.loss_factor = config['loss_factor']
+        self.temp_coolant = 300.0                           # Cooling water base temperature
+        self.cooling_coef = self.thermic_capacity * 0.05    # Cooling water loss coefficient
 
         # === Controls Rods Parameters ===
         self.rod_active = config.get('rod_active', False)
@@ -207,7 +208,7 @@ class ReactorV2:
             alive_neutrons = []
 
             for neutron in self.neutrons: 
-                next_id, new_neutrons, alive_neutrons = self.update_neutron(neutron, next_id, new_neutrons, alive_neutrons, current_a, current_f, base_d)
+                next_id, new_neutrons, alive_neutrons = self.update_neutron(neutron, next_id, new_neutrons, alive_neutrons, base_a, current_a, current_f, base_d)
 
             # Update population
             new_neutrons.extend(alive_neutrons)
@@ -258,7 +259,7 @@ class ReactorV2:
     # Update neutron position/state at each iteration
     # current_a & current_f are the new probabilities
     # ------------------------------------------------------------------
-    def update_neutron(self, neutron:Neutron, next_id:int, new_neutrons:list, alive_neutrons:bool, current_a:float, current_f:float, base_d:float):
+    def update_neutron(self, neutron:Neutron, next_id:int, new_neutrons:list, alive_neutrons:bool, base_a:float, current_a:float, current_f:float, base_d:float):
         # === 1. Check if neutron is alive ===
         if not neutron.is_alive: 
             return next_id, new_neutrons, alive_neutrons
@@ -290,7 +291,7 @@ class ReactorV2:
                     )
                     next_id += 1
         else : 
-            action = self.choose_action_other(current_a, base_d)
+            action = self.choose_action_other(base_a, base_d)
             if action == 0: 
                 # Diffusion 
                 neutron.diffuse(self.max_speed)
@@ -323,6 +324,7 @@ class ReactorV2:
     # Inputs: 
     #     - current_a : absorption probability
     #     - current_f : fission probability
+    #     - base_a : base absorption probability for no thermal
     #     - base_d : diffusion probability
     # Returns:
     #     - 0 for diffusion, 1 for absorption, 2 for fission
@@ -346,8 +348,8 @@ class ReactorV2:
         return 2
 
 
-    def choose_action_other(self, current_a:float, base_d:float):
-        total = current_a + base_d
+    def choose_action_other(self, base_a:float, base_d:float):
+        total = base_a + base_d
         d1 = base_d/total
         u = npr.rand()
         if u < d1:
@@ -371,33 +373,34 @@ class ReactorV2:
     def update_temperature_and_power_level(self):
         """
             Updates power (MW), power level (%), and temperature (K)
+            Uses Newton's Law of Cooling
         """
 
-        # === 1. Calculate power (MW) ===
+        # === 1. Calculate generated power (MW) ===
         # (Energie totale) / (Temps)
         energy_joules_per_step = self.n_fissions * self.fission_energy          # .Joules
         power_watts_micro = energy_joules_per_step / self.dt                    # .Watts
+        power_watts_generated = (power_watts_micro) * self.power_scaling_factor
 
-        #------------------TEST--------------
-        # les valeurs sont trop basses donc j'ai utilisé un facteur 
-        # multiplicateur pour augmenter la puissance et voir ce que ca donne
-        power_watts = power_watts_micro * self.power_scaling_factor
-        # ------------------------------------
 
-        self.current_power_mw = power_watts / 1e6                       # Conversion between W -> MW
+        self.current_power_mw = power_watts_generated / 1e6                     # Conversion between W -> MW
         self.power_history.append(self.current_power_mw)
 
-        # === 2. Maj power level(%) for the regulator rod ===
+        # === 2. Update power level(%) for the regulator rod ===
         if self.nominal_power_mw > 0:
             self.power_level = self.current_power_mw / self.nominal_power_mw
         else:
             self.power_level = 0.0
 
-        # === 3. Maj temperature (based on power in watts) ===
-        power_net_watts = power_watts * (1 - self.loss_factor)
+        # === 3. Calculate cooling power (P_out) ===
+        # P_out = h * (T_reacteur - T_eau)
+        delta_T = self.current_temperature - self.temp_coolant
+        power_watts_cooling = self.cooling_coef * delta_T
 
         # === 4. Temperature variation ===
+        # P_net = P_in - P_out
         # dT = (P_net / C) * dt
+        power_net_watts = power_watts_generated - power_watts_cooling
         dT_per_step = (power_net_watts / self.thermic_capacity) * self.dt
 
         self.current_temperature += dT_per_step
