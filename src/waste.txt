@@ -1,0 +1,30 @@
+########################################
+# Fonctions we dont used anymore
+########################################
+
+# ------------------------------------------------------------------
+# Calculate current reactor power
+# ------------------------------------------------------------------
+def update_power(self):
+    self.power_history.append((self.n_fissions * self.fission_energy) / 1e6)
+
+
+# ------------------------------------------------------------------
+# Calculate current reactor temperature of the reactor 
+# ------------------------------------------------------------------
+def update_temperature(self):
+    if not self.power_history:
+        self.temp_history.append(self.current_temperature)
+        return
+    
+    # Power in watts (pwoer_history is in MW)
+    power_watts = (self.power_history[-1] * 1e6) * (1 - self.loss_factor)
+
+    # Temperature variation (dT/dt)
+    dT_per_step = (power_watts / self.thermic_capacity) * self.dt
+
+    # New temperature
+    self.current_temperature += dT_per_step
+    self.temp_history.append(self.current_temperature)
+    # ---------Previous version---------
+    #self.temp_history.append((self.power_history[-1] * (1 - self.loss_factor)) / self.thermic_capacity)

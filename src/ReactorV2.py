@@ -18,7 +18,7 @@ from controlRod import ControlRod
 
 class Moderator: 
     """
-    Slow down neutrons depending on its efficiency.
+        Slow down neutrons depending on its efficiency.
     """
 
     def __init__(self, name:str, absorb_coeff:float, diffuse_coeff:float, fission_coeff:float, slow_fast, slow_epi=0.3): 
@@ -68,10 +68,10 @@ class ReactorV2:
         self.thermic_capacity = config["thermic_capacity"]
         self.loss_factor = config['loss_factor']
 
-#--------------------EN TRAVAUX-----------------------------------------------
         # === Controls Rods Parameters ===
-        self.rod_active = config.get('rod_active', False)   # If we want to use control rod (no implemented yet)
-
+        self.rod_active = config.get('rod_active', False)
+        
+        # Add control rods to a global list
         self.control_rods = []
         config_rods_list = config.get('control_rods', [])
         for rod_config in config_rods_list:
@@ -90,13 +90,13 @@ class ReactorV2:
 
         # !!! We have to ajust this parameters !!!
         self.reg_base_position = 50.0   # Base position for regulation rods (in percent)
-        self.reg_kp = 50.0              # Proportional gain for
-        self.reg_ki = 25.0               # Integral gain
+                                        # 100.0 = OUT - 0.0 = IN
+        self.reg_kp = 25.0              # Proportional gain for
+        self.reg_ki = 10.0              # Integral gain
         self.reg_integral_error = 0.0   # Memory of the integral error
         self.power_setpoint = 1.0       # Target power level (1.0 = 100%)
         self.dt = 0.1                   # Time step for control rod updates (seconds)
         self.power_scaling_factor = 1.5e17
-#-------------------------------------------------------------------
 
         # Different moderator properties 
         MODERATORS = {
@@ -182,13 +182,17 @@ class ReactorV2:
             self.n_fissions = 0
 
             # === 2. Calculate rods effects on the previous turn ===
-            # 1 pcm = 1e-5 delta k/k
-            # if rho_rods_pcm is negative, it means we have less fission reactions
-            rho_rods_pcm = sum(rod.get_reactivity_pcm() for rod in self.control_rods)
-            rho_rods_abs = rho_rods_pcm / 1e5
-            reactivity_factor = 1.0 + rho_rods_abs
-            if reactivity_factor < 0.0 : 
-                reactivity_factor = 0.0
+
+            if self.rod_active:
+                # 1 pcm = 1e-5 delta k/k
+                # if rho_rods_pcm is negative, it means we have less fission reactions
+                rho_rods_pcm = sum(rod.get_reactivity_pcm() for rod in self.control_rods)
+                rho_rods_abs = rho_rods_pcm / 1e5
+                reactivity_factor = 1.0 + rho_rods_abs
+                if reactivity_factor < 0.0 : 
+                    reactivity_factor = 0.0
+            else:
+                reactivity_factor = 1.0
 
             # Actualisation of the probabilities
             current_f = base_f * reactivity_factor
@@ -210,22 +214,23 @@ class ReactorV2:
             self.update_temperature_and_power_level()
 
             # === 5. Rods pilotage ===
-            # Check scram level
-            self.check_emergency_scram()
+            if self.rod_active:
+                # Check scram level
+                self.check_emergency_scram()
 
-            # Launch automatic pilote
-            self.update_automatic_control_rods()
-            
-            #-------------------DEBUG-------------------
-            for rod in self.control_rods:
-                print(f"target position {rod.id}", rod.target_position)
-                print(f"current position {rod.id}", rod.position_percent)
-            #------------------------------------------
+                # Launch automatic pilote
+                self.update_automatic_control_rods()
+                
+                #-------------------DEBUG-------------------
+                for rod in self.control_rods:
+                    print(f"target position {rod.id}", rod.target_position)
+                    print(f"current position {rod.id}", rod.position_percent)
+                #------------------------------------------
 
-            # Move the bars accordingly
-            # Their new position will be taken into account in the next round
-            for rod in self.control_rods:
-                rod.step(self.dt)
+                # Move the bars accordingly
+                # Their new position will be taken into account in the next round
+                for rod in self.control_rods:
+                    rod.step(self.dt)
             
             # === 6. History and display ===
             state_snapshot = {n.id : (n.x,n.y,n.type) for n in self.neutrons}
@@ -244,6 +249,7 @@ class ReactorV2:
                 print(f"Nb of neutrons : {len(self.neutrons)}")
         return self.history
     
+
     # ------------------------------------------------------------------
     # Update neutron position/state at each iteration
     # current_a & current_f are the new probabilities
@@ -262,7 +268,7 @@ class ReactorV2:
         if neutron.type == "thermal": 
             # Choose an action for a thermak one 
             # action = self.choose_action_thermal()
-            action = self.choose_action_thermal(current_a, current_f)   ###### MODIFICATION ICI ######
+            action = self.choose_action_thermal(current_a, current_f)
 
             if action == 0: 
                 # Diffusion 
@@ -316,7 +322,7 @@ class ReactorV2:
     #     - current_f : fission probability
     # Returns:
     #     - 0 for diffusion, 1 for absorption, 2 for fission
-    def choose_action_thermal(self, current_a:int, current_f:int):      ###### MODIFICATION ICI ######
+    def choose_action_thermal(self, current_a:int, current_f:int):
         """
             Choose an action to perform depending on the moderator used. 
         """
@@ -335,8 +341,7 @@ class ReactorV2:
             self.n_fissions += 1
             return 2
         else: 
-            #a,d,f = self.moderator.absorb_coeff, self.moderator.diffuse_coeff, self.moderator.fission_coeff
-            a, d, f = current_a, self.moderator.diffuse_coeff, current_f            #######MODIFICATION ICI#########
+            a, d, f = current_a, self.moderator.diffuse_coeff, current_f
             total = a + d + f 
             d1, a1 = d/total, a/total 
             u = npr.rand()
@@ -350,7 +355,7 @@ class ReactorV2:
             self.n_fissions += 1
             return 2 
             
-    
+ 
     def choose_action_other(self, current_a):      ###### MODIFICATION ICI ######
         if self.moderator is None : 
             total = self.d + current_a
@@ -359,9 +364,11 @@ class ReactorV2:
             if u < d1: 
                 return 0 
             return 1
-        else: 
+        else:
+            #|---------------------------
             #a,d = self.moderator.absorb_coeff, self.moderator.diffuse_coeff
-            a, d = current_a, self.moderator.diffuse_coeff           ###### MODIFICATION ICI ######
+            #a, d = current_a, self.moderator.diffuse_coeff           ###### MODIFICATION ICI ######
+            #|---------------------------
             total = a + d 
             d1 = d/total 
             u = npr.rand()
@@ -377,6 +384,7 @@ class ReactorV2:
     #     - True if the position is inside the grid, False otherwise
     def is_in_the_grid(self, i:int, j:int): 
         return 0 <= i < self.n and 0 <= j < self.m
+
 
     # ------------------------------------------------------------------
     # Calculate current reactor power in MW & %
@@ -396,7 +404,6 @@ class ReactorV2:
         # les valeurs sont trop basses donc j'ai utilisé un facteur 
         # multiplicateur pour augmenter la puissance et voir ce que ca donne
         power_watts = power_watts_micro * self.power_scaling_factor
-        #power_watts = power_watts_micro
         # ------------------------------------
 
         self.current_power_mw = power_watts / 1e6                       # Conversion between W -> MW
@@ -418,36 +425,6 @@ class ReactorV2:
         self.current_temperature += dT_per_step
         self.temp_history.append(self.current_temperature)
 
-
-    """
-    # ------------------------------------------------------------------
-    # Calculate current reactor power
-    # ------------------------------------------------------------------
-    def update_power(self):
-        self.power_history.append((self.n_fissions * self.fission_energy) / 1e6)
-
-
-    # ------------------------------------------------------------------
-    # Calculate current reactor temperature of the reactor 
-    # ------------------------------------------------------------------
-    def update_temperature(self):
-        if not self.power_history:
-            self.temp_history.append(self.current_temperature)
-            return
-        
-        # Power in watts (pwoer_history is in MW)
-        power_watts = (self.power_history[-1] * 1e6) * (1 - self.loss_factor)
-
-        # Temperature variation (dT/dt)
-        dT_per_step = (power_watts / self.thermic_capacity) * self.dt
-
-        # New temperature
-        self.current_temperature += dT_per_step
-        self.temp_history.append(self.current_temperature)
-        # ---------Previous version---------
-        #self.temp_history.append((self.power_history[-1] * (1 - self.loss_factor)) / self.thermic_capacity)
-
-    """
 
     # ------------------------------------------------------------------
     # Display Reactor State
@@ -504,10 +481,13 @@ class ReactorV2:
         temperature = self.temp_history[-1]
         
         #-----------------------------------------------
-        rod_depth = "N/A"
-        if self.regulation_rods:
-            rod_depth = f"{100.0 - self.regulation_rods[0].position_percent:.2f}%" 
-            print(f"reg {self.regulation_rods[0].position_percent:.2f}")              ###ATTENTION####
+        if self.rod_active:
+            rod_depth = "N/A"
+            if self.regulation_rods:
+                rod_depth = f"{100.0 - self.regulation_rods[0].position_percent:.2f}%" 
+                print(f"reg {self.regulation_rods[0].position_percent:.2f}")              ###ATTENTION####
+        else:
+            rod_depth = "--SYSTEM OFF--"
         #-----------------------------------------------
 
         info_text = (
@@ -529,7 +509,6 @@ class ReactorV2:
         self.live.update(display)
         sleep(0.2)
 
-# -----------------------------------------------------------------------------------------------
 
     # ------------------------------------------------------------------
     # Update control rods positions based on power error
@@ -560,6 +539,7 @@ class ReactorV2:
         for rod in self.regulation_rods:
             rod.target_position = clamped_target
 
+
     # ------------------------------------------------------------------
     # Check if an emergency scram is needed based on reactor conditions
     # If so, insert scram rods fully and immediately
@@ -577,11 +557,14 @@ class ReactorV2:
             #-------------
 
             self.scram_triggered = True
-
-            for rod in self.scram_rods:
-                rod.target_position = 0.0  # Fully inserted
+            self.regulation_rods = None     # Disable autopilote
+            
+            for rod in self.control_rods:
+                rod.target_position = 0.0   # Fully inserted
 
             #AJOUTER TARGET POSITION DES CONTROLES RODS à 0
             #--------------
-            self.regulation_rods = None  # Disable regulation rods after scram
+            
+             # Disable regulation rods after scram
+
             #--------------

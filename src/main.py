@@ -6,7 +6,7 @@ from ReactorV2 import ReactorV2
 config = {
     # === Simulation settings ===
     'n_iter' : 500, # = 50 seconds
-    'n_initial' : 100,
+    'n_initial' : 200,
     'a' : 0.1,
     'f' : 0.6,
     'l' : 1.1,
@@ -27,7 +27,7 @@ config = {
     'colorized' : True,
     'verbose' : False,
     # === Control rods settings ===
-    'rod_active' : True,
+    'rod_active' : False,
     'scram_threshold' : 1.5,    # Threshold for emergency scram
     'control_rods' : [          # Initialisation of rods
         {'id': 'RE01', 'type': 'regulation'},
