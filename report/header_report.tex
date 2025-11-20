@@ -45,6 +45,8 @@
 \usepackage{adjustbox}
 \usepackage{float} % For image positionning
 \usepackage{enumitem}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins, breakable}
 
 
 % \setlist[itemize]{topsep=0pt,itemsep=2pt}
@@ -194,3 +196,34 @@
 \lstset{
     style=mystyle
 }
+
+
+% Define colorbox
+\newtcolorbox{remarkBox}[1][]{%
+  colback=yellow!10!white,
+  colframe=yellow!60!black,
+  arc=4mm,
+  boxrule=0.8pt,
+  left=6pt, right=6pt, top=6pt, bottom=6pt,
+  enhanced,
+  title=Remarque~\thetcbcounter,
+  #1
+}
+
+% Define exampleBox
+\newtcolorbox{exampleBox}[1][]{%
+  colback=blue!10!white,     % fond bleu clair
+  colframe=blue!50!black,    % bordure un peu foncée
+  colbacktitle=blue!30,      % fond de l'en-tête
+  coltitle=white,            % texte de l'en-tête en blanc
+  arc=4mm,
+  boxrule=0.8pt,
+  left=6pt, right=6pt, top=6pt, bottom=6pt,
+  enhanced,
+  title=Exemple~\thetcbcounter,
+  #1
+}
+
+
+% Background color 
+\definecolor{mydarkblue}{HTML}{252A70}

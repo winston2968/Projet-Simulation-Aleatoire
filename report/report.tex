@@ -74,6 +74,10 @@ produit $3 \times 10^7$ J alors la fission de 1kg d'uranium en produit $ 8 \time
 Ce surplus d'énergie permet actuellement de produire de l'électricité dans nos centrales nucléaires. La chaleur 
 produite vaporise de l'eau qui fait ensuite tourner des turbines pour produire de l'électricité. 
 
+\begin{remarkBox}[title=Un détour par la fusion]
+
+\end{remarkBox}
+
 \subsection{Différents types de neutrons}
 
 Pour induire une réaction en chaîne dans un réacteur et la maintenir, il faut jouer avec différents paramètres tels que 
@@ -145,70 +149,70 @@ En pratique, différents matériaux sont utilisés, les voici dans le tableau su
     \label{tab:moderateurs}
 \end{table}
 
-\subsection{La section efficace}
+% \subsection{La section efficace}
 
-Pour modéliser correctement les interactions entre les neutrons et la matière, il est nécessaire d’introduire la notion de 
-\emph{section efficace}. Celle-ci traduit la probabilité qu’un neutron interagisse avec un noyau lorsqu’il le rencontre. 
-En d'autres termes, elle représente une surface fictive caractérisant la capacité d’un noyau à provoquer une réaction 
-(nucléaire ou non) lorsqu’il est bombardé par des neutrons.
+% Pour modéliser correctement les interactions entre les neutrons et la matière, il est nécessaire d’introduire la notion de 
+% \emph{section efficace}. Celle-ci traduit la probabilité qu’un neutron interagisse avec un noyau lorsqu’il le rencontre. 
+% En d'autres termes, elle représente une surface fictive caractérisant la capacité d’un noyau à provoquer une réaction 
+% (nucléaire ou non) lorsqu’il est bombardé par des neutrons.
 
-La section efficace, notée $\sigma$, s’exprime en \emph{barn} :
-    \[ 1\,\text{barn} = 10^{-28}\,\text{m}^2 \]
-Plus la valeur de $\sigma$ est grande, plus la probabilité d’interaction est élevée. Elle dépend à la fois :
-\begin{itemize}
-    \item de la nature du noyau cible (Uranium, Plutonium, etc.),
-    \item du type d’interaction considérée (diffusion, capture, fission),
-    \item et surtout de l’énergie du neutron incident.
-\end{itemize}
+% La section efficace, notée $\sigma$, s’exprime en \emph{barn} :
+%     \[ 1\,\text{barn} = 10^{-28}\,\text{m}^2 \]
+% Plus la valeur de $\sigma$ est grande, plus la probabilité d’interaction est élevée. Elle dépend à la fois :
+% \begin{itemize}
+%     \item de la nature du noyau cible (Uranium, Plutonium, etc.),
+%     \item du type d’interaction considérée (diffusion, capture, fission),
+%     \item et surtout de l’énergie du neutron incident.
+% \end{itemize}
 
-La figure suivante illustre typiquement la variation de la section efficace de fission en fonction de l’énergie du neutron : 
-elle est très faible pour les neutrons rapides, et augmente considérablement lorsque les neutrons deviennent thermiques. 
-C’est cette dépendance énergétique qui rend le rôle du modérateur essentiel dans les réacteurs à neutrons thermiques.
+% La figure suivante illustre typiquement la variation de la section efficace de fission en fonction de l’énergie du neutron : 
+% elle est très faible pour les neutrons rapides, et augmente considérablement lorsque les neutrons deviennent thermiques. 
+% C’est cette dépendance énergétique qui rend le rôle du modérateur essentiel dans les réacteurs à neutrons thermiques.
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[scale=0.25]{images/section_efficace.png}
-    \caption{Évolution typique de la section efficace de fission en fonction de l’énergie du neutron}
-    \label{fig:section_efficace}
-\end{figure}
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[scale=0.25]{images/section_efficace.png}
+%     \caption{Évolution typique de la section efficace de fission en fonction de l’énergie du neutron}
+%     \label{fig:section_efficace}
+% \end{figure}
 
-On distingue généralement plusieurs types de sections efficaces :
-\begin{itemize}
-    \item $\sigma_f$ : \textbf{section efficace de fission}, probabilité qu’un neutron provoque une fission,
-    \item $\sigma_c$ : \textbf{section efficace de capture}, probabilité qu’un neutron soit absorbé sans fission,
-    \item $\sigma_s$ : \textbf{section efficace de diffusion}, probabilité qu’un neutron soit simplement dévié.
-\end{itemize}
+% On distingue généralement plusieurs types de sections efficaces :
+% \begin{itemize}
+%     \item $\sigma_f$ : \textbf{section efficace de fission}, probabilité qu’un neutron provoque une fission,
+%     \item $\sigma_c$ : \textbf{section efficace de capture}, probabilité qu’un neutron soit absorbé sans fission,
+%     \item $\sigma_s$ : \textbf{section efficace de diffusion}, probabilité qu’un neutron soit simplement dévié.
+% \end{itemize}
 
-Leur somme constitue la \emph{section efficace totale} :
-    \[ \sigma_t = \sigma_f + \sigma_c + \sigma_s \]
+% Leur somme constitue la \emph{section efficace totale} :
+%     \[ \sigma_t = \sigma_f + \sigma_c + \sigma_s \]
 
-Pour illustrer ces valeurs, le tableau suivant compare les sections efficaces de différents isotopes couramment utilisés 
-dans les réacteurs nucléaires pour des neutrons thermiques :
+% Pour illustrer ces valeurs, le tableau suivant compare les sections efficaces de différents isotopes couramment utilisés 
+% dans les réacteurs nucléaires pour des neutrons thermiques :
 
-\begin{table}[H]
-    \centering
-    \begin{adjustbox}{max width=\textwidth}
-        \begin{tabular}{@{}>{\RaggedRight\arraybackslash}p{3cm}
-                            >{\RaggedRight\arraybackslash}p{3.5cm}
-                            >{\RaggedRight\arraybackslash}p{3.5cm}
-                            >{\RaggedRight\arraybackslash}p{3.5cm}@{}}
-            \toprule
-            \textbf{Isotope} & \textbf{Section efficace de fission ($\sigma_f$)} & \textbf{Section efficace de capture ($\sigma_c$)} & \textbf{Remarques} \\ 
-            \midrule
-            \textbf{Uranium-235} & $\sim$580 barns & $\sim$100 barns & Très réactif aux neutrons thermiques \\ 
-            \textbf{Uranium-238} & $\sim$0.02 barns & $\sim$2.7 barns & Ne fissionne qu’avec des neutrons rapides \\ 
-            \textbf{Plutonium-239} & $\sim$750 barns & $\sim$270 barns & Fortement fissile, produit secondaire du cycle U-238 \\ 
-            \bottomrule
-        \end{tabular}
-    \end{adjustbox}
-    \caption{Comparaison des sections efficaces pour différents isotopes fissiles}
-    \label{tab:sections_efficaces}
-\end{table}
+% \begin{table}[H]
+%     \centering
+%     \begin{adjustbox}{max width=\textwidth}
+%         \begin{tabular}{@{}>{\RaggedRight\arraybackslash}p{3cm}
+%                             >{\RaggedRight\arraybackslash}p{3.5cm}
+%                             >{\RaggedRight\arraybackslash}p{3.5cm}
+%                             >{\RaggedRight\arraybackslash}p{3.5cm}@{}}
+%             \toprule
+%             \textbf{Isotope} & \textbf{Section efficace de fission ($\sigma_f$)} & \textbf{Section efficace de capture ($\sigma_c$)} & \textbf{Remarques} \\ 
+%             \midrule
+%             \textbf{Uranium-235} & $\sim$580 barns & $\sim$100 barns & Très réactif aux neutrons thermiques \\ 
+%             \textbf{Uranium-238} & $\sim$0.02 barns & $\sim$2.7 barns & Ne fissionne qu’avec des neutrons rapides \\ 
+%             \textbf{Plutonium-239} & $\sim$750 barns & $\sim$270 barns & Fortement fissile, produit secondaire du cycle U-238 \\ 
+%             \bottomrule
+%         \end{tabular}
+%     \end{adjustbox}
+%     \caption{Comparaison des sections efficaces pour différents isotopes fissiles}
+%     \label{tab:sections_efficaces}
+% \end{table}
 
-Ainsi, la grande différence de section efficace entre l’uranium-235 et l’uranium-238 explique pourquoi seul le premier 
-est utilisé comme combustible principal dans les réacteurs à neutrons thermiques. 
-La compréhension et la maîtrise de cette grandeur sont donc essentielles pour modéliser la probabilité d’absorption, 
-de diffusion et de fission dans un réacteur.
+% Ainsi, la grande différence de section efficace entre l’uranium-235 et l’uranium-238 explique pourquoi seul le premier 
+% est utilisé comme combustible principal dans les réacteurs à neutrons thermiques. 
+% La compréhension et la maîtrise de cette grandeur sont donc essentielles pour modéliser la probabilité d’absorption, 
+% de diffusion et de fission dans un réacteur.
 
 \subsection{Le facteur de multiplication \( k \)}
 
@@ -218,9 +222,9 @@ si la réaction en chaîne s’amplifie, se stabilise ou s’éteint.
 
 On définit \( k \) comme le rapport entre le nombre moyen de neutrons produits par fission à une génération \( n+1 \) 
 et le nombre de neutrons présents à la génération \( n \) :
-    \[
-        k = \frac{\text{Nombre de neutrons à la génération } (n+1)}{\text{Nombre de neutrons à la génération } n}.
-    \]
+    \begin{equation}
+        k = \frac{\text{Nombre de neutrons à la génération } (n+1)}{\text{Nombre de neutrons à la génération } n}
+    \end{equation}
 Ce facteur dépend directement de la composition du combustible, du taux d’absorption, du pouvoir modérateur et de la géométrie du réacteur.  
 \begin{itemize}
     \item Si \( k < 1 \) : chaque génération produit moins de neutrons que la précédente, la réaction en chaîne finit par s’éteindre.  
@@ -249,9 +253,9 @@ Ce facteur dépend directement de la composition du combustible, du taux d’abs
 \end{table}
  
 En pratique, on décompose le facteur de multiplication en plusieurs composantes physiques :
-    \[
+    \begin{equation}
         k = \eta \, f \, p \, \varepsilon,
-    \]
+    \end{equation}
 où :
 \begin{itemize}
     \item \( \eta \) : nombre moyen de neutrons produits par fission et disponibles pour entretenir la réaction,  
@@ -269,15 +273,10 @@ du modérateur, afin de maintenir un équilibre critique stable (\( k = 1 \)) lo
 Les barres de contrôle sont le principal mécanisme de pilotage et d'arrêt d'urgence d'un réacteur nucléaire. 
 Elles servent à contrôler la population de neutrons et, par conséquent, la puissance thermique du cœur.
 
-\subsubsection{Principe de Fonctionnement}
-Leur fonctionnement repose sur l'\textbf{absorption neutronique}. 
+\paragraph{Principe.} Leur fonctionnement repose sur l'\textbf{absorption neutronique}. 
 Elles sont fabriquées à partir de matériaux dits \textbf{poisons à neutrons}, c'est-à-dire des matériaux ayant
-une très haute probabilité d'absorber les neutrons sans provoquer de fission.\\
-
-
-Les matériaux couramment utilisés sont le Bore (B), le Cadmium (Cd), l'Hafnium (Hf) ou le Gadolinium (Gd).\\
-
-
+une très haute probabilité d'absorber les neutrons sans provoquer de fission. 
+Les matériaux couramment utilisés sont le Bore (B), le Cadmium (Cd), l'Hafnium (Hf) ou le Gadolinium (Gd).
 En insérant ces barres dans le cœur du réacteur, on introduit un \textbf{puits} à neutrons :
 \begin{itemize}
     \item Les neutrons entrant en contact avec la barre sont capturés par cette dernière.
@@ -286,74 +285,65 @@ En insérant ces barres dans le cœur du réacteur, on introduit un \textbf{puit
 \end{itemize}
 A l'inverse, en les retirant, on augmente la réactivité et la puissance croît.
 
-\subsubsection{Types et Rôles des Barres de contrôle}
-Les barres ne sont pas toutes identiques et ont chacune une vitesse de déplacement ainsi qu'une amplitude différente :\\
 
-\begin{description}
-    \item[Barres de Régulation (ou de Pilotage)] 
+\paragraph{Type et rôle.} Les barres ne sont pas toutes identiques et ont chacune une vitesse de déplacement ainsi qu'une amplitude différente :
+\begin{itemize}
+    \item \emph{Barres de Régulation (ou de Pilotage)} :  
     Ont un "poids" (valeur d'antiréactivité) relativement faible. Elles sont conçues pour se déplacer rapidement, continuellement et sont 
     pilotées par un automate. Leur rôle est de compenser les petites fluctuations de puissance 
     pour maintenir le réacteur au niveau attendu.
 
-    \item[Barres de Compensation (ou "Shim")] 
+    \item \emph{Barres de Compensation (ou "Shim")} : 
     Ont un poids antiréactif beaucoup plus important. Elles sont déplacées très lentement pour compenser les grands 
     changements de réactivité à long terme, comme l'usure du combustible ou l'empoisonnement des barres.
     
-    \item[Barres d'Arrêt d'Urgence (SCRAM)] 
+    \item \emph{Barres d'Arrêt d'Urgence (SCRAM)} :
     représentent la solution de dernier recours. Elles ont un poids antiréactif très important et sont 
     conçues pour s'insérer extrêmement rapidement. Leur rôle principal est de stopper la réaction en chaîne de manière 
-    quasi instantanée en cas d'anomalie grave (ex: puissance dépassant le seuil de sécurité).\\
-\end{description}
-
+    quasi instantanée en cas d'anomalie grave (ex: puissance dépassant le seuil de sécurité, système de reffroidissement défectueux, etc...).
+\end{itemize}
 
 Pour des raisons pratiques, nous choisirons d'implémenter uniquement les barres de régulation ainsi que les barres SCRAM.
-En effet, les barres de compensation sont utilisées sur des temps très long et pour des taches qui dépassent notre simulation.
+En effet, les barres de compensation sont utilisées sur des temps très long et pour des tâches qui dépassent notre simulation.
 
-\subsubsection{Modélisation de l'Efficacité}
-L'un des défis de la modélisation de cette fonctionnalité a été que l'efficacité d'une barre n'est pas linéaire. En effet, passé le coeur du réacteur,
-l'antiréactivité ne croît plus à la même vitesse. Aussi, il a fallu prendre en compte cet aspect en trouvant des alternatives.
+L'un des défis de la modélisation de cette fonctionnalité a été que l'efficacité d'une 
+barre n'est pas linéaire. En effet, passé le coeur du réacteur, l'antiréactivité ne croît plus à la même vitesse. 
+Aussi, il a fallu prendre en compte cet aspect en trouvant des alternatives.
 
-\paragraph{Modèle Global}
-Une approche générale (que nous avions d'abord implémentée) consiste à calculer un "poids" global, noté \(\rho\). 
-L'efficacité de la barre en fonction de sa profondeur d'insertion \(z\) (où \(z=0\) pour "sorti" et \(z=1\) pour "inséré") 
-suit une \textbf{courbe en S}, pouvant être approximée par :
+\paragraph{Modèle Global.} Une approche générale (que nous avions d'abord implémentée) consiste à calculer 
+un "poids" global, noté $\rho$. L'efficacité de la barre en fonction de sa profondeur d'insertion 
+$z$ (où $z=0$ pour "sorti" et $z=1$ pour "inséré") suit une \textbf{courbe en S}, pouvant être approximée par :
 
-$$ \rho(z) = \rho_{total} \times \frac{1}{2} (1 - \cos(\pi z)) $$
+    \begin{equation}
+        \rho(z) = \rho_{total} \times \frac{1}{2} (1 - \cos(\pi z))
+    \end{equation}
 
-Cette antiréactivité globale \(\rho\) est ensuite utilisée pour réduire la probabilité de fission \(f\) 
+Dans notre modèle, cette antiréactivité globale \(\rho\) est ensuite utilisée pour réduire la probabilité de fission \(f\) 
 dans tout le réacteur.
 
+\paragraph{Loi de refroidissent de Newton.}
+Un des principaux indicateurs de la puissance du réacteur est sa température. Nous avons choisis de nous fier à ce paramètre 
+pour la modélisation. Pour cela, nous devions la calculer proprement. Celle-ci dépend du nombre de neutrons présents, de 
+leur vitesse, du nombre moyen de réactions, etc... Mais un des facteurs principaux de sa diminution est la différence 
+de température entre le réacteur et son modérateur. Nous avons donc choisi de modéliser cet échange d'énergie thermique 
+grâce à la loi de reffroidissement de Newton. 
+Elle énonce que le taux de perte de chaleur d'un corps est proportionnel à la différence 
+de température entre le corps et le milieu environnant :
 
+    \begin{equation}
+        P_{\text{out}} = h \cdot (T(t) - T_{\text{env}})
+    \end{equation}
 
+    avec : 
+\begin{itemize}
+    \item $P_\text{out}$ la puissance thermique évacuée (en Watts)
+    \item $h$ la puissance thermique évacuée (en Watts)
+    \item $T(t)$ la temperature du réacteur à l'instant $t$
+    \item $T_\text{ext}$ La température de l'environnement (ici notre eau de refroidissent à $300K$)
+\end{itemize}
 
-\paragraph{Loi de refroidissent de Newton}
-PLACER AU BON ENDROIT
-
-La loi de refroidissent de Newton, énonce que le taux de perte de chaleur d'un corps est proportionnel à la différence de température entre le corps et le milieu environnant.
-
-équation mathématique :
-
-$$ P_{\text{out}} = h \cdot (T(t) - T_{\text{env}})$$
-
-
-avec :
-\[
-    $P{\text{out}} \text{: la puissance thermique évacuée (en Watts).}$
-\]
-
-\[
-    $h \text{: le coefficient de transfert thermique (cooling\_coeff).}$
-\]
-
-\[
-    $T(t) \text{: la temperature du réacteur à l'instant} t$.
-\]
-
-\[
-    $T_{\text{env}} \text{: La température de l'environnement (ici notre eau de refroidissent à } 300K \text{).}$
-\]
-
-l'introduire avec pq on l'a utilisé\\
+Ainsi, en suivant cette loi de Newton, la température d'un corps dont la température est supérieure à son environnement 
+suit un courbe similaire à celle-ci dessous :
 
 \begin{figure}[H]
     \centering
@@ -361,36 +351,34 @@ l'introduire avec pq on l'a utilisé\\
     \caption{Graphe de refroidissement d'un corps par la loi de Newton.}
     \label{fig:newton_law}
 \end{figure}
-faire le lien avec le projet
+
+% \paragraph{Modèle Spatial} L'approche que nous avons finalement retenue colle davantage à la réalité car elle prend en compte l'aspect spatial du réacteur. 
+% Les barres de contrôle sont modélisées comme des objets physiques avec des coordonnées \((x, y)\) sur la grille :
+% \begin{itemize}
+%     \item \textbf{Avantage~:} Ce modèle est plus réaliste. Une barre n'absorbe que les neutrons qui la "touchent". 
+%     \item \textbf{Inconvénient~:} Il est plus lourd en calcul, car il nécessite de vérifier la position de chaque 
+%     neutron par rapport à chaque barre à chaque étape de la simulation.
+% \end{itemize}
+% Dans notre code, la fonction \texttt{update\_neutron} vérifie si les coordonnées du neutron coïncident avec les coordonnées d'une barre insérée. 
+% Si c'est le cas, le neutron est absorbé, ce qui le retire de la simulation et fait donc baisser la puissance du réacteur.
 
 
-Changer le dernier paragraph\\
+\begin{remarkBox}[title=Qu'en est-il de notre système d'urgence européen ?]
+    En Europe, et particulièrement en France, le type de réacteur dominant est le \emph{Réacteur à Eau Pressurisée} (REP).\\
+    Dans un REP, le contrôle de la réactivité est géré par deux systèmes complémentaires :
+    \begin{enumerate}
+        \item \emph{Le Bore Soluble :} De l'acide borique (un absorbeur de neutrons) est dissous dans l'eau du circuit primaire. 
+        C'est un "poison" liquide qui sert de barre de compensation principale pour les ajustements lents.
+        \item \emph{Les Barres Mécaniques :} Les barres sont utilisées pour la régulation et l'arrêt d'urgence (SCRAM).
+    \end{enumerate}
 
-\paragraph{Modèle Spatial}
-L'approche que nous avons finalement retenue colle davantage à la réalité car elle prend en compte l'aspect spatial du réacteur. 
-Les barres de contrôle sont modélisées comme des objets physiques avec des coordonnées \((x, y)\) sur la grille :
-\begin{itemize}
-    \item \textbf{Avantage~:} Ce modèle est plus réaliste. Une barre n'absorbe que les neutrons qui la "touchent". 
-    \item \textbf{Inconvénient~:} Il est plus lourd en calcul, car il nécessite de vérifier la position de chaque 
-    neutron par rapport à chaque barre à chaque étape de la simulation.
-\end{itemize}
-Dans notre code, la fonction \texttt{update\_neutron} vérifie si les coordonnées du neutron coïncident avec les coordonnées d'une barre insérée. 
-Si c'est le cas, le neutron est absorbé, ce qui le retire de la simulation et fait donc baisser la puissance du réacteur.
+    Le mécanisme de SCRAM sur un REP est un exemple de \emph{sécurité passive} : les barres d'arrêt sont maintenues en position 
+    haute (hors du cœur) par des électroaimants. En cas d'arrêt d'urgence, le courant est coupé, les aimants lâchent les barres, qui tombent alors par
+    simple gravité dans le cœur, assurant l'arrêt du réacteur même en cas de panne de courant totale. 
+    Nous nous sommes basé sur ce système pour implémenter notre fonctionnalité permettant une auto-régulation de la puissance en fonction de celle souhaitée.
+\end{remarkBox}
 
-\subsubsection[Utilisation en Europe]{Qu'en est-il de notre système d'urgence européen ?}
-En Europe, et particulièrement en France, le type de réacteur dominant est le \textbf{Réacteur à Eau Pressurisée} (REP).\\
 
-Dans un REP, le contrôle de la réactivité est géré par deux systèmes complémentaires :
-\begin{enumerate}
-    \item \textbf{Le Bore Soluble :} De l'acide borique (un absorbeur de neutrons) est dissous dans l'eau du circuit primaire. 
-    C'est un "poison" liquide qui sert de barre de compensation principale pour les ajustements lents.
-    \item \textbf{Les Barres Mécaniques :} Les barres sont utilisées pour la régulation et l'arrêt d'urgence (SCRAM).
-\end{enumerate}\\
-
-Le mécanisme de SCRAM sur un REP est un exemple de \textbf{sécurité passive} : les barres d'arrêt sont maintenues en position 
-haute (hors du cœur) par des électroaimants. En cas d'arrêt d'urgence, le courant est coupé, les aimants lâchent les barres, qui tombent alors par
-simple gravité dans le cœur, assurant l'arrêt du réacteur même en cas de panne de courant totale. 
-Nous nous sommes basé sur ce système pour implémenter notre fonctionnalité permettant une auto-régulation de la puissance en fonction de celle souhaitée.
 
 % ==================================================================================================================================
 % Modélisation 
@@ -457,7 +445,7 @@ données par défaut. Ainsi, un neutron peut effectuer une seule action à chaqu
     une distance qui détermineront sa position au prochain pas de temps. 
     \item \textbf{Absorption} : le neutron est absorbé par le modérateur, il disparaît du modèle. 
     \item \textbf{Fission} : le neutron rencontre un isotope et produit une réaction de fusion. 
-    Il disparaît donc et un nombre aléatoire (suivant une loi de Poisson, \textbf{XXXX RAJOUTER LES LOISXXXXX}) de nouveaux neutrons est produit 
+    Il disparaît donc et un nombre aléatoire (suivant une loi de Poisson) de nouveaux neutrons est produit 
     sur la même case. À noter que seuls les neutrons thermiques peuvent réagir. 
 \end{itemize}
 
