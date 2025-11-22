@@ -75,10 +75,20 @@ Ce surplus d'énergie permet actuellement de produire de l'électricité dans no
 produite vaporise de l'eau qui fait ensuite tourner des turbines pour produire de l'électricité. 
 
 \begin{remarkBox}[title=Un détour par la fusion]
+    La \emph{fusion} nucléaire est le second type de réaction nucléaire connu et peut être vue 
+    comme "l'inverse" de la fission nucléaire. En effet, c'est une réaction dans laquelle 
+    deux noyaux légers fusionnent pour former un noyau plus lourd. 
+    Cette réaction se produit seulement dans le coeur des étoiles. En effet, l'importante pression 
+    et chaleur de leur coeur pousse les noyaux légers (généralement de l'Hydrogène) à fusionner 
+    en atomes d'Hélium et ainsi de suite jusqu'à produire des atomes plus lourds que nous pouvons retrouver sur 
+    la Terre. 
 
+    Du fait des importantes contraintes physiques nécessaires pour sa mise en place, il est très difficile de 
+    la reproduire de façon industrielle. C'est notamment ce que tente l'ITER depuis plusieurs dizaines d'années en France.
+    Sa mise en place serait un moyen de produire une quantité presque infinie d'énergie verte. 
 \end{remarkBox}
 
-\subsection{Différents types de neutrons}
+\subsection{Différents types de neutrons}\label{subsec:neutron-type}
 
 Pour induire une réaction en chaîne dans un réacteur et la maintenir, il faut jouer avec différents paramètres tels que 
 la densité du matériaux fissile, la quantité de neutrons introduite au départ, la forme du réacteur, sa température, etc... 
@@ -446,7 +456,7 @@ Tout commence par l'initialisation du modèle : on choisit de positionner un cer
 sur la grille du réacteur (selon une loi Uniforme, Normale ou centrée). 
 
 À chaque pas de temps, on considère chaque neutron indépendament des autres. Si l'on a spécifié un modérateur lors de 
-l'initialisation du modèle, on choisit une action pour ce neutron par un tirate aléatoire dépendant des 
+l'initialisation du modèle, on choisit une action pour ce neutron par un tirage aléatoire dépendant des 
 différentes probabilités données par le modérateur. Si aucun modérateur n'est spécifié, on utilise les probabilités 
 données par défaut. Ainsi, un neutron peut effectuer une seule action à chaque pas de temps : 
 \begin{itemize} 
@@ -455,8 +465,41 @@ données par défaut. Ainsi, un neutron peut effectuer une seule action à chaqu
     \item \textbf{Absorption} : le neutron est absorbé par le modérateur, il disparaît du modèle. 
     \item \textbf{Fission} : le neutron rencontre un isotope et produit une réaction de fusion. 
     Il disparaît donc et un nombre aléatoire (suivant une loi de Poisson) de nouveaux neutrons est produit 
-    sur la même case. À noter que seuls les neutrons thermiques peuvent réagir. 
+    sur la même case. À noter que seuls les neutrons thermiques peuvent réagir (voir \ref{subsec:comportement-neutrons}). 
 \end{itemize}
+
+\subsection{Les neutrons}\label{subsec:comportement-neutrons}
+
+Nous avons modélisé différents types de neutrons dans le réacteur pour coller au plus à la réalité.
+En effet, dans un réacteur à fission, toutes les particules ne se déplacent pas à la même vitesse. Les neutrons nouvellement 
+produits par une réaction de fission sont en effet très rapides et ne sont donc pas en phase avec les noyaux 
+lourds restant pour réagir. Le modérateur sert donc à ralentir ces neutrons. 
+
+Ainsi, pour plus de flexibilité, les neutrons ont étés représentés indépendament les uns des autres grâce 
+au modèles d'agent, implémenté par la classe \texttt{Neutron}.
+Chaque neutron possède donc différents attributs : 
+\begin{itemize}
+    \item Sa position \texttt{self.x} et \texttt{self.y} qui représentent ses coordonnées dans le réacteur.
+    \item Un identifiant unique \texttt{self.id}.
+    \item Un type \texttt{self.type} qui peut être \texttt{fast}, \texttt{epithermal} ou \texttt{termal}.
+    Chaque type de neutron a des comportements différents (voir \ref{subsec:neutron-type}). 
+    \item Une vitesse \texttt{self.speed} : très importante au départ, elle diminue au fur et à mesure 
+    de la durée de vie du neutron selon le type de modérateur.
+    \item Une trajectore \texttt{self.traj}. 
+    \item Une durée de vie \texttt{self.age} correspondant au nombre d'itérations effectué.
+\end{itemize}
+
+Le coeur du processus d'évolution d'un neutron est encodé par la méthode \texttt{self.evolve}.
+À chaque itération du réacteur, on recalcule le type du neutron selon les probabilités 
+de transition spécifiées par le modérateur. 
+
+La méthode \texttt{self.diffuse} calcule, quand à elle, les nouvelles coordonnées du neutron si celui-ci 
+doit se déplacer. Un neutrons se déplace de façon uniforme dans un cercle définit autour de lui 
+de rayon \texttt{self.max\_speed}.
+
+
+\subsection{La gestion de la réaction : barres de contrôles}
+
 
 
 \subsection{Limitations et hypothèses}
