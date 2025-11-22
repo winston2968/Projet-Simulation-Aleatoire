@@ -382,7 +382,6 @@ class ReactorV2:
         power_watts_micro = energy_joules_per_step / self.dt                    # .Watts
         power_watts_generated = (power_watts_micro) * self.power_scaling_factor
 
-
         self.current_power_mw = power_watts_generated / 1e6                     # Conversion between W -> MW
         self.power_history.append(self.current_power_mw)
 

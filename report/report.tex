@@ -268,13 +268,16 @@ Le contrôle du facteur \( k \) est au cœur de la sûreté des réacteurs.
 Il est ajusté à l’aide de barres de contrôle et du réglage 
 du modérateur, afin de maintenir un équilibre critique stable (\( k = 1 \)) lors du fonctionnement nominal.  
 
-\subsection{Les barres de contrôle}
+\section{Modélisation Physique}
+
+\subsection{Modèle Global des Barres de Contrôle}
+
 
 Les barres de contrôle sont le principal mécanisme de pilotage et d'arrêt d'urgence d'un réacteur nucléaire. 
 Elles servent à contrôler la population de neutrons et, par conséquent, la puissance thermique du cœur.
 
-\paragraph{Principe.} Leur fonctionnement repose sur l'\textbf{absorption neutronique}. 
-Elles sont fabriquées à partir de matériaux dits \textbf{poisons à neutrons}, c'est-à-dire des matériaux ayant
+\paragraph{Objectif et principe.} Leur fonctionnement repose sur l'\textbf{absorption neutronique}. 
+Elles sont fabriquées à partir d'éléments dits \textbf{poisons à neutrons}, c'est-à-dire des matériaux ayant
 une très haute probabilité d'absorber les neutrons sans provoquer de fission. 
 Les matériaux couramment utilisés sont le Bore (B), le Cadmium (Cd), l'Hafnium (Hf) ou le Gadolinium (Gd).
 En insérant ces barres dans le cœur du réacteur, on introduit un \textbf{puits} à neutrons :
@@ -283,10 +286,10 @@ En insérant ces barres dans le cœur du réacteur, on introduit un \textbf{puit
     \item La réaction en chaîne ralentit (le facteur de multiplication $k$ diminue).
     \item Le nombre total de fissions par seconde diminue, ce qui réduit la puissance du réacteur.
 \end{itemize}
+
 A l'inverse, en les retirant, on augmente la réactivité et la puissance croît.
 
-
-\paragraph{Type et rôle.} Les barres ne sont pas toutes identiques et ont chacune une vitesse de déplacement ainsi qu'une amplitude différente :
+\paragraph{Type et rôle.} Les barres ne sont pas toutes identiques et ont chacune une vitesse ainsi qu'une amplitude différente :
 \begin{itemize}
     \item \emph{Barres de Régulation (ou de Pilotage)} :  
     Ont un "poids" (valeur d'antiréactivité) relativement faible. Elles sont conçues pour se déplacer rapidement, continuellement et sont 
@@ -304,47 +307,110 @@ A l'inverse, en les retirant, on augmente la réactivité et la puissance croît
 \end{itemize}
 
 Pour des raisons pratiques, nous choisirons d'implémenter uniquement les barres de régulation ainsi que les barres SCRAM.
-En effet, les barres de compensation sont utilisées sur des temps très long et pour des tâches qui dépassent notre simulation.\\
+En effet, les barres de compensation sont utilisées sur des temps très long et pour des tâches qui dépassent notre simulation.
 
-L'un des défis de la modélisation de cette fonctionnalité a été que l'efficacité d'une 
-barre n'est pas linéaire. En effet, passé le coeur du réacteur, l'antiréactivité ne croît plus à la même vitesse. 
-Aussi, il a fallu prendre en compte cet aspect en trouvant des alternatives.
+\paragraph{Modélisation de l'antiréactivité.}
 
-\paragraph{Modèle Global.} Une approche générale consiste à calculer 
-un "poids" global, noté $\rho$. L'efficacité de la barre en fonction de sa profondeur d'insertion 
-$z$ (où $z=0$ pour \(sorti\) et $z=1$ pour \(inséré\)) suit une \textbf{courbe en S}, pouvant être approximée par :
+Pour simuler l'impact des barres de pilotage sur la réactivité du cœur, nous utilisons un modèle global.
+L'implémentation d'un modèle spatial, prenant en compte la position des barres dans le réacteur, n'était pas approprié pour une modélisation de cette ampleur.
 
-    \begin{equation}
-        \rho(z) = \rho_{total} \times \frac{1}{2} (1 - \cos(\pi z))
-    \end{equation}
+Le défi majeur de l'implémentation de cette fonctionnalité repose sur le fait que l'efficacité des barres n'est pas linéaire par rapport à son insertion : 
+elle dépend du flux de neutrons présent à la hauteur où se trouve la pointe de la barre.
+Dans un réacteur homogène, la distribution spatiale du flux de neutrons \(\phi(z)\) selon l'axe vertical suit une forme sinusoïdale, 
+étant maximale au centre du cœur et quasi-nulle aux extrémités à cause des fuites.
 
-Dans notre modèle, cette antiréactivité globale \(\rho\) est ensuite utilisée pour réduire la probabilité de fission \(f\) 
-et augmenter la probabilité d'absorption \(a\) dans tout le réacteur. Etant donné que les barres de contrôle n'ont d'effet que sur
-les neutrons les plus lents (\(thermiques\)), les probabilités concernant les autres types de neutrons restent inchangées.
+L'efficacité différentielle d'une barre\footnote{Cela correspond à l'antiréactivité ajoutée par centimètre d'insertion.} est proportionnelle au flux neutronique local. 
+L'efficacité totale \(\rho(z)\) à une profondeur \(z\) est donc l'intégrale de ce flux. Or l'intégrale d'une fonction sinus/cosinus donne une forme caractéristique appelée \textbf{Courbe en S}.
 
-\paragraph{Loi de refroidissent de Newton.}
-Un des principaux indicateurs de la puissance du réacteur est sa température. Nous avons choisis de nous fier à ce paramètre 
-pour la modélisation. Pour cela, nous devions la calculer proprement. Celle-ci dépend du nombre de neutrons présents, de 
-leur vitesse, du nombre moyen de réactions etc... Mais un des facteurs principaux de sa diminution est la différence 
-de température entre le réacteur et son modérateur. Nous avons donc choisi de modéliser cet échange d'énergie thermique 
-grâce à la loi de refroidissement de Newton. 
+Nous approcherons cette courbe par la formule suivante, où \(z \in [0,1]\) représente la fraction d'insertion (\(0=\text{sortie}, 1=\text{insérée}\)) :
+
+\begin{equation}
+    \rho(z) = \rho_{\text{total}} \times \frac{1}{2} \left( 1 - \cos(\pi z) \right)
+\end{equation}
+
+Cette modélisation, représentée par le graphe ci-dessous, traduit le fait physique que l'insertion de la barre a peu d'effet au début, un effet maximal à mi-hauteur, 
+et de nouveau peu d'effet en fin de course.
+
+Dans notre simulation, cette valeur \(\rho(z)\) (exprimée en pcm\footnote{Unité de réactivité, abréviation de "pour cent mille".})
+est convertie en un facteur multiplicatif appliqués aux probabilités de fission \(f\) et d'absorption \(a\) du modèle stochastique.
+Etant donné que les barres de pilotage n'ont d'effet que sur les neutrons les plus lents (\textit{thermiques}\footnote{Il est nécessaire de nuancer nos propos. 
+Les neutrons dit \textit{épithermiques} sont également capturés via un système de résonance par effet Dopler avec des barres spéciales. Mais pour des besoins de simplification, nous avons choisi de rendre uniquement les neutrons \textit{thermiques} absorbables par le système de contrôle.}), les probabilités concernant les autres types restent inchangées.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=1]{images/integral_control_rod_worth_curve.jpg}
+    \caption{Courbe en S représentant l'antiréactivité des barres de pilotage.}
+    \label{fig:s_curve}
+\end{figure}
+
+\subsection{Modèle Thermique et Loi de Newton}
+
+La température du réacteur est une variable d'état résultant d'un bilan énergétique. 
+Pour la calculer, nous appliquons le \textbf{Premier Principe de la Thermodynamique} : pour un système fermé, la variation de son énergie interne \((U)\) au cour du temps est égale à la somme des puissances thermiques reçues et perdues, moins le travail mécanique effectué par le système.
+
+\begin{equation}
+    \frac{dU}{dt} = \dot{Q} - \dot{W}
+\end{equation}
+
+Où :
+
+\begin{itemize}
+    \item \(\dot{Q}\) : Le flux thermique net (\(W\)).
+    \item \(\dot{W}\) : La puissance mécanique fournie par le système (\(W\)).
+\end{itemize}
+
+Ici, le coeur du réacteur ne fournit aucun travail mécanique. Le flux thermique net \(\dot{Q}\) se décomposant en deux termes : la puissance générée par la fission (\(P_{int}\)) et la puissance évacuée par le refroidissement (\(P_{out}\)). Nous pouvons reformuler le principe énoncé plus haut de la façon suivante :
+la variation d'énergie interne du système est égale à la différence entre la puissance produite et la puissance évacuée.
+
+\begin{equation}
+    \frac{dU}{dt} = P_{\text{in}}(t) - P_{\text{out}}(t)
+\end{equation}
+
+Sachant que \(dU = C \cdot dT\)\footnote{Cette égalité vient de la définition de la capacité thermique d'un corps. Elle énonce que pour un système incompressible, la variation d'énergie interne est proportionnelle à la variation de température. Le coefficient de proportionnalité est la \textbf{capacité thermique} du système, notée \(C\).} 
+(où \(C\) est la capacité thermique totale du cœur en \(J \cdot K^{-1}\)), l'équation d'évolution de la température s'écrit :
+
+\begin{equation}
+    C \cdot \frac{dT(t)}{dt} = P_{\text{fission}}(t) - P_{\text{refroidissement}}(t)
+\end{equation}
+
+\subsubsection{Production de Chaleur (\(P_{\text{in}}\))}
+La puissance entrant dans le système, \(P_{\text{fission}}\), est directement proportionnelle au nombre de fissions par seconde simulées par notre modèle de neutrons.
+
+\subsubsection{Évacuation de Chaleur (\(P_{\text{out}}\)) - Loi de Newton}
+Pour modéliser l'échange thermique entre le cœur et le liquide de refroidissement (modérateur), nous utilisons la \textbf{Loi de Refroidissement de Newton}.
 Elle énonce que le taux de perte de chaleur d'un corps est proportionnel à la différence 
 de température entre le corps et le milieu environnant :
 
-    \begin{equation}
-        P_{\text{out}} = h \cdot (T(t) - T_{\text{env}})
-    \end{equation}
+\begin{equation}
+    P_{\text{out}}(t) = h \cdot (T(t) - T_{\text{eau}})
+\end{equation}
 
-    avec : 
+Où :
 \begin{itemize}
-    \item $P_\text{out}$ la puissance thermique évacuée (en Watts)
-    \item $h$ le coefficient de transfert thermique (\(cooling\_coef\) dans notre code)
-    \item $T(t)$ la temperature du réacteur à l'instant $t$
-    \item $T_\text{ext}$ La température de l'environnement (ici notre eau de refroidissent à $300K$ fixé)
+    \item \(h\) : Le coefficient global de transfert thermique\footnote{Il s'agit du coefficient de refroidissement et dépend de la surface de contact ainsi que du modérateur utilisé. Il est défini dans notre code par : \(cooling\_coef = thermic\_capacity * \tau\,\text{avec}\,\tau=0.05\).} (\(W \cdot K^{-1}\)).
+    \item \(T(t)\) : La température du réacteur à l'instant \(t\).
+    \item \(T_{\text{eau}}\) : La température du fluide de refroidissement (\(300K\)\footnote{Cette valeur choisit arbitrairement correspond à environ \(26°C\), elle doit être comprise entre \(0°C\) et \(30°C\)} dans notre modèle).
 \end{itemize}
 
+\subsubsection{Paramétrage de l'Inertie Thermique}
+En combinant les équations précédentes, l'évolution de la température est régie par l'équation différentielle :
+
+\begin{equation}
+    \frac{dT}{dt} = \frac{P_{\text{fission}}}{C} - \frac{h}{C} (T - T_{\text{eau}})
+\end{equation}
+
+Le terme \(\frac{h}{C}\) représente l'inverse de la constante de temps thermique du système, notée \(\tau_{\text{th}}\). 
+Elle caractérise la vitesse à laquelle le réacteur se refroidit naturellement (inertie). Dans notre code, nous avons fixé empiriquement ce ratio à :
+
+\[
+\frac{h}{C} = 0.05 \, s^{-1}
+\]
+
+Cela correspond à une constante de temps \(\tau_{\text{th}} = \frac{1}{0.05} = 20\) secondes. Ce choix permet d'obtenir une simulation fluide où la température 
+réagit aux variations de puissance de façon adaptée.
+
 Ainsi, en suivant cette loi de Newton, la température d'un corps dont la température est supérieure à son environnement 
-suit un courbe similaire à celle-ci dessous :
+suit un courbe similaire à celle-ci dessous\footnote{Aussi, plus la différence de température est grande plus elle va diminuer rapidement jusqu'à l'état d'équilibre.} :
 
 \begin{figure}[H]
     \centering
@@ -352,25 +418,6 @@ suit un courbe similaire à celle-ci dessous :
     \caption{Graphe de refroidissement d'un corps par la loi de Newton.}
     \label{fig:newton_law}
 \end{figure}
-
-
-
-insérer le paragraph expliquant les valeurs prises :
-$$C \cdot \frac{dT}{dt} = -h \cdot (T - T_{\text{eau}})$$
-premier principe de la thermodynamique : diff entre ce qui rentre et ce qui sort
-plus le t=0.05
-et div
-
-% \paragraph{Modèle Spatial} L'approche que nous avons finalement retenue colle davantage à la réalité car elle prend en compte l'aspect spatial du réacteur. 
-% Les barres de contrôle sont modélisées comme des objets physiques avec des coordonnées \((x, y)\) sur la grille :
-% \begin{itemize}
-%     \item \textbf{Avantage~:} Ce modèle est plus réaliste. Une barre n'absorbe que les neutrons qui la "touchent". 
-%     \item \textbf{Inconvénient~:} Il est plus lourd en calcul, car il nécessite de vérifier la position de chaque 
-%     neutron par rapport à chaque barre à chaque étape de la simulation.
-% \end{itemize}
-% Dans notre code, la fonction \texttt{update\_neutron} vérifie si les coordonnées du neutron coïncident avec les coordonnées d'une barre insérée. 
-% Si c'est le cas, le neutron est absorbé, ce qui le retire de la simulation et fait donc baisser la puissance du réacteur.
-
 
 \begin{remarkBox}[title=Qu'en est-il de notre système d'urgence européen ?]
     En Europe, et particulièrement en France, le type de réacteur dominant est le \emph{Réacteur à Eau Pressurisée} (REP).\\
@@ -387,12 +434,10 @@ et div
     Nous nous sommes basé sur ce système pour implémenter notre fonctionnalité permettant une auto-régulation de la puissance en fonction de celle souhaitée.
 \end{remarkBox}
 
-
-
 % ==================================================================================================================================
 % Modélisation 
 
-\section{Modélisation}
+\section{Modélisation de la simulation}
 
 \subsection{Objectif et principe}
 
