@@ -330,7 +330,7 @@ Dans un réacteur homogène, la distribution spatiale du flux de neutrons \(\phi
 étant maximale au centre du cœur et quasi-nulle aux extrémités à cause des fuites.
 
 L'efficacité différentielle d'une barre\footnote{Cela correspond à l'antiréactivité ajoutée par centimètre d'insertion.} est proportionnelle au flux neutronique local. 
-L'efficacité totale \(\rho(z)\) à une profondeur \(z\) est donc l'intégrale de ce flux. Or l'intégrale d'une fonction sinus/cosinus donne une forme caractéristique appelée \textbf{Courbe en S}.
+L'efficacité totale \(\rho(z)\) à une profondeur \(z\) est donc l'intégrale de ce flux. Or l'intégrale d'une fonction sinus/cosinus donne une forme caractéristique appelée \textbf{courbe en S}.
 
 Nous approcherons cette courbe par la formule suivante, où \(z \in [0,1]\) représente la fraction d'insertion (\(0=\text{sortie}, 1=\text{insérée}\)) :
 
@@ -343,8 +343,8 @@ et de nouveau peu d'effet en fin de course.
 
 Dans notre simulation, cette valeur \(\rho(z)\) (exprimée en pcm\footnote{Unité de réactivité, abréviation de "pour cent mille".})
 est convertie en un facteur multiplicatif appliqués aux probabilités de fission \(f\) et d'absorption \(a\) du modèle stochastique.
-Etant donné que les barres de pilotage n'ont d'effet que sur les neutrons les plus lents (\textit{thermiques}\footnote{Il est nécessaire de nuancer nos propos. 
-Les neutrons dit \textit{épithermiques} sont également capturés via un système de résonance par effet Dopler avec des barres spéciales. Mais pour des besoins de simplification, nous avons choisi de rendre uniquement les neutrons \textit{thermiques} absorbables par le système de contrôle.}), les probabilités concernant les autres types restent inchangées.
+Etant donné que les barres de pilotage n'ont d'effet que sur les neutrons les plus lents ({thermiques}\footnote{Il est nécessaire de nuancer nos propos. 
+Les neutrons épithermiques sont également capturés via un système de résonance par effet Dopler avec des barres spéciales. Mais pour des besoins de simplification, nous avons choisi de rendre uniquement les neutrons \textit{thermiques} absorbables par le système de contrôle.}), les probabilités concernant les autres types restent inchangées.
 
 \begin{figure}[H]
     \centering
@@ -399,7 +399,7 @@ Où :
 \begin{itemize}
     \item \(h\) : Le coefficient global de transfert thermique\footnote{Il s'agit du coefficient de refroidissement et dépend de la surface de contact ainsi que du modérateur utilisé. Il est défini dans notre code par : \(cooling\_coef = thermic\_capacity * \tau\,\text{avec}\,\tau=0.05\).} (\(W \cdot K^{-1}\)).
     \item \(T(t)\) : La température du réacteur à l'instant \(t\).
-    \item \(T_{\text{eau}}\) : La température du fluide de refroidissement (\(300K\)\footnote{Cette valeur choisit arbitrairement correspond à environ \(26°C\), elle doit être comprise entre \(0°C\) et \(30°C\)} dans notre modèle).
+    \item \(T_{\text{eau}}\) : La température du fluide de refroidissement (\(300K\)\footnote{Cette valeur choisit arbitrairement correspond à environ \(26^\circ C\), elle doit être comprise entre \(0^\circ C\) et \(30^\circ C\)} dans notre modèle).
 \end{itemize}
 
 \subsubsection{Paramétrage de l'Inertie Thermique}
