@@ -74,20 +74,6 @@ produit $3 \times 10^7$ J alors la fission de 1kg d'uranium en produit $ 8 \time
 Ce surplus d'énergie permet actuellement de produire de l'électricité dans nos centrales nucléaires. La chaleur 
 produite vaporise de l'eau qui fait ensuite tourner des turbines pour produire de l'électricité. 
 
-\begin{remarkBox}[title=Un détour par la fusion]
-    La \emph{fusion} nucléaire est le second type de réaction nucléaire connu et peut être vue 
-    comme "l'inverse" de la fission nucléaire. En effet, c'est une réaction dans laquelle 
-    deux noyaux légers fusionnent pour former un noyau plus lourd. 
-    Cette réaction se produit seulement dans le coeur des étoiles. En effet, l'importante pression 
-    et chaleur de leur coeur pousse les noyaux légers (généralement de l'Hydrogène) à fusionner 
-    en atomes d'Hélium et ainsi de suite jusqu'à produire des atomes plus lourds que nous pouvons retrouver sur 
-    la Terre. 
-
-    Du fait des importantes contraintes physiques nécessaires pour sa mise en place, il est très difficile de 
-    la reproduire de façon industrielle. C'est notamment ce que tente l'ITER depuis plusieurs dizaines d'années en France.
-    Sa mise en place serait un moyen de produire une quantité presque infinie d'énergie verte. 
-\end{remarkBox}
-
 \subsection{Différents types de neutrons}\label{subsec:neutron-type}
 
 Pour induire une réaction en chaîne dans un réacteur et la maintenir, il faut jouer avec différents paramètres tels que 
@@ -302,9 +288,8 @@ A l'inverse, en les retirant, on augmente la réactivité et la puissance croît
 \paragraph{Type et rôle.} Les barres ne sont pas toutes identiques et ont chacune une vitesse ainsi qu'une amplitude différente :
 \begin{itemize}
     \item \emph{Barres de Régulation (ou de Pilotage)} :  
-    Ont un "poids" (valeur d'antiréactivité) relativement faible. Elles sont conçues pour se déplacer rapidement, continuellement et sont 
-    pilotées par un automate. Leur rôle est de compenser les petites fluctuations de puissance 
-    pour maintenir le réacteur au niveau attendu.
+    Ont un "poids" (valeur d'antiréactivité) relativement faible. Elles sont conçues pour se déplacer rapidement et continuellement. 
+    Leur rôle est de compenser les petites fluctuations de puissance pour maintenir le réacteur au niveau attendu.
 
     \item \emph{Barres de Compensation (ou "Shim")} : 
     Ont un poids antiréactif beaucoup plus important. Elles sont déplacées très lentement pour compenser les grands 
@@ -313,7 +298,7 @@ A l'inverse, en les retirant, on augmente la réactivité et la puissance croît
     \item \emph{Barres d'Arrêt d'Urgence (SCRAM)} :
     représentent la solution de dernier recours. Elles ont un poids antiréactif très important et sont 
     conçues pour s'insérer extrêmement rapidement. Leur rôle principal est de stopper la réaction en chaîne de manière 
-    quasi instantanée en cas d'anomalie grave (ex: puissance dépassant le seuil de sécurité, système de reffroidissement défectueux, etc...).
+    quasi instantanée en cas d'anomalie grave.
 \end{itemize}
 
 Pour des raisons pratiques, nous choisirons d'implémenter uniquement les barres de régulation ainsi que les barres SCRAM.
@@ -321,8 +306,8 @@ En effet, les barres de compensation sont utilisées sur des temps très long et
 
 \paragraph{Modélisation de l'antiréactivité.}
 
-Pour simuler l'impact des barres de pilotage sur la réactivité du cœur, nous utilisons un modèle global.
-L'implémentation d'un modèle spatial, prenant en compte la position des barres dans le réacteur, n'était pas approprié pour une modélisation de cette ampleur.
+Pour simuler l'impact des barres de pilotage sur la réactivité du cœur, nous utilisons un modèle global
+\footnote{L'implémentation d'un modèle spatial, prenant en compte la position des barres dans le réacteur, n'était pas approprié pour une modélisation de cette ampleur.}.
 
 Le défi majeur de l'implémentation de cette fonctionnalité repose sur le fait que l'efficacité des barres n'est pas linéaire par rapport à son insertion : 
 elle dépend du flux de neutrons présent à la hauteur où se trouve la pointe de la barre.
@@ -337,9 +322,6 @@ Nous approcherons cette courbe par la formule suivante, où \(z \in [0,1]\) repr
 \begin{equation}
     \rho(z) = \rho_{\text{total}} \times \frac{1}{2} \left( 1 - \cos(\pi z) \right)
 \end{equation}
-
-Cette modélisation, représentée par le graphe ci-dessous, traduit le fait physique que l'insertion de la barre a peu d'effet au début, un effet maximal à mi-hauteur, 
-et de nouveau peu d'effet en fin de course.
 
 Dans notre simulation, cette valeur \(\rho(z)\) (exprimée en pcm\footnote{Unité de réactivité, abréviation de "pour cent mille".})
 est convertie en un facteur multiplicatif appliqués aux probabilités de fission \(f\) et d'absorption \(a\) du modèle stochastique.
@@ -376,7 +358,8 @@ la variation d'énergie interne du système est égale à la différence entre l
     \frac{dU}{dt} = P_{\text{in}}(t) - P_{\text{out}}(t)
 \end{equation}
 
-Sachant que \(dU = C \cdot dT\)\footnote{Cette égalité vient de la définition de la capacité thermique d'un corps. Elle énonce que pour un système incompressible, la variation d'énergie interne est proportionnelle à la variation de température. Le coefficient de proportionnalité est la \textbf{capacité thermique} du système, notée \(C\).} 
+Sachant que\footnote{Cette égalité vient de la définition de la capacité thermique d'un corps. Elle énonce que pour un système incompressible, la variation d'énergie interne est proportionnelle à la variation de température. Le coefficient de proportionnalité est la \textbf{capacité thermique} du système, notée \(C\).} 
+\(dU = C \cdot dT\) 
 (où \(C\) est la capacité thermique totale du cœur en \(J \cdot K^{-1}\)), l'équation d'évolution de la température s'écrit :
 
 \begin{equation}
@@ -410,13 +393,13 @@ En combinant les équations précédentes, l'évolution de la température est r
 \end{equation}
 
 Le terme \(\frac{h}{C}\) représente l'inverse de la constante de temps thermique du système, notée \(\tau_{\text{th}}\). 
-Elle caractérise la vitesse à laquelle le réacteur se refroidit naturellement (inertie). Dans notre code, nous avons fixé empiriquement ce ratio à :
+Elle caractérise la vitesse à laquelle le réacteur se refroidit naturellement. Dans notre code, nous avons fixé empiriquement ce ratio à :
 
 \[
-\frac{h}{C} = 0.05 \, s^{-1}
+    \frac{h}{C} = 0.05 \, s^{-1}
 \]
 
-Cela correspond à une constante de temps \(\tau_{\text{th}} = \frac{1}{0.05} = 20\) secondes. Ce choix permet d'obtenir une simulation fluide où la température 
+Cela correspond à une constante de temps \(\tau_{\text{th}} = \frac{1}{0.05} = 20\) secondes. Ce choix nous permet d'obtenir une simulation viable où la température 
 réagit aux variations de puissance de façon adaptée.
 
 Ainsi, en suivant cette loi de Newton, la température d'un corps dont la température est supérieure à son environnement 
@@ -433,13 +416,12 @@ suit un courbe similaire à celle-ci dessous\footnote{Aussi, plus la différence
     En Europe, et particulièrement en France, le type de réacteur dominant est le \emph{Réacteur à Eau Pressurisée} (REP).\\
     Dans un REP, le contrôle de la réactivité est géré par deux systèmes complémentaires :
     \begin{enumerate}
-        \item \emph{Le Bore Soluble :} De l'acide borique (un absorbeur de neutrons) est dissous dans l'eau du circuit primaire. 
-        C'est un "poison" liquide qui sert de barre de compensation principale pour les ajustements lents.
-        \item \emph{Les Barres Mécaniques :} Les barres sont utilisées pour la régulation et l'arrêt d'urgence (SCRAM).
+        \item \emph{Le Bore Soluble :} C'est un "poison" liquide qui permet de compenser les ajustements lents.
+        \item \emph{Les Barres Mécaniques :} Elles sont utilisées pour la régulation et l'arrêt d'urgence (SCRAM).
     \end{enumerate}
 
     Le mécanisme de SCRAM sur un REP est un exemple de \emph{sécurité passive} : les barres d'arrêt sont maintenues en position 
-    haute (hors du cœur) par des électroaimants. En cas d'arrêt d'urgence, le courant est coupé, les aimants lâchent les barres, qui tombent alors par
+    haute par des électroaimants. En cas d'arrêt d'urgence, le courant est coupé, les aimants lâchent les barres, qui tombent alors par
     simple gravité dans le cœur, assurant l'arrêt du réacteur même en cas de panne de courant totale. 
     Nous nous sommes basé sur ce système pour implémenter notre fonctionnalité permettant une auto-régulation de la puissance en fonction de celle souhaitée.
 \end{remarkBox}
@@ -542,13 +524,70 @@ La méthode \texttt{self.diffuse} calcule, quand à elle, les nouvelles coordonn
 doit se déplacer. Un neutrons se déplace de façon uniforme dans un cercle définit autour de lui 
 de rayon \texttt{self.max\_speed}.
 
+\subsection{La gestion de la réaction : barres de contrôle}\label{subsec:comportement-barres}
 
-\subsection{La gestion de la réaction : barres de contrôles}
+D'un point de vue informatique, ce système repose sur l'interaction de trois composants distincts : 
+la modélisation physique de la barre, l'automate de pilotage ainsi que la boucle de rétroaction sur les neutrons.
 
+\subsubsection{Structure des classes}
 
+\paragraph{La classe \texttt{ControlRod}.}
+Chaque barre est un agent indépendant défini par ses caractéristiques physiques et son état dynamique :
+\begin{itemize}
+    \item \textbf{Attributs statiques :} Un type définissant son poids neutronique total et sa vitesse maximale de déplacement (\(\% \cdot s^{-1}\)).
+    \item \textbf{Attributs dynamiques :} Sa position actuelle (\(\texttt{position\_percent} \in [0, 100]\)) et sa consigne (\texttt{target\_position}).
+    \item \textbf{Méthode \texttt{step(dt)} :} Met à jour la position de la barre à chaque pas de temps pour rejoindre sa consigne, en respectant sa vitesse maximale.
+    \item \textbf{Méthode \texttt{get\_reactivity\_pcm()} :} Calcule l'efficacité instantanée de la barre selon la courbe en S, convertissant la position mécanique en antiréactivité neutronique.
+\end{itemize}
 
-\subsection{Limitations et hypothèses}
+\subsubsection{Boucle de Contrôle-Commande}
 
+À chaque itération de la simulation, la gestion des barres suit le cycle suivant :
+
+\begin{enumerate}
+    \item \textbf{Mesure :}
+    Le réacteur calcule sa puissance instantanée \(P(t)\) à partir du nombre de fissions observées. Elle est ensuite normalisée en un pourcentage de la puissance nominale (\(P_{\%}\)).
+
+    \item \textbf{Sécurité (Fonction \texttt{check\_emergency\_scram}) :}
+    On vérifie si \(P_{\%} > P_{\text{seuil}}\).
+    Si le seuil est dépassé, le mode SCRAM est enclenché : le pilote automatique est désactivé et toutes les barres reçoivent l'ordre de s'insérer à 100\%.
+
+    \item \textbf{Régulation (Fonction \texttt{update\_automatic\_control\_rods}) :}
+    Si le SCRAM n'est pas activé, le régulateur PI calcule l'erreur de puissance \(\varepsilon = P_{\text{consigne}} - P_{\%}\).
+    Il détermine une nouvelle position cible pour les barres de régulation afin d'annuler cette erreur :
+    \begin{equation}
+        \text{Cible} = \text{Base} + K_p \cdot \varepsilon + K_i \cdot \int \varepsilon dt
+    \end{equation}
+    \item \textbf{Action Physique :}
+    Les barres se déplacent mécaniquement vers leur nouvelle cible.
+    L'antiréactivité totale est calculée et convertie en un facteur correctif appliqué aux probabilités de fission et d'absorption pour le pas de temps suivant.
+\end{enumerate}
+
+\subsubsection{Algorithme de Pilotage : Le Régulateur PI !POSSIBILITE DE METTRE EN ANNEXE!}
+
+Pour ajuster automatiquement la position des barres de régulation, nous avons implémenté un correcteur \textbf{Proportionnel-Intégral (PI)}. C'est un mécanisme de rétroaction : le système observe l'écart entre la puissance réelle et la puissance voulue pour corriger sa commande en temps réel.
+
+L'objectif est d'annuler l'\textbf{erreur} \(\varepsilon(t)\), définie par :
+\begin{equation}
+    \varepsilon(t) = P_{\text{consigne}} - P_{\text{réelle}}(t)
+\end{equation}
+
+La nouvelle position cible est la somme de deux termes complémentaires :
+
+\begin{equation}
+    \text{Position}(t) = \text{Base} + \underbrace{K_p \cdot \varepsilon(t)}_{\text{Terme Proportionnel}} + \underbrace{K_i \cdot \int_{0}^{t} \varepsilon(\tau) d\tau}_{\text{Terme Intégral}}
+\end{equation}
+
+\begin{itemize}
+    \item \textbf{Le Terme Proportionnel (\(P : K_p\)) :} Il assure la réactivité du système. La correction est directement proportionnelle à l'erreur instantanée. Si l'écart de puissance est grand, la barre bouge vite.
+    
+    \item \textbf{Le Terme Intégral (\(I : K_i\)) :} Il assure la précision. Il correspond à la somme des erreurs passées. Si une petite erreur persiste, le terme intégral va augmenter progressivement jusqu'à forcer la barre à bouger pour éliminer totalement l'écart.
+\end{itemize}
+
+Dans notre simulation en temps discret, l'intégrale mathématique est approximée par une somme cumulée à chaque pas de temps :
+\[ 
+    \int \varepsilon \, dt \approx \sum \varepsilon \cdot dt 
+\]
 
 % ==================================================================================================================================
 % Études statistiques 
@@ -559,10 +598,10 @@ de rayon \texttt{self.max\_speed}.
 
 comment on a fait les fichiers css, quelles données ils contiennent etc
 
+\subsection{Conjectures}
+
 qu'est ce qu'on compte montrer
-
-quelles sont nos conjectures
-
+ligne directrice
 
 \subsection{Etude}
 
@@ -579,17 +618,51 @@ apports technique et humain
 extensions possibles
 limites
 
-\section{Annexe}
+\section{Bibliographie}
+METTRE LE NOM DU PROJET EN ENTETE DE CETTE PAGE et faire un saut de page\\
 
+
+https://fr.wikipedia.org/wiki/Fission_nucl\%C3\%A9aire\\
+https://fr.wikipedia.org/wiki/R\%C3\%A9gulateur_PID\\
+
+https://www.researchgate.net/publication/261014534_Study_of_Criticality_Safety_and_Neutronic_Performance_for_a_348-Fuel-Pin_Ghana_Research_Reactor-1_LEU_Core_Using_MCNP_Code\\
+https://nuclear-twins.tacc.utexas.edu/rod_calibration\\
+
+
+Son, N. , Hoa, N. , Nguyen, T. , Tuan, T. and Raul, O. (2017) Control Rod Calibration and Worth Calculation for Optimized Power Reactor 1000 (OPR-1000) Using Core Simulator OPR1000. World Journal of Nuclear Science and Technology, 7, 15-23. doi: 10.4236/wjnst.2017.71002.
+
+
+James Watt. (2025, novembre 16). Wikipédia, l'encyclopédie libre. Page consultée le 15:48, novembre 16, 2025 à partir de http://fr.wikipedia.org/w/index.php?title=James_Watt&oldid=230694974.
+
+
+\section{Annexe}
+pareil saut de page\\
 table des annexes
 
 1 annexe titrée par page
 
 
 
-% Sources 
 
-% https://fr.wikipedia.org/wiki/Fission_nucl%C3%A9aire
+
+\subsection{Le premier régulateur PI}
+
+L'ancêtre du régulateur proprotionnel intégrable qui régit actuellement le monde de l'industrie vient de l'ingénieur écossais James Watt.
+Grâce à son invention : le \textit{régulateur à boules}, il est considéré comme l'un des inventeurs de la machine à vapeur.
+
+\paragraph{Le principe.}    Deux boules en métal tournent entrainées par un moteur. Plus le moteur va vite, plus la force centrifuge écarte les boules.
+En s'écartant, elles tirent sur un levier qui ferme l'arrivée de vapeur.
+Il s'agit de l'ancêtre du \textit{régulateur proprotionnel (P)} que nous utilisons dans notre simulation. Si la vitesse augementait (erreur), la vapeur diminuait instantanément et faisait donc baisser les boules.
+
+\paragraph{Le problème.}    Ce modèle souffrait de ce que l'on appelle l'erreur statique La machine manquait de précision et ne tenait jamais exactement la position souhaitée.
+C'est pour cette raison que le terme \textit{intégral (I)} a été inventé plus tard.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.3]{images/watt_regulator.jpg}
+    \caption{Ancêtre du régulateur PI mis au point par James Watt.}
+    \label{fig:watt_regulator}
+\end{figure}
 
 
 \end{document}

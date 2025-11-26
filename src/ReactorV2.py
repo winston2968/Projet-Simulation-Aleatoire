@@ -502,9 +502,13 @@ class ReactorV2:
         print("test power error", error)
 
         # === 2. Simple proportional control ===
+        # Calculation of the static error
         kp = self.reg_kp * error
 
         # === 3. Integral term (with anti-windup) ===
+        # Error history calculation
+        # In continuous time, summing the errors involves calculating the integral.
+        # In discrete time (as here), it is a simple sum
         self.reg_integral_error += error * self.dt
         self.reg_integral_error = max(-1.0, min(1.0, self.reg_integral_error))
         i_term = self.reg_ki * self.reg_integral_error

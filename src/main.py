@@ -1,11 +1,11 @@
 from rich.live import Live
 from ReactorV2 import ReactorV2
-
+from utils import export_data
 
 # Configuration parameters for a class II Reactor
 config = {
     # === Simulation settings ===
-    'n_iter' : 500,     # = 50 seconds
+    'n_iter' : 20,
     'n_initial' : 200,  # Number of neutrons in the initial state
     'a' : 0.1,          # proba for absorption
     'f' : 0.6,          # proba for fission
@@ -38,14 +38,13 @@ with Live(refresh_per_second=10) as live:
     reactorV2 = ReactorV2(live, config)
     history = reactorV2.simulate()
 
-
+# Data export
+export_data(reactorV2)
 
 # ==================== TODO ====================
 # 
 # - [DONE] rajouter répartition aléatoire des neutrons au départ 
 # - [DONE] calculer la température moyenne à chaque iter  
 # - [DONE] intégrer les barres de contrôle
-# - implémenter l'algo des branchements - Marco
-# - (Axel) exporter trajectoire dans un fichier 
-#
-# - (passer en 3D et en continu)
+# - [IN PROGRESS] implémenter l'algo des branchements - Marco
+# - [DONE] exporter trajectoire dans un fichier 
