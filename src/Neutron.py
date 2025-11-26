@@ -1,9 +1,7 @@
-
 # ==========================================================================================
 #                                      Neutron Class 
 # ==========================================================================================
 
-import numpy as np 
 import numpy.random as npr 
 
 
@@ -58,8 +56,8 @@ class Neutron:
     # ----------------------- 
     def evolve(self, moderator=None): 
         """
-        Update the neutron internal property over time depending on the moderator 
-        used in the reactor or just with a thermalisation prob. 
+            Update the neutron internal property over time depending on the moderator 
+            used in the reactor or just with a thermalisation prob. 
         """
         if moderator is None : 
             self.age += 1

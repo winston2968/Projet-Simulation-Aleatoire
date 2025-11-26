@@ -532,7 +532,7 @@ class ReactorV2:
         #-----------------------------TEST-----------------------------
         final_target = clamped_target
 
-        activation = False
+        activation = True
 
         if activation:
         
@@ -540,13 +540,14 @@ class ReactorV2:
             final_target = clamped_target
 
             
-            if error > 0.05 and clamped_target < current_rod_pos:
+            if self.current_temperature > 1550 and error > 0.05 and clamped_target < current_rod_pos:
+                print(self.current_temperature)
                 print(f"[Interlock] Low Power ({self.power_level:.2%}): Insertion Blocked.")
                 final_target = current_rod_pos
                 # Anti-windup
                 self.reg_integral_error -= error * self.dt
 
-            elif error < -0.05 and clamped_target > current_rod_pos:
+            elif self.current_temperature < 400 and error < -0.05 and clamped_target > current_rod_pos:
                 print(f"[Interlock] High Power ({self.power_level:.2%}): Withdraw Blocked.")
                 final_target = current_rod_pos
             
