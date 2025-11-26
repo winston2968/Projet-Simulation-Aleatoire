@@ -71,7 +71,8 @@ class ReactorV2:
 
         # === Controls Rods Parameters ===
         self.rod_active = config.get('rod_active', False)
-        
+        self.rod_history = []
+
         # Add control rods to a global list
         self.control_rods = []
         config_rods_list = config.get('control_rods', [])
@@ -83,7 +84,7 @@ class ReactorV2:
         # To simplify, we will only use these two types of bars
         self.regulation_rods = [rod for rod in self.control_rods if rod.type == 'regulation']
         self.scram_rods = [rod for rod in self.control_rods if rod.type == 'scram']
-        
+
         # This is the threshold beyond which the emergency bars activate
         # It represente 1.5 * max_power
         self.scram_threshold = config.get('scram_threshold', 1.5)
@@ -241,6 +242,14 @@ class ReactorV2:
             state_snapshot = {n.id : (n.x,n.y,n.type) for n in self.neutrons}
             self.history.append(state_snapshot)
 
+            # Rod position history
+            current_rod_positions = {}
+            for rod in self.control_rods:
+                current_rod_positions[rod.id] = rod.position_percent
+            
+            self.rod_history.append(current_rod_positions)
+
+            # Display
             if self.display == True: 
                 if self.colorized:
                     self.display_reactor_colorized()

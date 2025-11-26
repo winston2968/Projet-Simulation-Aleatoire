@@ -103,11 +103,16 @@ def export_react_traj(reactor, path):
         "power_mw": reactor.power_history[:min_len],
         "temperature_k": reactor.temp_history[:min_len]
     }
-    
-     # Add info on control rods
-    if reactor.rod_active and reactor.regulation_rods:
-        # not yet
-        pass
+
+    # Add rod history
+    if reactor.rod_active and reactor.rod_history and min_len > 0 :
+        data["rod_active"] = reactor.rod_active
+        data["scram_triggered"] = reactor.scram_triggered
+        first_record = reactor.rod_history[0]
+        rod_ids = first_record.keys()
+        for rod_id in rod_ids:
+            column_name = f"pos_{rod_id}"
+            data[column_name] = [snap[rod_id] for snap in reactor.rod_history[:min_len]]
 
     # Write in .CSV file 
     df = pd.DataFrame(data)
