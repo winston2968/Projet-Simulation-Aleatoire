@@ -531,8 +531,8 @@ class ReactorV2:
 
         #-----------------------------TEST-----------------------------
         final_target = clamped_target
-        
-        activation = True
+
+        activation = False
 
         if activation:
         

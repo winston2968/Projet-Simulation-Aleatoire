@@ -5,12 +5,12 @@ from utils import export_data
 # Configuration parameters for a class II Reactor
 config = {
     # === Simulation settings ===
-    'n_iter' : 20,
+    'n_iter' : 500,
     'n_initial' : 200,  # Number of neutrons in the initial state
     'a' : 0.1,          # proba for absorption
     'f' : 0.6,          # proba for fission
     'd' : 0.5,          # proba for diffusion
-    'l' : 1.1,          # Parameter of the fish law
+    'l' : 0.8,          # Parameter of the fish law
     # === Reactor settings ===
     'n' : 15, 
     'm' : 15,
