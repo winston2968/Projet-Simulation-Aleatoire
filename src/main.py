@@ -39,7 +39,7 @@ with Live(refresh_per_second=10) as live:
     history = reactorV2.simulate()
 
 # Data export
-export_data(reactorV2, config)
+#export_data(reactorV2, config)
 
 # ==================== TODO ====================
 # 

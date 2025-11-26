@@ -528,9 +528,35 @@ class ReactorV2:
 
         # === 5. Send instruction to each regulation rod ===
         clamped_target = max(0.0, min(100.0, target_position))
-        print("test clamped_target", clamped_target)
+
+        #-----------------------------TEST-----------------------------
+        final_target = clamped_target
+        
+        activation = True
+
+        if activation:
+        
+            current_rod_pos = self.regulation_rods[0].position_percent
+            final_target = clamped_target
+
+            
+            if error > 0.05 and clamped_target < current_rod_pos:
+                print(f"[Interlock] Low Power ({self.power_level:.2%}): Insertion Blocked.")
+                final_target = current_rod_pos
+                # Anti-windup
+                self.reg_integral_error -= error * self.dt
+
+            elif error < -0.05 and clamped_target > current_rod_pos:
+                print(f"[Interlock] High Power ({self.power_level:.2%}): Withdraw Blocked.")
+                final_target = current_rod_pos
+            
+                self.reg_integral_error -= error * self.dt
+
+            print("final_target", final_target)
+        #--------------------------------------------------------------
+
         for rod in self.regulation_rods:
-            rod.target_position = clamped_target
+            rod.target_position = final_target
 
 
     # ------------------------------------------------------------------
