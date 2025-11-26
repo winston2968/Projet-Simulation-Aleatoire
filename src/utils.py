@@ -18,18 +18,26 @@ def export_data(reactor, output_folder="statistics_output"):
     from datetime import datetime
     import os
 
+    timestamp = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+
     # Export folder check
     statistics_path_folder = os.path.join("statistics", output_folder)
     if not os.path.exists(statistics_path_folder):
         os.makedirs(statistics_path_folder)
         print(f"+ Created folder : {statistics_path_folder}")
 
+    # Export folder for this simulation check
+    export_simulation_folder = os.path.join(statistics_path_folder, timestamp)
+    if not os.path.exists(export_simulation_folder):
+        os.makedirs(export_simulation_folder)
+        print(f"+ Created folder for this simulation : {export_simulation_folder}")
+
     # File name configuration
     timestamp = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
     history_filename = f"reactor_history_{timestamp}.csv"
     neutrons_filename = f"neutrons_trajectories_{timestamp}.csv"
-    history_path = os.path.join(statistics_path_folder, history_filename)
-    neutrons_path = os.path.join(statistics_path_folder, neutrons_filename)
+    history_path = os.path.join(export_simulation_folder, history_filename)
+    neutrons_path = os.path.join(export_simulation_folder, neutrons_filename)
 
     # Launch export
     print(f"========== Exporting Data ({timestamp}) ==========")
