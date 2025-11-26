@@ -10,11 +10,13 @@
 def simul_poisson(l): 
     import numpy as np 
     from numpy import random as npr
-    return int(np.ceil(-(1/l) * np.log(npr.rand())))
+    return max(5, int(np.ceil(-(1/l) * np.log(npr.rand()))))    # We take max because the fission can produce max 5 neutrons
 
 
 # ---------------------------- CSV Export -----------------------------------
-def export_data(reactor, output_folder="statistics_output"):
+import pandas as pd
+
+def export_data(reactor, config, output_folder="statistics_output"):
     from datetime import datetime
     import os
 
@@ -34,8 +36,10 @@ def export_data(reactor, output_folder="statistics_output"):
 
     # File name configuration
     timestamp = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+    settings_filename = f"settings_{timestamp}.csv"
     history_filename = f"reactor_history_{timestamp}.csv"
     neutrons_filename = f"neutrons_trajectories_{timestamp}.csv"
+    settings_path = os.path.join(export_simulation_folder, settings_filename)
     history_path = os.path.join(export_simulation_folder, history_filename)
     neutrons_path = os.path.join(export_simulation_folder, neutrons_filename)
 
@@ -43,6 +47,7 @@ def export_data(reactor, output_folder="statistics_output"):
     print(f"========== Exporting Data ({timestamp}) ==========")
     export_react_traj(reactor, history_path)
     export_neutrons_traj(reactor.history, neutrons_path)
+    export_settings(reactor, config, settings_path)
     print("========== Export Done ==========")
 
 
@@ -86,12 +91,9 @@ def export_reactor(config, write_history, write_neutrons, output_folder='data_ex
 
 
 # -----------------------------------------
-# Simulate Reactor and export trajectory 
+# Export trajectory 
 # -----------------------------------------
-def export_react_traj(reactor, path): 
-    #from ReactorV2 import ReactorV2
-    import pandas as pd 
-
+def export_react_traj(reactor, path):
     print(f"+ Exporting reactor metrics to {path}")
     
     min_len = min(len(reactor.history), len(reactor.power_history), len(reactor.temp_history))
@@ -120,7 +122,7 @@ def export_react_traj(reactor, path):
 
 
 # -----------------------------------------------
-# Simulate Reactor and export neutron trajectory 
+# Export neutron trajectory 
 # -----------------------------------------------
 def export_neutrons_traj(history, path): 
     import csv
@@ -139,3 +141,42 @@ def export_neutrons_traj(history, path):
                     "y": y,
                     "type": neutron_type
                 })
+
+
+# -----------------------------------------------
+# Export settings
+# -----------------------------------------------
+def export_settings(reactor, config, path):
+    print(f"+ Exporting simulation settings to {path}")
+
+    all_data = config.copy()
+
+    reactor_state = {
+        "--- REACTOR INTERNAL STATE ---": "",
+        "final_nominal_power_mw": reactor.nominal_power_mw,
+        "final_power_level": reactor.power_level,
+        "final_current_power_mw": reactor.current_power_mw,
+        "final_current_temperature": reactor.current_temperature,
+        "final_n_fissions": reactor.n_fissions,
+        "physics_fission_energy": reactor.fission_energy,
+        "physics_temp_coolant": reactor.temp_coolant,
+        "physics_cooling_coef": reactor.cooling_coef,
+        "rod_active": reactor.rod_active,
+        "--- REGULATION SETTINGS ---": "",
+        "scram_threshold": reactor.scram_threshold,
+        "scram_triggered": reactor.scram_triggered,
+        "reg_base_position": reactor.reg_base_position,
+        "reg_kp": reactor.reg_kp,
+        "reg_ki": reactor.reg_ki,
+        "reg_integral_error": reactor.reg_integral_error,
+        "power_setpoint": reactor.power_setpoint,
+        "dt": reactor.dt,
+        "power_scaling_factor": reactor.power_scaling_factor
+    }
+
+    all_data.update(reactor_state)
+    df = pd.DataFrame.from_dict(all_data, orient='index', columns=['value'])
+    df.index.name = 'parameter'
+
+    df.to_csv(path, encoding='utf-8')
+    print("+ Done.")
