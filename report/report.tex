@@ -28,35 +28,28 @@
 % ==================================================================================================================================
 % La fission nucléaire
 
-\section{La fission nucléaire}
+\section{La fission nucléaire : De la théorie à la pratique}
+
+Avant d'introduire et de modéliser un réacteur nucléaire, commençons par nous pencher sur ses mécanismes 
+internes pour comprendre leur fonctionnement. 
 
 \subsection{Un peu de chimie}
 
-Avant de modéliser un réacteur nucléaire, commençons par nous pencher sur ses mécanismes internes pour comprendre 
-leur fonctionnement. 
-
-En physique, il existe plusieurs réactions dites chimiques (évaporation, solidification, transcendance, etc...) que nous 
-connaissons depuis la maternelle. Ces réactions font partie de la vie courante et sont de fait, très intuitives. 
-Elles altèrent et modifient les propriétés physiques macroscopiques des matériaux : il est facile de distinguer de l'eau 
-liquide de l'eau solide. 
-Si l'on regarde du côté microscopique, elles modifient directement l'agencement des molécules dans l'espace. 
-À l'état gazeux, les molécules bougent de manière frénétique dans l'espace sans structure apparente. À l'état liquide, elles 
-se présentent sous une forme plus compacte comparable à un tas de sable où les grains représentent les molécules. 
-Enfin, l'état solide se caractérise par un agencement très précis des molécules en une structure géométrique.
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[scale=0.4]{images/etats_matiere.png}
-    \caption{États de la matière}
-\end{figure}
-
+Au niveau microscopique, la matière est constituée de molécules, elles même composées d'un 
+agencement de plusieurs atomes respectant un certaine position. 
+La concept de molécules fut introduit en 1811\textsuperscript{\parencite{molecules-wiki}} par 
+Amedeo Avogadro. Ces éléments sont au coeur de l'ensembles des réactions chimiques usuelles telles que 
+la combustion, le fonctionnement des piles/batteries ou même la rouille.
 Cependant, certaines transformations mettent en jeu non plus les molécules, mais les noyaux des atomes eux-mêmes. 
 Ces réactions, dites nucléaires (voir \cite{reaction-nucleaire-wiki}), libèrent des quantités d’énergie bien supérieures aux réactions chimiques.
+
+La notion d'atome est aussi ancienne que celle des molécules mais son modèle actuel nous vient 
+de Schrödinger\textsuperscript{\parencite{atomes-wiki}} et date de 1926. 
 
 \subsection{La fission} 
 
 Il existe deux types de réactions nucléaires : la \emph{fission} et la \emph{fusion}. 
-La fission nucléaire\textsubscript{\parencite{fission-wiki}} fut découverte en 1938 par des physiciens allemands sur le travail de Enrico Fermi datant des années 
+La fission nucléaire\textsuperscript{\parencite{fission-wiki}} fut découverte en 1938 par des physiciens allemands sur le travail de Enrico Fermi datant des années 
 1934. Cette découverte fait l'effet d'une bombe (sans mauvais jeu de mots) dans le milieu de la physique moderne et lance 
 aussitôt la course au développement de l'arme atomique dans un contexte tendu de fin seconde guerre mondiale et 
 de début de guerre froide. 
@@ -248,21 +241,25 @@ Ce facteur dépend directement de la composition du combustible, du taux d’abs
     \label{tab:facteur_k}
 \end{table}
  
-En pratique, on décompose le facteur de multiplication en plusieurs composantes physiques :
-    \begin{equation}
-        k = \eta \, f \, p \, \varepsilon,
-    \end{equation}
-où :
-\begin{itemize}
-    \item \( \eta \) : nombre moyen de neutrons produits par fission et disponibles pour entretenir la réaction,  
-    \item \( f \) : fraction des neutrons absorbés dans le combustible fissile,  
-    \item \( p \) : probabilité qu’un neutron échappe à la résonance d’absorption pendant son ralentissement,  
-    \item \( \varepsilon \) : facteur de multiplication rapide (neutrons produits par fissions induites par des neutrons rapides).  
-\end{itemize}
+% En pratique, on décompose le facteur de multiplication en plusieurs composantes physiques :
+%     \begin{equation}
+%         k = \eta \, f \, p \, \varepsilon,
+%     \end{equation}
+% où :
+% \begin{itemize}
+%     \item \( \eta \) : nombre moyen de neutrons produits par fission et disponibles pour entretenir la réaction,  
+%     \item \( f \) : fraction des neutrons absorbés dans le combustible fissile,  
+%     \item \( p \) : probabilité qu’un neutron échappe à la résonance d’absorption pendant son ralentissement,  
+%     \item \( \varepsilon \) : facteur de multiplication rapide (neutrons produits par fissions induites par des neutrons rapides).  
+% \end{itemize}
 
-Le contrôle du facteur \( k \) est au cœur de la sûreté des réacteurs.  
-Il est ajusté à l’aide de barres de contrôle et du réglage 
-du modérateur, afin de maintenir un équilibre critique stable (\( k = 1 \)) lors du fonctionnement nominal.  
+% Le contrôle du facteur \( k \) est au cœur de la sûreté des réacteurs.  
+% Il est ajusté à l’aide de barres de contrôle et du réglage 
+% du modérateur, afin de maintenir un équilibre critique stable (\( k = 1 \)) lors du fonctionnement nominal.  
+
+
+% ==================================================================================================================================
+% Modélisation physique
 
 \section{Modélisation Physique}
 
@@ -423,7 +420,7 @@ suit un courbe similaire à celle-ci dessous\footnote{Aussi, plus la différence
 % ==================================================================================================================================
 % Modélisation 
 
-\section{Modélisation de la simulation}
+\section{Simulation}
 
 \subsection{Objectif et principe}
 
@@ -557,7 +554,7 @@ Chaque barre est un agent indépendant défini par ses caractéristiques physiqu
     L'antiréactivité totale est calculée et convertie en un facteur correctif appliqué aux probabilités de fission et d'absorption pour le pas de temps suivant.
 \end{enumerate}
 
-\subsubsection{Algorithme de Pilotage : Le Régulateur PI !POSSIBILITE DE METTRE EN ANNEXE!}
+\subsubsection{Algorithme de Pilotage : Le Régulateur PI}
 
 Pour ajuster automatiquement la position des barres de régulation, nous avons implémenté un correcteur \textbf{Proportionnel-Intégral (PI)}. C'est un mécanisme de rétroaction : le système observe l'écart entre la puissance réelle et la puissance voulue pour corriger sa commande en temps réel.
 
