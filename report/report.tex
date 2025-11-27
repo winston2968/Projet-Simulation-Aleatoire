@@ -28,35 +28,28 @@
 % ==================================================================================================================================
 % La fission nucléaire
 
-\section{La fission nucléaire}
+\section{La fission nucléaire : De la théorie à la pratique}
+
+Avant d'introduire et de modéliser un réacteur nucléaire, commençons par nous pencher sur ses mécanismes 
+internes pour comprendre leur fonctionnement. 
 
 \subsection{Un peu de chimie}
 
-Avant de modéliser un réacteur nucléaire, commençons par nous pencher sur ses mécanismes internes pour comprendre 
-leur fonctionnement. 
-
-En physique, il existe plusieurs réactions dites chimiques (évaporation, solidification, transcendance, etc...) que nous 
-connaissons depuis la maternelle. Ces réactions font partie de la vie courante et sont de fait, très intuitives. 
-Elles altèrent et modifient les propriétés physiques macroscopiques des matériaux : il est facile de distinguer de l'eau 
-liquide de l'eau solide. 
-Si l'on regarde du côté microscopique, elles modifient directement l'agencement des molécules dans l'espace. 
-À l'état gazeux, les molécules bougent de manière frénétique dans l'espace sans structure apparente. À l'état liquide, elles 
-se présentent sous une forme plus compacte comparable à un tas de sable où les grains représentent les molécules. 
-Enfin, l'état solide se caractérise par un agencement très précis des molécules en une structure géométrique.
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[scale=0.4]{images/etats_matiere.png}
-    \caption{États de la matière}
-\end{figure}
-
+Au niveau microscopique, la matière est constituée de molécules, elles même composées d'un 
+agencement de plusieurs atomes respectant un certaine position. 
+La concept de molécules fut introduit en 1811\textsuperscript{\parencite{molecules-wiki}} par 
+Amedeo Avogadro. Ces éléments sont au coeur de l'ensembles des réactions chimiques usuelles telles que 
+la combustion, le fonctionnement des piles/batteries ou même la rouille.
 Cependant, certaines transformations mettent en jeu non plus les molécules, mais les noyaux des atomes eux-mêmes. 
-Ces réactions, dites nucléaires, libèrent des quantités d’énergie bien supérieures aux réactions chimiques.
+Ces réactions, dites nucléaires (voir \cite{reaction-nucleaire-wiki}), libèrent des quantités d’énergie bien supérieures aux réactions chimiques.
+
+La notion d'atome est aussi ancienne que celle des molécules mais son modèle actuel nous vient 
+de Schrödinger\textsuperscript{\parencite{atomes-wiki}} et date de 1926. 
 
 \subsection{La fission} 
 
 Il existe deux types de réactions nucléaires : la \emph{fission} et la \emph{fusion}. 
-La {fission nucléaire} fut découverte en 1938 par des physiciens allemands sur le travail de Enrico Fermi datant des années 
+La fission nucléaire\textsuperscript{\parencite{fission-wiki}} fut découverte en 1938 par des physiciens allemands sur le travail de Enrico Fermi datant des années 
 1934. Cette découverte fait l'effet d'une bombe (sans mauvais jeu de mots) dans le milieu de la physique moderne et lance 
 aussitôt la course au développement de l'arme atomique dans un contexte tendu de fin seconde guerre mondiale et 
 de début de guerre froide. 
@@ -248,21 +241,25 @@ Ce facteur dépend directement de la composition du combustible, du taux d’abs
     \label{tab:facteur_k}
 \end{table}
  
-En pratique, on décompose le facteur de multiplication en plusieurs composantes physiques :
-    \begin{equation}
-        k = \eta \, f \, p \, \varepsilon,
-    \end{equation}
-où :
-\begin{itemize}
-    \item \( \eta \) : nombre moyen de neutrons produits par fission et disponibles pour entretenir la réaction,  
-    \item \( f \) : fraction des neutrons absorbés dans le combustible fissile,  
-    \item \( p \) : probabilité qu’un neutron échappe à la résonance d’absorption pendant son ralentissement,  
-    \item \( \varepsilon \) : facteur de multiplication rapide (neutrons produits par fissions induites par des neutrons rapides).  
-\end{itemize}
+% En pratique, on décompose le facteur de multiplication en plusieurs composantes physiques :
+%     \begin{equation}
+%         k = \eta \, f \, p \, \varepsilon,
+%     \end{equation}
+% où :
+% \begin{itemize}
+%     \item \( \eta \) : nombre moyen de neutrons produits par fission et disponibles pour entretenir la réaction,  
+%     \item \( f \) : fraction des neutrons absorbés dans le combustible fissile,  
+%     \item \( p \) : probabilité qu’un neutron échappe à la résonance d’absorption pendant son ralentissement,  
+%     \item \( \varepsilon \) : facteur de multiplication rapide (neutrons produits par fissions induites par des neutrons rapides).  
+% \end{itemize}
 
-Le contrôle du facteur \( k \) est au cœur de la sûreté des réacteurs.  
-Il est ajusté à l’aide de barres de contrôle et du réglage 
-du modérateur, afin de maintenir un équilibre critique stable (\( k = 1 \)) lors du fonctionnement nominal.  
+% Le contrôle du facteur \( k \) est au cœur de la sûreté des réacteurs.  
+% Il est ajusté à l’aide de barres de contrôle et du réglage 
+% du modérateur, afin de maintenir un équilibre critique stable (\( k = 1 \)) lors du fonctionnement nominal.  
+
+
+% ==================================================================================================================================
+% Modélisation physique
 
 \section{Modélisation Physique}
 
@@ -319,30 +316,34 @@ L'efficacité totale \(\rho(z)\) à une profondeur \(z\) est donc l'intégrale d
 
 Nous approcherons cette courbe par la formule suivante, où \(z \in [0,1]\) représente la fraction d'insertion (\(0=\text{sortie}, 1=\text{insérée}\)) :
 
-\begin{equation}
-    \rho(z) = \rho_{\text{total}} \times \frac{1}{2} \left( 1 - \cos(\pi z) \right)
-\end{equation}
+    \begin{equation}
+        \rho(z) = \rho_{\text{total}} \times \frac{1}{2} \left( 1 - \cos(\pi z) \right)
+    \end{equation}
 
 Dans notre simulation, cette valeur \(\rho(z)\) (exprimée en pcm\footnote{Unité de réactivité, abréviation de "pour cent mille".})
 est convertie en un facteur multiplicatif appliqués aux probabilités de fission \(f\) et d'absorption \(a\) du modèle stochastique.
 Etant donné que les barres de pilotage n'ont d'effet que sur les neutrons les plus lents ({thermiques}\footnote{Il est nécessaire de nuancer nos propos. 
-Les neutrons épithermiques sont également capturés via un système de résonance par effet Dopler avec des barres spéciales. Mais pour des besoins de simplification, nous avons choisi de rendre uniquement les neutrons \textit{thermiques} absorbables par le système de contrôle.}), les probabilités concernant les autres types restent inchangées.
+Les neutrons épithermiques sont également capturés via un système de résonance par effet Dopler avec des barres 
+spéciales. Mais pour des besoins de simplification, nous avons choisi de rendre uniquement les neutrons 
+\textit{thermiques} absorbables par le système de contrôle.}), les probabilités concernant les autres types restent 
+inchangées.
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[scale=1]{images/integral_control_rod_worth_curve.jpg}
-    \caption{Courbe en S représentant l'antiréactivité des barres de pilotage.}
-    \label{fig:s_curve}
-\end{figure}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[scale=1]{images/integral_control_rod_worth_curve.jpg}
+        \caption{Courbe en S représentant l'antiréactivité des barres de pilotage.}
+        \label{fig:s_curve}
+    \end{figure}
+
 
 \subsection{Modèle Thermique et Loi de Newton}
 
 La température du réacteur est une variable d'état résultant d'un bilan énergétique. 
 Pour la calculer, nous appliquons le \textbf{Premier Principe de la Thermodynamique} : pour un système fermé, la variation de son énergie interne \((U)\) au cour du temps est égale à la somme des puissances thermiques reçues et perdues, moins le travail mécanique effectué par le système.
 
-\begin{equation}
-    \frac{dU}{dt} = \dot{Q} - \dot{W}
-\end{equation}
+    \begin{equation}
+        \frac{dU}{dt} = \dot{Q} - \dot{W}
+    \end{equation}
 
 Où :
 
@@ -354,22 +355,26 @@ Où :
 Ici, le coeur du réacteur ne fournit aucun travail mécanique. Le flux thermique net \(\dot{Q}\) se décomposant en deux termes : la puissance générée par la fission (\(P_{int}\)) et la puissance évacuée par le refroidissement (\(P_{out}\)). Nous pouvons reformuler le principe énoncé plus haut de la façon suivante :
 la variation d'énergie interne du système est égale à la différence entre la puissance produite et la puissance évacuée.
 
-\begin{equation}
-    \frac{dU}{dt} = P_{\text{in}}(t) - P_{\text{out}}(t)
-\end{equation}
+    \begin{equation}
+        \frac{dU}{dt} = P_{\text{in}}(t) - P_{\text{out}}(t)
+    \end{equation}
 
-Sachant que\footnote{Cette égalité vient de la définition de la capacité thermique d'un corps. Elle énonce que pour un système incompressible, la variation d'énergie interne est proportionnelle à la variation de température. Le coefficient de proportionnalité est la \textbf{capacité thermique} du système, notée \(C\).} 
-\(dU = C \cdot dT\) 
-(où \(C\) est la capacité thermique totale du cœur en \(J \cdot K^{-1}\)), l'équation d'évolution de la température s'écrit :
+Sachant que\footnote{Cette égalité vient de la définition de la capacité thermique d'un corps. 
+Elle énonce que pour un système incompressible, la variation d'énergie interne est proportionnelle à 
+la variation de température. Le coefficient de proportionnalité est la \textbf{capacité thermique} du système, 
+notée \(C\).} $$ dU = C \cdot dT $$ (où \(C\) est la capacité thermique totale du cœur 
+en \(J \cdot K^{-1}\)), l'équation d'évolution de la température s'écrit :
 
-\begin{equation}
-    C \cdot \frac{dT(t)}{dt} = P_{\text{fission}}(t) - P_{\text{refroidissement}}(t)
-\end{equation}
+    \begin{equation}
+        C \cdot \frac{dT(t)}{dt} = P_{\text{fission}}(t) - P_{\text{refroidissement}}(t)
+    \end{equation}
 
 \subsubsection{Production de Chaleur (\(P_{\text{in}}\))}
+
 La puissance entrant dans le système, \(P_{\text{fission}}\), est directement proportionnelle au nombre de fissions par seconde simulées par notre modèle de neutrons.
 
 \subsubsection{Évacuation de Chaleur (\(P_{\text{out}}\)) - Loi de Newton}
+
 Pour modéliser l'échange thermique entre le cœur et le liquide de refroidissement (modérateur), nous utilisons la \textbf{Loi de Refroidissement de Newton}.
 Elle énonce que le taux de perte de chaleur d'un corps est proportionnel à la différence 
 de température entre le corps et le milieu environnant :
@@ -412,24 +417,10 @@ suit un courbe similaire à celle-ci dessous\footnote{Aussi, plus la différence
     \label{fig:newton_law}
 \end{figure}
 
-\begin{remarkBox}[title=Qu'en est-il de notre système d'urgence européen ?]
-    En Europe, et particulièrement en France, le type de réacteur dominant est le \emph{Réacteur à Eau Pressurisée} (REP).\\
-    Dans un REP, le contrôle de la réactivité est géré par deux systèmes complémentaires :
-    \begin{enumerate}
-        \item \emph{Le Bore Soluble :} C'est un "poison" liquide qui permet de compenser les ajustements lents.
-        \item \emph{Les Barres Mécaniques :} Elles sont utilisées pour la régulation et l'arrêt d'urgence (SCRAM).
-    \end{enumerate}
-
-    Le mécanisme de SCRAM sur un REP est un exemple de \emph{sécurité passive} : les barres d'arrêt sont maintenues en position 
-    haute par des électroaimants. En cas d'arrêt d'urgence, le courant est coupé, les aimants lâchent les barres, qui tombent alors par
-    simple gravité dans le cœur, assurant l'arrêt du réacteur même en cas de panne de courant totale. 
-    Nous nous sommes basé sur ce système pour implémenter notre fonctionnalité permettant une auto-régulation de la puissance en fonction de celle souhaitée.
-\end{remarkBox}
-
 % ==================================================================================================================================
 % Modélisation 
 
-\section{Modélisation de la simulation}
+\section{Simulation}
 
 \subsection{Objectif et principe}
 
@@ -563,7 +554,7 @@ Chaque barre est un agent indépendant défini par ses caractéristiques physiqu
     L'antiréactivité totale est calculée et convertie en un facteur correctif appliqué aux probabilités de fission et d'absorption pour le pas de temps suivant.
 \end{enumerate}
 
-\subsubsection{Algorithme de Pilotage : Le Régulateur PI !POSSIBILITE DE METTRE EN ANNEXE!}
+\subsubsection{Algorithme de Pilotage : Le Régulateur PI}
 
 Pour ajuster automatiquement la position des barres de régulation, nous avons implémenté un correcteur \textbf{Proportionnel-Intégral (PI)}. C'est un mécanisme de rétroaction : le système observe l'écart entre la puissance réelle et la puissance voulue pour corriger sa commande en temps réel.
 
@@ -608,6 +599,8 @@ ligne directrice
 
 
 
+% ==================================================================================================================================
+% Conclusion
 
 \section{Conclusion}
 
@@ -618,34 +611,13 @@ apports technique et humain
 extensions possibles
 limites
 
-\section{Bibliographie}
-METTRE LE NOM DU PROJET EN ENTETE DE CETTE PAGE et faire un saut de page\\
 
+% ==================================================================================================================================
+% Annexes 1
 
-https://fr.wikipedia.org/wiki/Fission_nucl\%C3\%A9aire\\
-https://fr.wikipedia.org/wiki/R\%C3\%A9gulateur_PID\\
-
-https://www.researchgate.net/publication/261014534_Study_of_Criticality_Safety_and_Neutronic_Performance_for_a_348-Fuel-Pin_Ghana_Research_Reactor-1_LEU_Core_Using_MCNP_Code\\
-https://nuclear-twins.tacc.utexas.edu/rod_calibration\\
-
-
-Son, N. , Hoa, N. , Nguyen, T. , Tuan, T. and Raul, O. (2017) Control Rod Calibration and Worth Calculation for Optimized Power Reactor 1000 (OPR-1000) Using Core Simulator OPR1000. World Journal of Nuclear Science and Technology, 7, 15-23. doi: 10.4236/wjnst.2017.71002.
-
-
-James Watt. (2025, novembre 16). Wikipédia, l'encyclopédie libre. Page consultée le 15:48, novembre 16, 2025 à partir de http://fr.wikipedia.org/w/index.php?title=James_Watt&oldid=230694974.
-
-
-\section{Annexe}
-pareil saut de page\\
-table des annexes
-
-1 annexe titrée par page
-
-
-
-
-
-\subsection{Le premier régulateur PI}
+\newpage
+\section*{Annexe 1 - Le premier régulateur PI}
+\addcontentsline{toc}{section}{Annexe 1 - Le premier régulateur PI}
 
 L'ancêtre du régulateur proprotionnel intégrable qui régit actuellement le monde de l'industrie vient de l'ingénieur écossais James Watt.
 Grâce à son invention : le \textit{régulateur à boules}, il est considéré comme l'un des inventeurs de la machine à vapeur.
@@ -664,5 +636,31 @@ C'est pour cette raison que le terme \textit{intégral (I)} a été inventé plu
     \label{fig:watt_regulator}
 \end{figure}
 
+% ==================================================================================================================================
+% Annexes 2
+
+\newpage
+\section*{Annexe 2 - Qu'en est-il de notre système d'urgence européen ?}
+\addcontentsline{toc}{section}{Annexe 2 - Qu'en est-il de notre système d'urgence européen ?}
+
+En Europe, et particulièrement en France, le type de réacteur dominant est le \emph{Réacteur à Eau Pressurisée} (REP).\\
+Dans un REP, le contrôle de la réactivité est géré par deux systèmes complémentaires :
+\begin{enumerate}
+    \item \emph{Le Bore Soluble :} C'est un "poison" liquide qui permet de compenser les ajustements lents.
+    \item \emph{Les Barres Mécaniques :} Elles sont utilisées pour la régulation et l'arrêt d'urgence (SCRAM).
+\end{enumerate}
+
+Le mécanisme de SCRAM sur un REP est un exemple de \emph{sécurité passive} : les barres d'arrêt sont maintenues en position 
+haute par des électroaimants. En cas d'arrêt d'urgence, le courant est coupé, les aimants lâchent les barres, qui tombent alors par
+simple gravité dans le cœur, assurant l'arrêt du réacteur même en cas de panne de courant totale. 
+Nous nous sommes basé sur ce système pour implémenter notre fonctionnalité permettant une auto-régulation de la puissance en fonction de celle souhaitée.
+
+
+% ==================================================================================================================================
+% Biblio
+
+
+\newpage 
+\printbibliography
 
 \end{document}
