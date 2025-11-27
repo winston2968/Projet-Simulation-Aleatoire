@@ -173,3 +173,75 @@ def choose_action_other(self):
         if u < d1 : 
             return 0 
         return 1
+
+# ------------------------------------------------------------------
+# Update control rods positions based on power error
+# ------------------------------------------------------------------
+def update_automatic_control_rods(self):
+    if not self.regulation_rods:
+        print("ALERT : Regulation rod undected.")
+        return
+    
+    #--------------------TEST---------------------------------
+    print(f"\n\nDEBUG POWER: {self.power_level}\n\n")
+    if self.power_level < 0.01:
+        self.reg_integral_error = 0
+        for rod in self.regulation_rods:
+            rod.target_position = 100.0
+        print("REACTOR OFF : Resetting rods to 100%")
+        return
+    #----------------------------------------------------------
+
+    # === 1. Calculate error between current power and target power ===
+    error = self.power_setpoint - self.power_level
+    print("test power error", error)
+
+    # === 2. Simple proportional control ===
+    # Calculation of the static error
+    kp = self.reg_kp * error
+
+    # === 3. Integral term (with anti-windup) ===
+    # Error history calculation
+    # In continuous time, summing the errors involves calculating the integral.
+    # In discrete time (as here), it is a simple sum
+    self.reg_integral_error += error * self.dt
+    self.reg_integral_error = max(-1.0, min(1.0, self.reg_integral_error))
+    i_term = self.reg_ki * self.reg_integral_error
+
+    # === 4. Calculate new target position for regulation rods ===
+    target_position = max(0.0, min(100.0, self.reg_base_position + kp + i_term))
+    print("test target_position", target_position)
+
+    # === 5. Send instruction to each regulation rod ===
+    clamped_target = max(0.0, min(100.0, target_position))
+    print("test current_temperature", self.current_temperature)
+
+    #-----------------------------TEST-----------------------------
+    final_target = clamped_target
+
+    activation = True
+    
+    if activation:
+    
+        current_rod_pos = self.regulation_rods[0].position_percent
+        final_target = clamped_target
+
+        #and abs(error) > 0.05
+        if self.power_history[-1] > 900  and clamped_target > current_rod_pos:
+            
+            print(f"[Interlock] Low Power ({self.power_level:.2%}): Insertion Blocked.")
+            final_target = current_rod_pos
+            # Anti-windup
+            self.reg_integral_error -= error * self.dt
+        #and error < -0.05
+        elif self.power_history[-1] < 200  and clamped_target < current_rod_pos:
+            print(f"[Interlock] High Power ({self.power_level:.2%}): Withdraw Blocked.")
+            final_target = current_rod_pos
+        
+            self.reg_integral_error -= error * self.dt
+
+        print("test final_target", final_target)
+    #--------------------------------------------------------------
+
+    for rod in self.regulation_rods:
+        rod.target_position = final_target

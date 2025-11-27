@@ -55,19 +55,22 @@ class ReactorV2:
         self.history = []
 
         # === Reactor parameters ===
-        self.nominal_power_mw= 1000.0       # .MW
-        self.power_level = 0.0              # Actual power in %
-        self.current_power_mw = 0.0         # Actual power in MW 
-        self.current_temperature = 300.0    # Temperature in Kelvin at t=0 (approx. 26.8°C)
-        
+        self.nominal_power_mw= 1400.0                       # .MW
+        self.power_level = 0.0                              # Actual power in %
+        self.current_power_mw = 0.0                         # Actual power in MW 
+        self.current_temperature = 300.0                    # Temperature in Kelvin at t=0 (approx. 26.8°C)
+        self.dt = 0.1                                       # Time step for control rod updates (seconds)
+        self.thermic_capacity = config["thermic_capacity"]
+        self.temp_coolant = 300.0                           # Cooling water base temperature
+        self.cooling_coef = self.thermic_capacity * 0.05    # Cooling water loss coefficient
+        self.power_setpoint = 1.0                           # Target power level (1.0 = 100%)
+        self.power_scaling_factor = 1.5e17
+
         # Reactor informations to display 
         self.n_fissions = 0 
         self.fission_energy = 3.2 * 10**(-11)               # .Joules
         self.temp_history = [self.current_temperature]      # Initialisation with temperature at t=0 (parameters)
         self.power_history = [self.current_power_mw]        # Initialisation with power at t=0 (parameters)
-        self.thermic_capacity = config["thermic_capacity"]
-        self.temp_coolant = 300.0                           # Cooling water base temperature
-        self.cooling_coef = self.thermic_capacity * 0.05    # Cooling water loss coefficient
 
         # === Controls Rods Parameters ===
         self.rod_active = config.get('rod_active', False)
@@ -81,26 +84,24 @@ class ReactorV2:
                 ControlRod(id = rod_config['id'], type=rod_config['type'])
             )
         
-        # To simplify, we will only use these two types of bars
         self.regulation_rods = [rod for rod in self.control_rods if rod.type == 'regulation']
         self.scram_rods = [rod for rod in self.control_rods if rod.type == 'scram']
+        
+        self.scram_threshold = config.get('scram_threshold', 1.5)   # This is the threshold beyond which the emergency bars activate
+        self.scram_triggered = False                                # Flag to indicate if scram has been triggered
 
-        # This is the threshold beyond which the emergency bars activate
-        # It represente 1.5 * max_power
-        self.scram_threshold = config.get('scram_threshold', 1.5)
-        self.scram_triggered = False    # Flag to indicate if scram has been triggered
-
-        # !!! We have to ajust this parameters !!!
         self.reg_base_position = 50.0   # Base position for regulation rods (in percent)
                                         # 100.0 = OUT - 0.0 = IN
         self.reg_kp = 25.0              # Proportional gain for
         self.reg_ki = 10.0              # Integral gain
         self.reg_integral_error = 0.0   # Memory of the integral error
-        self.power_setpoint = 1.0       # Target power level (1.0 = 100%)
-        self.dt = 0.1                   # Time step for control rod updates (seconds)
-        self.power_scaling_factor = 1.5e17
+        #--------------------------------------
+        # Sensor to move the bars in critical situations
+        self.force_pull_up_active = False   # If its to hot
+        self.force_pull_down_active = False # If its to cold
+        #-------------------------------------
 
-        # Different moderator properties 
+        # === Moderator Parameters ===
         MODERATORS = {
             "light_water": Moderator("light_water", absorb_coeff=1.0, diffuse_coeff=1.2, fission_coeff=0.8, slow_fast=0.3, slow_epi=0.5),
             "graphite":   Moderator("graphite",   absorb_coeff=0.6, diffuse_coeff=1.0, fission_coeff=0.9, slow_fast=0.15, slow_epi=0.3),
@@ -121,7 +122,6 @@ class ReactorV2:
             We instanciate Neutrons list with only fast and epithermal neutrons with will need to 
             slow down to produce fission reactions. 
         """
-
 
     # ------------------------------------------------------------------
     # Init Neutron Position
@@ -172,7 +172,7 @@ class ReactorV2:
     # ------------------------------------------------------------------
     def simulate(self): 
         next_id = len(self.neutrons)
-
+        print("----------------------------------------------------")
         # === 0. Initialization of probabilities at the first turn ===
         if self.moderator:
             base_a = self.moderator.absorb_coeff
@@ -245,7 +245,8 @@ class ReactorV2:
             # Rod position history
             current_rod_positions = {}
             for rod in self.control_rods:
-                current_rod_positions[rod.id] = rod.position_percent
+                current_rod_positions[rod.id] = rod.position_percent                
+                print(f"Rod {rod.id} moved to {rod.position_percent:.2f}% (Target: {rod.target_position:.2f})")
             
             self.rod_history.append(current_rod_positions)
 
@@ -498,14 +499,22 @@ class ReactorV2:
         self.live.update(display)
         sleep(0.2)
 
-
     # ------------------------------------------------------------------
     # Update control rods positions based on power error
     # ------------------------------------------------------------------
     def update_automatic_control_rods(self):
         if not self.regulation_rods:
-            return "ALERT : Regulation rod undected."
+            print("ALERT : Regulation rod undected.")
+            return 
         
+        # === 0. If the reactor shuts down, we remove the control rods ===
+        if self.power_level < 0.01:
+            self.reg_integral_error = 0.0
+            for rod in self.regulation_rods:
+                rod.target_position = 100.0
+            print("REACTOR OFF : Resetting rods to 100%")
+            return 
+
         # === 1. Calculate error between current power and target power ===
         error = self.power_setpoint - self.power_level
         print("test power error", error)
@@ -513,7 +522,7 @@ class ReactorV2:
         # === 2. Simple proportional control ===
         # Calculation of the static error
         kp = self.reg_kp * error
-
+        
         # === 3. Integral term (with anti-windup) ===
         # Error history calculation
         # In continuous time, summing the errors involves calculating the integral.
@@ -528,37 +537,44 @@ class ReactorV2:
 
         # === 5. Send instruction to each regulation rod ===
         clamped_target = max(0.0, min(100.0, target_position))
-
-        #-----------------------------TEST-----------------------------
+        print("test current_temperature", self.current_temperature)
+        
+        # ====================================================
+        #               Hysteresis algorithm
+        # ====================================================
         final_target = clamped_target
 
-        activation = True
+        # === 6.1. Control ===
+        # === 6.1.1. RUNBACK ===
+        # If current_power > 900 MW, the drop is activated. It is only deactivated if < 850 MW.
+        if self.current_power_mw > 700:
+            self.force_pull_up_active = True
+        elif self.current_power_mw < 650:
+            self.force_pull_up_active = False
 
-        if activation:
+        # === 6.1.2 WITHDRAW ===
+        # If current_power < 200 MW, we go back. We only deactivate if > 250 MW.
+        if self.current_power_mw < 200:
+            self.force_pull_down_active = True
+        elif self.current_power_mw > 250:
+            self.force_pull_down_active = False
         
-            current_rod_pos = self.regulation_rods[0].position_percent
-            final_target = clamped_target
+        # === 6.2. Action ===
+        # === 6.2.1. Too much power ===
+        if self.force_pull_up_active:
+            print(f"[PROTECTION] High Power (>900). Forcing Insertion.")
+            final_target = 0.0
+            self.reg_integral_error -= error * self.dt
 
-            
-            if self.current_temperature > 1550 and error > 0.05 and clamped_target < current_rod_pos:
-                print(self.current_temperature)
-                print(f"[Interlock] Low Power ({self.power_level:.2%}): Insertion Blocked.")
-                final_target = current_rod_pos
-                # Anti-windup
-                self.reg_integral_error -= error * self.dt
+        # === 6.2.2. Not enought power ===
+        elif self.force_pull_down_active:
+            print(f"[PROTECTION] Low Power (<200). Forcing Withdrawal.")
+            final_target = 100.0
+            self.reg_integral_error -= error * self.dt
 
-            elif self.current_temperature < 400 and error < -0.05 and clamped_target > current_rod_pos:
-                print(f"[Interlock] High Power ({self.power_level:.2%}): Withdraw Blocked.")
-                final_target = current_rod_pos
-            
-                self.reg_integral_error -= error * self.dt
-
-            print("final_target", final_target)
-        #--------------------------------------------------------------
-
+        # === 7. Send orders ===
         for rod in self.regulation_rods:
             rod.target_position = final_target
-
 
     # ------------------------------------------------------------------
     # Check if an emergency scram is needed based on reactor conditions
@@ -569,7 +585,8 @@ class ReactorV2:
             return "ALERT : emergency scram undected."
 
         if self.power_level > self.scram_threshold and not self.scram_triggered:            
-            #-------------DEBUG#-------------
+            
+            #-------------DEBUG-------------
             print(f"!!! EMERGENCY SCRAM ACTIVATED !!!")
             print("scram_threshold", self.scram_threshold)
             print("scram_triggered", self.scram_triggered)

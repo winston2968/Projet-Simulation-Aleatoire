@@ -10,10 +10,9 @@
 def simul_poisson(l): 
     import numpy as np 
     from numpy import random as npr
-    return min(5, int(np.ceil(-(1/l) * np.log(npr.rand()))))    # We take max because the fission can produce max 5 neutrons
+    return min(5, max(2, int(np.ceil(-(1/l) * np.log(npr.rand())))))
 
-
-# ---------------------------- CSV Export -----------------------------------
+# ---------------------------- CSV Export --------------------------------------------------
 import pandas as pd
 
 def export_data(reactor, config, output_folder="statistics_output"):
@@ -51,45 +50,6 @@ def export_data(reactor, config, output_folder="statistics_output"):
     print("========== Export Done ==========")
 
 
-"""
-def export_reactor(config, write_history, write_neutrons, output_folder='data_export'): 
-    from ReactorV2 import ReactorV2
-    from rich.live import Live 
-    import os
-    from datetime import datetime
-
-    # Export folder check
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
-        print(f"+ Created folder: {output_folder}")
-    
-
-    timestamp = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-    history_file = os.path.join(output_folder, f"reactor_history_{timestamp}.csv")
-    neutrons_file = os.path.join(output_folder, f"neutrons_trajectories_{timestamp}.csv")
-
-    # Simulate reactor
-    print(f"========== Exporting Datas ({timestamp})==========")
-    print("+ Launching simulation...")
-    with Live(refresh_per_second=10) as live: 
-        reactorV2 = ReactorV2(live, config)
-        history = reactorV2.simulate()
-    temp = reactorV2.temp_history
-    power = reactorV2.power_history 
-    print("+ Simulation Done")
-
-    # Export data
-    if write_history: 
-        print("+ Exporting reactor trajectory...")
-        export_react_traj(history, temp, power, history_file)
-        print("+ Done")
-    if write_neutrons: 
-        print("+ Exporting neutrons trajectories...")
-        export_neutrons_traj(history, neutrons_file)
-        print("+ Done")
-"""
-
-
 # -----------------------------------------
 # Export trajectory 
 # -----------------------------------------
@@ -119,6 +79,7 @@ def export_react_traj(reactor, path):
     # Write in .CSV file 
     df = pd.DataFrame(data)
     df.to_csv(path, index=False)
+    print("+ Done.")
 
 
 # -----------------------------------------------
@@ -141,6 +102,8 @@ def export_neutrons_traj(history, path):
                     "y": y,
                     "type": neutron_type
                 })
+    f.close()
+    print("+ Done.")
 
 
 # -----------------------------------------------

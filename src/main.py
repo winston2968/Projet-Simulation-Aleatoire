@@ -5,13 +5,13 @@ from utils import export_data
 # Configuration parameters for a class II Reactor
 config = {
     # === Simulation settings ===
-    'n_iter' : 500,
+    'n_iter' : 1000,
     'n_initial' : 200,  # Number of neutrons in the initial state
     'a' : 0.1,          # proba for absorption
     'f' : 0.6,          # proba for fission
     'd' : 0.5,          # proba for diffusion
-    'l' : 0.8,          # Parameter of the fish law
-    # === Reactor settings ===
+    'l' : 5,            # Parameter of the fish law
+    # === Reactor settings ===&
     'n' : 15, 
     'm' : 15,
     'thermic_capacity' : 1e7,
@@ -27,7 +27,7 @@ config = {
     'verbose' : False,
     # === Control rods settings ===
     'rod_active' : True,
-    'scram_threshold' : 1.5,    # Threshold for emergency scram
+    'scram_threshold' : 2,    # Threshold for emergency scram
     'control_rods' : [          # Initialisation of rods
         {'id': 'RE01', 'type': 'regulation'},
         {'id': 'SC01', 'type': 'scram'}
@@ -39,7 +39,7 @@ with Live(refresh_per_second=10) as live:
     history = reactorV2.simulate()
 
 # Data export
-export_data(reactorV2, config)
+#export_data(reactorV2, config)
 
 # ==================== TODO ====================
 # 

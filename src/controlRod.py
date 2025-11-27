@@ -5,8 +5,8 @@
 import numpy as np 
 
 type_rod = {
-    'regulation' : {'total_worth_pcm' : -500, 'max_speed' : 1.75},
-    'scram' : {'total_worth_pcm' : -20000, 'max_speed' : 100.0}
+    'regulation' : {'total_worth_pcm' : -7500, 'max_speed' : 50},
+    'scram' : {'total_worth_pcm' : -30000, 'max_speed' : 100.0}
 }
 
 class ControlRod:

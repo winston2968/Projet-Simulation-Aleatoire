@@ -1,0 +1,167 @@
+---
+title: "Untitled"
+output: html_document
+date: "2025-11-27"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r}
+library(tidyverse)
+library(gganimate)
+
+# Simulation de vos données (pour que l'exemple soit reproductible)
+
+ggplot(traj_neutrons, aes(x = x, y = y)) +
+  # On utilise bin2d pour compter les neutrons dans des carrés
+  geom_bin2d(bins = 30) + 
+  
+  # Palette de couleurs "Magma" (très lisible pour la chaleur/densité)
+  scale_fill_viridis_c(option = "magma") +
+  
+  # SÉPARATION MAGIQUE : On crée un graphe par type de neutron
+  facet_wrap(~ type) + 
+  
+  coord_fixed() +
+  theme_minimal() +
+  labs(title = "Distribution spatiale : Rapides vs Épithermiques",
+       fill = "Densité")
+
+
+```
+```{r}
+library(tidyverse)
+
+# --- 1. REMPLACER LA SIMULATION PAR LE CHARGEMENT DE VOTRE FICHIER ---
+# Assurez-vous que le fichier est dans votre dossier de travail ou mettez le chemin complet
+traj_neutrons <- read_csv("votre_fichier.csv") 
+
+# --- 2. VOTRE GRAPHIQUE (Aucune modification nécessaire ici si les noms correspondent) ---
+ggplot(traj_neutrons, aes(x = x, y = y)) +
+  # geom_bin2d compte les points.
+  # Comme vos x/y vont de 0 à 14, binwidth=1 crée des cases de 1x1 unité.
+  geom_bin2d(binwidth = c(1, 1)) + 
+  
+  scale_fill_viridis_c(option = "magma") +
+  
+  # Cela va créer 3 graphiques côte à côte (fast, epithermal, thermal)
+  #facet_wrap(~ type) + 
+  
+  coord_fixed() +
+  theme_minimal() +
+  labs(title = "Distribution spatiale de tous les neutrons",
+       subtitle = "Données cumulées (tous les pas de temps)",
+       fill = "NB Neutrons")
+```
+
+
+```{r}
+library(tidyverse)
+
+# 1. Chargement (si pas déjà fait)
+traj_neutrons <- read_csv("votre_fichier.csv")
+
+# 2. Calcul de la durée de vie pour chaque neutron
+# On groupe par ID et on compte le nombre de lignes (n())
+duree_vie_df <- traj_neutrons %>%
+  group_by(neutron_id) %>%
+  summarise(
+    duree_totale = n()  # Nombre de pas de temps vécus
+    # Note : Si vous voulez la durée en temps physique et non en "lignes", 
+    # utilisez : max(time_step) - min(time_step)
+  )
+
+ggplot(duree_vie_df, aes(x = duree_totale)) +
+  geom_histogram(binwidth = 1, fill = "#4E79A7") +
+  
+  # La racine carrée permet de voir les petits effectifs sans les bugs du log(1)=0
+  scale_y_sqrt() + 
+  
+  theme_minimal() +
+  labs(title = "Distribution (Échelle Racine Carrée)")
+
+
+```
+```{r}
+library(tidyverse)
+
+# 1. Chargement
+traj_neutrons <- read_csv("votre_fichier.csv")
+
+# 2. Calcul de la durée DE CHAQUE ÉTAT pour chaque neutron
+# En ajoutant 'type' dans le group_by, on compte combien de temps
+# le neutron #123 a été 'fast', combien de temps il a été 'thermal', etc.
+duree_par_type <- traj_neutrons %>%
+  group_by(neutron_id, type) %>%
+  summarise(duree_etat = n(), .groups = "drop")
+
+# 3. Affichage avec Facetting (3 graphiques côte à côte)
+ggplot(duree_par_type, aes(x = duree_etat, fill = type)) +
+  
+  # Histogramme avec des barres fines (binwidth=1)
+  geom_histogram(binwidth = 1, color = "white", alpha = 0.8) +
+  
+  # Séparation en 3 panneaux
+  facet_wrap(~ type, scales = "free_y") + 
+  # Note: scales="free_y" est utile car on a souvent BEAUCOUP plus de
+  # neutrons rapides (très courts) que de thermiques.
+  
+  # Couleurs distinctes
+  scale_fill_manual(values = c("fast" = "#E41A1C", 
+                               "epithermal" = "#4DAF4A", 
+                               "thermal" = "#377EB8")) +
+  
+  theme_minimal() +
+  labs(title = "Distribution des temps de résidence par type",
+       subtitle = "Combien de temps les neutrons passent-ils dans chaque état d'énergie ?",
+       x = "Durée (nombre de pas de temps)",
+       y = "Nombre de neutrons") +
+       
+  # Pour éviter le bug visuel des valeurs négatives, on reste en linéaire
+  # ou on utilise sqrt() si les écarts sont trop grands
+  scale_y_sqrt()
+```
+
+
+```{r}
+# 1. On ajoute directement les nouvelles colonnes dans 'reacteur_1000'
+# R va calculer la catégorie pour chacune des 1000 lignes automatiquement.
+
+reacteur_1000$cat_barre <- cut(reacteur_1000$pos_RE01, 
+                               breaks = 3, 
+                               labels = c("Enfoncée", "Milieu", "Sortie"))
+
+reacteur_1000$cat_power <- cut(reacteur_1000$power_mw, 
+                               breaks = 3, 
+                               labels = c("Faible", "Moyenne", "Forte"))
+
+# Vérification : on regarde les premières lignes pour voir les nouvelles colonnes
+head(reacteur_1000)
+
+# 2. Création de la table de contingence avec ces nouvelles colonnes
+table_croisee <- table(reacteur_1000$cat_barre, reacteur_1000$cat_power)
+
+print("--- Table de contingence ---")
+print(table_croisee)
+
+# 3. Test du Khi-deux
+test_khi2 <- chisq.test(table_croisee)
+
+print("--- Résultat du test ---")
+print(test_khi2)
+```
+
+
+```{r}
+# Le mosaic plot permet de voir visuellement ce que le Chi-2 a calculé
+mosaicplot(table_croisee, 
+           main = "Impact des Barres sur la Puissance",
+           shade = TRUE, 
+           las = 1)
+
+```
+
