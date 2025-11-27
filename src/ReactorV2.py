@@ -539,15 +539,14 @@ class ReactorV2:
             current_rod_pos = self.regulation_rods[0].position_percent
             final_target = clamped_target
 
-            
-            if self.current_temperature > 1550 and error > 0.05 and clamped_target < current_rod_pos:
-                print(self.current_temperature)
+            # abs(error) > 0.05
+            if self.temp_history[-1] > 1550 and clamped_target < current_rod_pos:
                 print(f"[Interlock] Low Power ({self.power_level:.2%}): Insertion Blocked.")
                 final_target = current_rod_pos
                 # Anti-windup
                 self.reg_integral_error -= error * self.dt
 
-            elif self.current_temperature < 400 and error < -0.05 and clamped_target > current_rod_pos:
+            elif self.temp_history[-1] < 400 and clamped_target > current_rod_pos:
                 print(f"[Interlock] High Power ({self.power_level:.2%}): Withdraw Blocked.")
                 final_target = current_rod_pos
             
