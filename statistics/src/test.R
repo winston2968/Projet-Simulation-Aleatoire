@@ -17,6 +17,7 @@ plot(reacteur_1000$power_mw,reacteur_1000$pos_RE01)
 
 plot(reacteur_1000$time_step,reacteur_1000$temperature_k)
 plot(reacteur_1000$time_step,reacteur_1000$pos_RE01)
+
 plot(reacteur_1000$time_step,reacteur_1000$power_mw)
 
 

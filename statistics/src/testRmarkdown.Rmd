@@ -128,40 +128,309 @@ ggplot(duree_par_type, aes(x = duree_etat, fill = type)) +
 
 
 ```{r}
-# 1. On ajoute directement les nouvelles colonnes dans 'reacteur_1000'
-# R va calculer la catégorie pour chacune des 1000 lignes automatiquement.
+library(ggplot2)
 
-reacteur_1000$cat_barre <- cut(reacteur_1000$pos_RE01, 
-                               breaks = 3, 
-                               labels = c("Enfoncée", "Milieu", "Sortie"))
-
-reacteur_1000$cat_power <- cut(reacteur_1000$power_mw, 
-                               breaks = 3, 
-                               labels = c("Faible", "Moyenne", "Forte"))
-
-# Vérification : on regarde les premières lignes pour voir les nouvelles colonnes
-head(reacteur_1000)
-
-# 2. Création de la table de contingence avec ces nouvelles colonnes
-table_croisee <- table(reacteur_1000$cat_barre, reacteur_1000$cat_power)
-
-print("--- Table de contingence ---")
-print(table_croisee)
-
-# 3. Test du Khi-deux
-test_khi2 <- chisq.test(table_croisee)
-
-print("--- Résultat du test ---")
-print(test_khi2)
+ggplot(reacteur_1000, aes(x = time_step, y = power_mw)) +
+  geom_point() +
+  # method = "lm" signifie "Linear Model"
+  geom_smooth(method = "lm", color = "red") +
+  theme_minimal()
 ```
 
 
 ```{r}
-# Le mosaic plot permet de voir visuellement ce que le Chi-2 a calculé
-mosaicplot(table_croisee, 
-           main = "Impact des Barres sur la Puissance",
-           shade = TRUE, 
-           las = 1)
+```
+
+
+```{r}
+plot(reacteur_1000$time_step, reacteur_1000$power_mw, 
+     main = "Évolution de la puissance",
+     xlab = "Temps", ylab = "Puissance (MW)")
+
+# 2. Calcul du modèle linéaire (Puissance en fonction du Temps)
+# Syntaxe : lm(Y ~ X, data = votre_dataframe)
+reg_lineaire <- lm(power_mw ~ time_step, data = reacteur_1000)
+
+# 3. Ajout de la droite rouge par-dessus les points
+abline(reg_lineaire, col = "red", lwd = 2) # lwd = épaisseur du trait
+```
+```{r}
+library(ggplot2)
+
+ggplot(reacteur_1000, aes(x = time_step, y = power_mw)) +
+  geom_point(alpha = 0.4) + # alpha rend les points transparents pour mieux voir la densité
+  
+  # method = "loess" est le standard pour ce type de lissage
+  # span joue le même rôle que 'f' (0.1 = suivi précis)
+  geom_smooth(method = "loess", span = 0.1, color = "red", size = 1.5) +
+  
+  theme_minimal() +
+  labs(title = "Évolution lissée de la puissance")
 
 ```
+```{r}
+library(ggplot2)
+
+# Calcul du facteur d'échelle pour que les deux courbes aient la même taille visuelle
+scale_factor <- max(reacteur_1000$power_mw) / max(reacteur_1000$nb_neutrons)
+
+ggplot(reacteur_1000, aes(x = time_step)) +
+  
+  # Courbe 1 : Puissance (Rouge)
+  geom_smooth(aes(y = power_mw), method = "loess", span = 0.1, color = "red", size = 1.5, se = FALSE) +
+  
+  # Courbe 2 : Neutrons (Bleu) -> On multiplie par le facteur pour la remonter
+  geom_smooth(aes(y = nb_neutrons * scale_factor), method = "loess", span = 0.1, color = "blue", size = 1.5, se = FALSE) +
+  
+  # Création du 2ème axe Y (qui divise par le facteur pour afficher les vrais chiffres)
+  scale_y_continuous(
+    name = "Puissance (MW)",
+    sec.axis = sec_axis(~ . / scale_factor, name = "Nombre de Neutrons")
+  ) +
+  
+  theme_minimal() +
+  theme(
+    axis.title.y.left = element_text(color = "red"),
+    axis.title.y.right = element_text(color = "blue")
+  ) +
+  labs(title = "Corrélation Puissance / Neutrons")
+```
+```{r}
+library(ggplot2)
+
+# --- 1. Calcul des facteurs d'échelle (Pour que tout rentre dans le graphique) ---
+max_power <- max(reacteur_1000$power_mw, na.rm = TRUE)
+max_neutrons <- max(reacteur_1000$nb_neutrons, na.rm = TRUE)
+max_rods <- 100 # Les barres vont de 0 à 100%
+
+# Facteur pour gonfler les neutrons à la taille de la puissance
+coeff_neutrons <- max_power / max_neutrons
+
+# Facteur pour gonfler les barres (0-100) à la taille de la puissance (ex: 0-1200)
+coeff_rods <- max_power / max_rods
+
+# --- 2. Le Graphique ---
+ggplot(reacteur_1000, aes(x = time_step)) +
+  
+  # --- COURBE 1 : PUISSANCE (Rouge) ---
+  # C'est notre référence, on ne la touche pas
+  geom_smooth(aes(y = power_mw, color = "Puissance (MW)"), 
+              method = "loess", span = 0.1, size = 1, se = FALSE) +
+  
+  # --- COURBE 2 : NEUTRONS (Bleu Pointillé) ---
+  # On multiplie par le coeff pour qu'elle se superpose à la puissance
+  geom_smooth(aes(y = nb_neutrons * coeff_neutrons, color = "Neutrons"), 
+              method = "loess", span = 0.1, size = 1, se = FALSE) +
+  
+  # --- COURBE 3 : BARRES DE CONTROLE (Vert) ---
+  # On multiplie par le coeff pour qu'elle soit visible
+  geom_smooth(aes(y = pos_RE01 * coeff_rods, color = "Barres (%)"), 
+              method = "loess", linetype = "dashed", span = 0.1, size = 1, se = FALSE) +
+  
+  # --- GESTION DES AXES ---
+  scale_y_continuous(
+    name = "Puissance (MW)", # Axe de Gauche
+    
+    # Axe de Droite : On divise par coeff_rods pour retrouver les valeurs 0-100
+    sec.axis = sec_axis(~ . / coeff_rods, name = "Position Barres (%)")
+  ) +
+  
+  # --- COULEURS MANUELLES ---
+  scale_color_manual(name = "Légende", values = c(
+    "Puissance (MW)" = "#E41A1C", # Rouge
+    "Neutrons" = "#377EB8",       # Bleu
+    "Barres (%)" = "#4DAF4A"      # Vert
+  )) +
+  
+  theme_minimal() +
+  theme(
+    legend.position = "top",
+    axis.title.y.left = element_text(color = "#E41A1C", face = "bold"),
+    axis.title.y.right = element_text(color = "#4DAF4A", face = "bold")
+  ) +
+  labs(title = "Dynamique du Réacteur : Barres vs Puissance/Neutrons",
+       subtitle = "Observez l'effet miroir : Quand la courbe Verte descend (Barres sorties), la Rouge monte.")
+
+```
+
+
+```{r}
+# --- 2. LA CORRECTION CRITIQUE ---
+
+# Pour pos_RE01 : 0 = Sortie, 100 = Enfoncée.
+# cut() prend les petits chiffres en premier.
+# Donc le PREMIER label doit être "Sortie" (pour les valeurs proches de 0).
+reacteur_1000$cat_barre <- cut(reacteur_1000$pos_RE01, 
+                               breaks = 3, 
+                               labels = c("Sortie", "Milieu", "Enfoncée"))
+
+# Pour la puissance : 0 = Faible, 1200 = Forte.
+# Ici l'ordre est naturel.
+reacteur_1000$cat_power <- cut(reacteur_1000$power_mw, 
+                               breaks = 3, 
+                               labels = c("Faible", "Moyenne", "Forte"))
+
+# --- 3. VERIFICATION AVANT GRAPHIQUE ---
+# On vérifie une ligne "Haute puissance" (ex: ligne 49 dans vos données brutes)
+# pos=0 -> Doit être "Sortie". Power=863 -> Doit être "Forte".
+head(reacteur_1000[reacteur_1000$pos_RE01 < 10, c("pos_RE01", "power_mw", "cat_barre", "cat_power")])
+
+# --- 4. LE GRAPHIQUE FINAL ---
+table_croisee <- table(reacteur_1000$cat_barre, reacteur_1000$cat_power)
+
+mosaicplot(table_croisee, 
+           main = "Corrélation Physique : Barres vs Puissance",
+           shade = TRUE, 
+           las = 1,
+           xlab = "Position Barres (0=Sortie / 100=Enfoncée)",
+           ylab = "Puissance Thermique")
+```
+
+```{r}
+library(tidyverse)
+
+# 1. On compte combien il y a de neutrons de chaque type à chaque pas de temps
+evolution_pop <- traj_neutrons %>%
+  count(time_step, type) 
+
+# 2. Graphique en aires empilées
+ggplot(evolution_pop, aes(x = time_step, y = n, fill = type)) +
+  geom_area(alpha = 0.8, color = "white") +
+  
+  # Couleurs intuitives : Rouge (Rapide/Chaud) -> Bleu (Thermal/Froid)
+  scale_fill_manual(values = c("fast" = "#d73027",      # Rouge
+                               "epithermal" = "#fdae61", # Orange
+                               "thermal" = "#4575b4")) + # Bleu
+  
+  theme_minimal() +
+  labs(title = "Dynamique de thermalisation",
+       subtitle = "Évolution des populations de neutrons dans le temps",
+       x = "Temps", y = "Nombre de neutrons")
+
+```
+```{r}
+library(tidyverse)
+
+# 1. Calcul de la distance parcourue pour CHAQUE neutron
+# On veut éviter les neutrons statiques ou ceux qui meurent tout de suite.
+stats_neutrons <- traj_neutrons %>%
+  arrange(neutron_id, time_step) %>% # Important : trier par temps
+  group_by(neutron_id) %>%
+  mutate(
+    # Calcul du déplacement entre chaque pas de temps (Théorème de Pythagore)
+    dx = x - lag(x, default = first(x)),
+    dy = y - lag(y, default = first(y)),
+    dist_step = sqrt(dx^2 + dy^2)
+  ) %>%
+  summarise(
+    distance_totale = sum(dist_step, na.rm = TRUE),
+    duree_vie = n(),
+    .groups = "drop"
+  )
+
+# 2. On sélectionne les "Top 5 Voyageurs"
+# Ceux qui ont vraiment bougé, pas juste vécu longtemps au même endroit
+top_neutrons_ids <- stats_neutrons %>%
+  arrange(desc(distance_totale)) %>% # On prend les plus grandes distances
+  head(5) %>%
+  pull(neutron_id)
+
+# 3. On récupère les données complètes pour ces 5 élus
+data_trajectoires <- traj_neutrons %>%
+  filter(neutron_id %in% top_neutrons_ids) %>%
+  arrange(neutron_id, time_step) # CRUCIAL pour que geom_path relie les points dans l'ordre
+
+# 4. Le Graphique amélioré
+ggplot(data_trajectoires, aes(x = x, y = y, group = neutron_id, color = as.factor(neutron_id))) +
+  
+  # On dessine le chemin complet
+  geom_path(size = 1, alpha = 0.8) + 
+  
+  # On marque le DÉBUT (t_min) par un carré
+  geom_point(data = data_trajectoires %>% group_by(neutron_id) %>% slice(1), 
+             shape = 15, size = 3) +
+  
+  # On marque la FIN (t_max) par un rond
+  geom_point(data = data_trajectoires %>% group_by(neutron_id) %>% slice(n()), 
+             shape = 16, size = 3) +
+  
+  # Cadre du réacteur
+  coord_fixed(xlim = c(0, 14), ylim = c(0, 14)) +
+  theme_bw() +
+  labs(title = "Trajectoires des 5 neutrons les plus actifs",
+       subtitle = "Carré = Départ, Rond = Arrivée",
+       color = "ID Neutron",
+       x = "Position X", y = "Position Y")
+
+```
+```{r}
+# Centre du réacteur (supposé à 7,7 vu que max est 14)
+centre_x <- 7
+centre_y <- 7
+
+# Calcul de la distance moyenne de TOUS les neutrons par rapport au centre
+diffusion_radiale <- traj_neutrons %>%
+  mutate(distance_centre = sqrt((x - centre_x)^2 + (y - centre_y)^2)) %>%
+  group_by(time_step, type) %>%
+  summarise(dist_moyenne = mean(distance_centre))
+
+ggplot(diffusion_radiale, aes(x = time_step, y = dist_moyenne, color = type)) +
+  geom_line(size = 1) +
+  
+  scale_color_manual(values = c("fast" = "#d73027", "epithermal" = "#fdae61", "thermal" = "#4575b4")) +
+  theme_minimal() +
+  labs(title = "Diffusion Radiale Moyenne",
+       subtitle = "Les neutrons s'éloignent-ils du centre avec le temps ?",
+       x = "Temps",
+       y = "Distance moyenne au centre (cm)")
+```
+
+```{r}
+library(tidyverse)
+
+# 1. On transforme les données pour ggplot (format long)
+# On sélectionne les colonnes intéressantes : Puissance, Température, Position Barres
+dashboard_data <- reacteur_1000 %>%
+  select(time_step, power_mw, temperature_k, pos_RE01) %>%
+  pivot_longer(cols = -time_step, names_to = "variable", values_to = "valeur") %>%
+  mutate(variable = factor(variable, levels = c("pos_RE01", "power_mw", "temperature_k")))
+
+# 2. Le graphique "Facet Grid"
+ggplot(dashboard_data, aes(x = time_step, y = valeur, color = variable)) +
+  geom_line(size = 1) +
+  
+  # On sépare en 3 panneaux verticaux
+  facet_grid(variable ~ ., scales = "free_y") + 
+  
+  scale_color_manual(values = c("pos_RE01" = "black", 
+                                "power_mw" = "#E41A1C", 
+                                "temperature_k" = "#377EB8")) +
+  
+  theme_bw() +
+  labs(title = "Tableau de bord du réacteur",
+       subtitle = "Corrélation : Commande (Barres) -> Réaction (Puissance) -> Conséquence (Temp)",
+       x = "Temps (s)", y = "") +
+  theme(legend.position = "none") # Pas besoin de légende grâce aux titres des facettes
+
+```
+```{r}
+
+ggplot(reacteur_1000, aes(x = pos_RE01, y = power_mw)) +
+  geom_point(alpha = 0.5, color = "darkgreen") +
+  
+  # On ajoute une courbe de lissage pour voir la tendance moyenne
+  geom_smooth(method = "loess", color = "red", se = FALSE) +
+  
+  # On inverse l'axe X car 100 = Barres enfoncées (gauche) et 0 = Sorties (droite)
+  # C'est plus logique de lire "Barres sorties -> Puissance haute" de gauche à droite
+  scale_x_reverse() +
+  
+  theme_bw() +
+  labs(title = "Courbe d'efficacité des barres de contrôle",
+       subtitle = "Sensibilité du réacteur à la position des barres",
+       x = "Position Barres (0 = Totalement Sorties / 100 = Insérées)",
+       y = "Puissance Générée (MW)")
+
+```
+
 
