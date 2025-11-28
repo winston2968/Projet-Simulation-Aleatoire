@@ -5,7 +5,7 @@ from utils import export_data
 # Configuration parameters for a class II Reactor
 config = {
     # === Simulation settings ===
-    'n_iter' : 1000,
+    'n_iter' : 10,
     'n_initial' : 200,  # Number of neutrons in the initial state
     'a' : 0.1,          # proba for absorption
     'f' : 0.6,          # proba for fission
@@ -27,7 +27,7 @@ config = {
     'verbose' : False,
     # === Control rods settings ===
     'rod_active' : True,
-    'scram_threshold' : 2,    # Threshold for emergency scram
+    'scram_threshold' : 2,      # Threshold for emergency scram
     'control_rods' : [          # Initialisation of rods
         {'id': 'RE01', 'type': 'regulation'},
         {'id': 'SC01', 'type': 'scram'}
