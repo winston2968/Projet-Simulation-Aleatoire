@@ -38,7 +38,7 @@ library(tidyverse)
 
 # --- 1. REMPLACER LA SIMULATION PAR LE CHARGEMENT DE VOTRE FICHIER ---
 # Assurez-vous que le fichier est dans votre dossier de travail ou mettez le chemin complet
-traj_neutrons <- read_csv("votre_fichier.csv") 
+#traj_neutrons <- read_csv("votre_fichier.csv") 
 
 # --- 2. VOTRE GRAPHIQUE (Aucune modification nécessaire ici si les noms correspondent) ---
 ggplot(traj_neutrons, aes(x = x, y = y)) +
@@ -63,7 +63,7 @@ ggplot(traj_neutrons, aes(x = x, y = y)) +
 library(tidyverse)
 
 # 1. Chargement (si pas déjà fait)
-traj_neutrons <- read_csv("votre_fichier.csv")
+#traj_neutrons <- read_csv("votre_fichier.csv")
 
 # 2. Calcul de la durée de vie pour chaque neutron
 # On groupe par ID et on compte le nombre de lignes (n())
@@ -86,11 +86,11 @@ ggplot(duree_vie_df, aes(x = duree_totale)) +
 
 
 ```
+
 ```{r}
 library(tidyverse)
 
 # 1. Chargement
-traj_neutrons <- read_csv("votre_fichier.csv")
 
 # 2. Calcul de la durée DE CHAQUE ÉTAT pour chaque neutron
 # En ajoutant 'type' dans le group_by, on compte combien de temps
