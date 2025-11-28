@@ -1,0 +1,260 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.2 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{nty/global//global/global}
+    \entry{capacite-thermique}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=41f2bace0e917c58349e510b16d754c5}{%
+           family={Physique},
+           familyi={P\bibinitperiod},
+           given={Fmeto},
+           giveni={F\bibinitperiod}}}%
+      }
+      \strng{namehash}{41f2bace0e917c58349e510b16d754c5}
+      \strng{fullhash}{41f2bace0e917c58349e510b16d754c5}
+      \strng{bibnamehash}{41f2bace0e917c58349e510b16d754c5}
+      \strng{authorbibnamehash}{41f2bace0e917c58349e510b16d754c5}
+      \strng{authornamehash}{41f2bace0e917c58349e510b16d754c5}
+      \strng{authorfullhash}{41f2bace0e917c58349e510b16d754c5}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Cours de Thermodynamique classique}
+      \field{year}{2023}
+      \verb{urlraw}
+      \verb https://femto-physique.fr/thermodynamique/capacites-thermiques.php
+      \endverb
+      \verb{url}
+      \verb https://femto-physique.fr/thermodynamique/capacites-thermiques.php
+      \endverb
+    \endentry
+    \entry{pp-thermodynamique}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=b380a97bc85a834c82f077b8e6b61315}{%
+           family={Université},
+           familyi={U\bibinitperiod},
+           given={Sciences\bibnamedelima Sorbonne},
+           giveni={S\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+      }
+      \strng{namehash}{b380a97bc85a834c82f077b8e6b61315}
+      \strng{fullhash}{b380a97bc85a834c82f077b8e6b61315}
+      \strng{bibnamehash}{b380a97bc85a834c82f077b8e6b61315}
+      \strng{authorbibnamehash}{b380a97bc85a834c82f077b8e6b61315}
+      \strng{authornamehash}{b380a97bc85a834c82f077b8e6b61315}
+      \strng{authorfullhash}{b380a97bc85a834c82f077b8e6b61315}
+      \field{sortinit}{U}
+      \field{sortinithash}{6901a00e45705986ee5e7ca9fd39adca}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{1P003 – Chapitre 7 – Thermodynamique - 1er principe}
+      \verb{urlraw}
+      \verb https://share.google/xlYfZR4RPM0YBPsYn
+      \endverb
+      \verb{url}
+      \verb https://share.google/xlYfZR4RPM0YBPsYn
+      \endverb
+    \endentry
+    \entry{atomes-wiki}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=9c677286866aad38f8e9b660f5411814}{%
+           family={Wikipedia},
+           familyi={W\bibinitperiod}}}%
+      }
+      \strng{namehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{fullhash}{9c677286866aad38f8e9b660f5411814}
+      \strng{bibnamehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{authorbibnamehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{authornamehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{authorfullhash}{9c677286866aad38f8e9b660f5411814}
+      \field{extraname}{1}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Atomes}
+      \field{year}{2025}
+      \verb{urlraw}
+      \verb https://fr.wikipedia.org/wiki/Atome#Historique_des_mod%C3%A8les_de_l'atome
+      \endverb
+      \verb{url}
+      \verb https://fr.wikipedia.org/wiki/Atome#Historique_des_mod%C3%A8les_de_l'atome
+      \endverb
+    \endentry
+    \entry{fission-wiki}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=9c677286866aad38f8e9b660f5411814}{%
+           family={Wikipedia},
+           familyi={W\bibinitperiod}}}%
+      }
+      \strng{namehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{fullhash}{9c677286866aad38f8e9b660f5411814}
+      \strng{bibnamehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{authorbibnamehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{authornamehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{authorfullhash}{9c677286866aad38f8e9b660f5411814}
+      \field{extraname}{2}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Fission Nucléaire}
+      \field{year}{2025}
+      \verb{urlraw}
+      \verb https://fr.wikipedia.org/wiki/Fission_nucl\%C3\%A9aire\\
+      \endverb
+      \verb{url}
+      \verb https://fr.wikipedia.org/wiki/Fission_nucl%5C%C3%5C%A9aire%5C%5C
+      \endverb
+    \endentry
+    \entry{james-watt}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=9c677286866aad38f8e9b660f5411814}{%
+           family={Wikipedia},
+           familyi={W\bibinitperiod}}}%
+      }
+      \strng{namehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{fullhash}{9c677286866aad38f8e9b660f5411814}
+      \strng{bibnamehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{authorbibnamehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{authornamehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{authorfullhash}{9c677286866aad38f8e9b660f5411814}
+      \field{extraname}{3}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{James Watt}
+      \field{year}{2025}
+      \verb{urlraw}
+      \verb http://fr.wikipedia.org/w/index.php?title=James_Watt&oldid=230694974
+      \endverb
+      \verb{url}
+      \verb http://fr.wikipedia.org/w/index.php?title=James_Watt&oldid=230694974
+      \endverb
+    \endentry
+    \entry{loi-refroidissement-newton}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=9c677286866aad38f8e9b660f5411814}{%
+           family={Wikipedia},
+           familyi={W\bibinitperiod}}}%
+      }
+      \strng{namehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{fullhash}{9c677286866aad38f8e9b660f5411814}
+      \strng{bibnamehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{authorbibnamehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{authornamehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{authorfullhash}{9c677286866aad38f8e9b660f5411814}
+      \field{extraname}{4}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Loi de refroidissement de Newton}
+      \field{year}{2023}
+      \verb{urlraw}
+      \verb https://fr.wikipedia.org/wiki/Loi_de_refroidissement_de_Newton
+      \endverb
+      \verb{url}
+      \verb https://fr.wikipedia.org/wiki/Loi_de_refroidissement_de_Newton
+      \endverb
+    \endentry
+    \entry{molecules-wiki}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=9c677286866aad38f8e9b660f5411814}{%
+           family={Wikipedia},
+           familyi={W\bibinitperiod}}}%
+      }
+      \strng{namehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{fullhash}{9c677286866aad38f8e9b660f5411814}
+      \strng{bibnamehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{authorbibnamehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{authornamehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{authorfullhash}{9c677286866aad38f8e9b660f5411814}
+      \field{extraname}{5}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Molécules}
+      \field{year}{2025}
+      \verb{urlraw}
+      \verb https://fr.wikipedia.org/wiki/Mol%C3%A9cule
+      \endverb
+      \verb{url}
+      \verb https://fr.wikipedia.org/wiki/Mol%C3%A9cule
+      \endverb
+    \endentry
+    \entry{reaction-nucleaire-wiki}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=9c677286866aad38f8e9b660f5411814}{%
+           family={Wikipedia},
+           familyi={W\bibinitperiod}}}%
+      }
+      \strng{namehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{fullhash}{9c677286866aad38f8e9b660f5411814}
+      \strng{bibnamehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{authorbibnamehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{authornamehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{authorfullhash}{9c677286866aad38f8e9b660f5411814}
+      \field{extraname}{6}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Réaction Nucléaire}
+      \field{year}{2025}
+      \verb{urlraw}
+      \verb https://fr.wikipedia.org/wiki/R%C3%A9action_nucl%C3%A9aire
+      \endverb
+      \verb{url}
+      \verb https://fr.wikipedia.org/wiki/R%C3%A9action_nucl%C3%A9aire
+      \endverb
+    \endentry
+    \entry{reg-pi}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=9c677286866aad38f8e9b660f5411814}{%
+           family={Wikipedia},
+           familyi={W\bibinitperiod}}}%
+      }
+      \strng{namehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{fullhash}{9c677286866aad38f8e9b660f5411814}
+      \strng{bibnamehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{authorbibnamehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{authornamehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{authorfullhash}{9c677286866aad38f8e9b660f5411814}
+      \field{extraname}{7}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Régulateur PID}
+      \field{year}{2024}
+      \verb{urlraw}
+      \verb https://fr.wikipedia.org/wiki/R%C3%A9gulateur_PID
+      \endverb
+      \verb{url}
+      \verb https://fr.wikipedia.org/wiki/R%C3%A9gulateur_PID
+      \endverb
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+

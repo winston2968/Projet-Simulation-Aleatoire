@@ -18,12 +18,8 @@
 % ==================================================================================================================================
 % Introduction 
 
+\newpage
 \section*{Introduction}
-
-
-
-
-\newpage 
 
 % ==================================================================================================================================
 % La fission nucléaire
@@ -106,7 +102,6 @@ Nous différencierons donc 3 types de neutrons :
     \caption{Principaux types de neutrons intervenant dans un réacteur nucléaire}
     \label{tab:types_neutrons}
 \end{table}
-
 
 \subsection{Le rôle du modérateur}
 
@@ -261,6 +256,7 @@ Ce facteur dépend directement de la composition du combustible, du taux d’abs
 % ==================================================================================================================================
 % Modélisation physique
 
+\newpage
 \section{Modélisation Physique}
 
 \subsection{Modèle Global des Barres de Contrôle}
@@ -276,7 +272,7 @@ Les matériaux couramment utilisés sont le Bore (B), le Cadmium (Cd), l'Hafnium
 En insérant ces barres dans le cœur du réacteur, on introduit un \textbf{puits} à neutrons :
 \begin{itemize}
     \item Les neutrons thermiques entrant en contact avec la barre sont capturés par cette dernière.
-    \item La réaction en chaîne ralentit (le facteur de multiplication $k$ diminue).
+    \item La réaction en chaîne ralentit (le facteur de multiplication \(k\) diminue).
     \item Le nombre total de fissions par seconde diminue, ce qui réduit la puissance du réacteur.
 \end{itemize}
 
@@ -339,7 +335,7 @@ inchangées.
 \subsection{Modèle Thermique et Loi de Newton}
 
 La température du réacteur est une variable d'état résultant d'un bilan énergétique. 
-Pour la calculer, nous appliquons le \textbf{Premier Principe de la Thermodynamique} : pour un système fermé, la variation de son énergie interne \((U)\) au cour du temps est égale à la somme des puissances thermiques reçues et perdues, moins le travail mécanique effectué par le système.
+Pour la calculer, nous appliquons le \textbf{Premier Principe de la Thermodynamique}\textsuperscript{\parencite{pp-thermodynamique}} : pour un système fermé, la variation de son énergie interne \((U)\) au cour du temps est égale à la somme des puissances thermiques reçues et perdues, moins le travail mécanique effectué par le système.
 
     \begin{equation}
         \frac{dU}{dt} = \dot{Q} - \dot{W}
@@ -357,12 +353,12 @@ la variation d'énergie interne du système est égale à la différence entre l
 
     \begin{equation}
         \frac{dU}{dt} = P_{\text{in}}(t) - P_{\text{out}}(t)
-    \end{equation}
+    \end{equation}capacite-thermique
 
-Sachant que\footnote{Cette égalité vient de la définition de la capacité thermique d'un corps. 
+Sachant que\footnote{Cette égalité vient de la définition de la capacité thermique\textsuperscript{\parencite{capacite-thermique}} d'un corps. 
 Elle énonce que pour un système incompressible, la variation d'énergie interne est proportionnelle à 
 la variation de température. Le coefficient de proportionnalité est la \textbf{capacité thermique} du système, 
-notée \(C\).} $$ dU = C \cdot dT $$ (où \(C\) est la capacité thermique totale du cœur 
+notée \(C\).} \(dU = C \cdot dT\) (où \(C\) est la capacité thermique totale du cœur 
 en \(J \cdot K^{-1}\)), l'équation d'évolution de la température s'écrit :
 
     \begin{equation}
@@ -375,7 +371,7 @@ La puissance entrant dans le système, \(P_{\text{fission}}\), est directement p
 
 \subsubsection{Évacuation de Chaleur (\(P_{\text{out}}\)) - Loi de Newton}
 
-Pour modéliser l'échange thermique entre le cœur et le liquide de refroidissement (modérateur), nous utilisons la \textbf{Loi de Refroidissement de Newton}.
+Pour modéliser l'échange thermique entre le cœur et le liquide de refroidissement (modérateur), nous utilisons la \textbf{Loi de Refroidissement de Newton}\textsuperscript{\parencite{loi-refroidissement-newton}}.
 Elle énonce que le taux de perte de chaleur d'un corps est proportionnel à la différence 
 de température entre le corps et le milieu environnant :
 
@@ -420,6 +416,7 @@ suit un courbe similaire à celle-ci dessous\footnote{Aussi, plus la différence
 % ==================================================================================================================================
 % Modélisation 
 
+\newpage
 \section{Simulation}
 
 \subsection{Objectif et principe}
@@ -465,7 +462,6 @@ une liste \texttt{history}.
 
 Pour conclure sur cette partie, le coeur de la simulation se situe dans la classe \texttt{ReactorV2}. Chaque 
 ajout de fonctionnalité (modérateur, neutron, etc...) est représentée par une classe ajoutée en paramètre. 
-
 
 \subsection{Dynamique}
 
@@ -538,25 +534,20 @@ Chaque barre est un agent indépendant défini par ses caractéristiques physiqu
 \begin{enumerate}
     \item \textbf{Mesure :}
     Le réacteur calcule sa puissance instantanée \(P(t)\) à partir du nombre de fissions observées. Elle est ensuite normalisée en un pourcentage de la puissance nominale (\(P_{\%}\)).
-
     \item \textbf{Sécurité (Fonction \texttt{check\_emergency\_scram}) :}
     On vérifie si \(P_{\%} > P_{\text{seuil}}\).
     Si le seuil est dépassé, le mode SCRAM est enclenché : le pilote automatique est désactivé et toutes les barres reçoivent l'ordre de s'insérer à 100\%.
-
     \item \textbf{Régulation (Fonction \texttt{update\_automatic\_control\_rods}) :}
-    Si le SCRAM n'est pas activé, le régulateur PI calcule l'erreur de puissance \(\varepsilon = P_{\text{consigne}} - P_{\%}\).
+    Si le SCRAM n'est pas activé, le régulateur PI\ref{algo-pi} calcule l'erreur de puissance.
     Il détermine une nouvelle position cible pour les barres de régulation afin d'annuler cette erreur :
-    \begin{equation}
-        \text{Cible} = \text{Base} + K_p \cdot \varepsilon + K_i \cdot \int \varepsilon dt
-    \end{equation}
     \item \textbf{Action Physique :}
     Les barres se déplacent mécaniquement vers leur nouvelle cible.
     L'antiréactivité totale est calculée et convertie en un facteur correctif appliqué aux probabilités de fission et d'absorption pour le pas de temps suivant.
 \end{enumerate}
 
-\subsubsection{Algorithme de Pilotage : Le Régulateur PI}
+\subsubsection{Algorithme de Pilotage : Le Régulateur PI}\label{algo-pi}
 
-Pour ajuster automatiquement la position des barres de régulation, nous avons implémenté un correcteur \textbf{Proportionnel-Intégral (PI)}. C'est un mécanisme de rétroaction : le système observe l'écart entre la puissance réelle et la puissance voulue pour corriger sa commande en temps réel.
+Pour ajuster automatiquement la position des barres de régulation, nous avons implémenté un correcteur \textbf{Proportionnel-Intégral (PI)}\textsuperscript{\parencite{reg-pi}}}. C'est un mécanisme de rétroaction : le système observe l'écart entre la puissance réelle et la puissance voulue pour corriger sa commande en temps réel.
 
 L'objectif est d'annuler l'\textbf{erreur} \(\varepsilon(t)\), définie par :
 \begin{equation}
@@ -583,6 +574,7 @@ Dans notre simulation en temps discret, l'intégrale mathématique est approxim�
 % ==================================================================================================================================
 % Études statistiques 
 
+\newpage
 \section{Études Statistiques}
 
 \subsection{Paramètres de l'étude}
@@ -594,14 +586,26 @@ comment on a fait les fichiers css, quelles données ils contiennent etc
 qu'est ce qu'on compte montrer
 ligne directrice
 
-\subsection{Etude}
+\subsection{Etude univariée}
 
+étude simple des variable permettant de montrer que le reacteur fonctionne "correctement"
+temperature power barres de controles etc\\
++qu'est ce qu'on peut en déduire concernant nos conjectures\\
+
+position des neutrons dans le reacteur
+
+
+\subsection{Etude bivariée}
+
+power en fonction de la temperature/ nb neutrons etc\\
+profondeur des barres en fonction du power+ test de khi2 pour osbserver la corélation assez forte (on en sort une limite : par moment c'est pas encore tout à fait exact)
 
 
 
 % ==================================================================================================================================
 % Conclusion
 
+\newpage
 \section{Conclusion}
 
 résumé des résultats obtenus
@@ -619,7 +623,7 @@ limites
 \section*{Annexe 1 - Le premier régulateur PI}
 \addcontentsline{toc}{section}{Annexe 1 - Le premier régulateur PI}
 
-L'ancêtre du régulateur proprotionnel intégrable qui régit actuellement le monde de l'industrie vient de l'ingénieur écossais James Watt.
+L'ancêtre du régulateur proprotionnel intégrable qui régit actuellement le monde de l'industrie vient de l'ingénieur écossais James Watt\textsuperscript{\parencite{james-watt}}.
 Grâce à son invention : le \textit{régulateur à boules}, il est considéré comme l'un des inventeurs de la machine à vapeur.
 
 \paragraph{Le principe.}    Deux boules en métal tournent entrainées par un moteur. Plus le moteur va vite, plus la force centrifuge écarte les boules.
@@ -640,9 +644,9 @@ C'est pour cette raison que le terme \textit{intégral (I)} a été inventé plu
 % Annexes 2
 
 \newpage
-\section*{Annexe 2 - Qu'en est-il de notre système d'urgence européen ?}
+\section*{Annexe 2 - Qu'en est-il de notre système d'urgence européen ?\textsuperscript{\parencite{control-rod-europe}}}
 \addcontentsline{toc}{section}{Annexe 2 - Qu'en est-il de notre système d'urgence européen ?}
-
+control-rod-europe
 En Europe, et particulièrement en France, le type de réacteur dominant est le \emph{Réacteur à Eau Pressurisée} (REP).\\
 Dans un REP, le contrôle de la réactivité est géré par deux systèmes complémentaires :
 \begin{enumerate}
