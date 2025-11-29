@@ -54,6 +54,9 @@ class ReactorV2:
         self.verbose = config['verbose']
         self.history = []
 
+        # === Statistics ===
+        self.fission_stat_history = []
+
         # === Reactor parameters ===
         self.nominal_power_mw= 1400.0                       # .MW
         self.power_level = 0.0                              # Actual power in %
@@ -184,6 +187,14 @@ class ReactorV2:
             base_d = self.d        
 
         for _ in range(self.n_iter):
+            # Initializing the dictionary containing the distribution of the number of neutrons created by fission at each time
+            self.fission_stat_step = {
+                2 : 0,
+                3 : 0,
+                4 : 0,
+                5 : 0
+            }
+
             # === 1. Reset the counters ===
             self.n_fissions = 0
 
@@ -242,6 +253,9 @@ class ReactorV2:
             state_snapshot = {n.id : (n.x,n.y,n.type) for n in self.neutrons}
             self.history.append(state_snapshot)
 
+            # Update fission stat
+            self.fission_stat_history.append(self.fission_stat_step)
+
             # Rod position history
             current_rod_positions = {}
             for rod in self.control_rods:
@@ -295,6 +309,16 @@ class ReactorV2:
 
             else :
                 n_new = simul_poisson(self.l)
+
+                # Update number of fission
+                if n_new in self.fission_stat_step:
+                    self.fission_stat_step[n_new] += 1
+                elif n_new == 5:
+                    self.fission_stat_step[5] += 1
+                else:
+                    self.fission_stat_step[2] += 1
+                
+                # We create n_new neutrons accordingly with the fish law
                 for _ in range(n_new): 
                     new_neutrons.append(
                         Neutron(next_id, neutron.x, neutron.y, self.thermalization_probs, type='fast', speed=1.0)

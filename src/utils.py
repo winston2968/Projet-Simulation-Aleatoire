@@ -36,18 +36,20 @@ def export_data(reactor, config, output_folder="statistics_output"):
         print(f"+ Created folder for this simulation : {export_simulation_folder}")
 
     # File name configuration
-    timestamp = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
     settings_filename = f"settings_{timestamp}.csv"
     history_filename = f"reactor_history_{timestamp}.csv"
+    fission_filename = f"fission_stat_{timestamp}.csv"
     neutrons_filename = f"neutrons_trajectories_{timestamp}.csv"
     settings_path = os.path.join(export_simulation_folder, settings_filename)
     history_path = os.path.join(export_simulation_folder, history_filename)
+    fission_path = os.path.join(export_simulation_folder, fission_filename)
     neutrons_path = os.path.join(export_simulation_folder, neutrons_filename)
 
     # Launch export
     print(f"========== Exporting Data ({timestamp}) ==========")
     export_react_traj(reactor, history_path)
     export_neutrons_traj(reactor.history, neutrons_path)
+    export_fission_stats(reactor, fission_path)
     export_settings(reactor, config, settings_path)
     print("========== Export Done ==========")
 
@@ -55,7 +57,7 @@ def export_data(reactor, config, output_folder="statistics_output"):
 # -----------------------------------------
 # Export trajectory 
 # -----------------------------------------
-def export_react_traj(reactor, path):
+def export_react_traj(reactor, path:str):
     print(f"+ Exporting reactor metrics to {path}")
     
     min_len = min(len(reactor.history), len(reactor.power_history), len(reactor.temp_history))
@@ -87,7 +89,7 @@ def export_react_traj(reactor, path):
 # -----------------------------------------------
 # Export neutron trajectory 
 # -----------------------------------------------
-def export_neutrons_traj(history, path): 
+def export_neutrons_traj(history, path:str): 
     import csv
 
     print(f"+ Exporting detailed trajectories to {path}")
@@ -104,14 +106,39 @@ def export_neutrons_traj(history, path):
                     "y": y,
                     "type": neutron_type
                 })
-    f.close()
     print("+ Done.")
 
 
 # -----------------------------------------------
+# Export fission statistics
+# -----------------------------------------------
+def export_fission_stats(reactor, path:str):
+    print(f"+ Exporting fission statistics to {path}")
+    
+    if not reactor.fission_stat_history:
+        print("No fission stats to export.")
+        return
+    
+    data = {
+        "time_step": list(range(len(reactor.fission_stat_history)))
+    }
+    
+    for nb in [2, 3, 4, 5]:
+        data[f"fissions_prod_{nb}"] = []
+
+    for step_stats in reactor.fission_stat_history:
+        for nb in [2, 3, 4, 5]:
+            count = step_stats.get(nb, 0)
+            data[f"fissions_prod_{nb}"].append(count)
+            
+    df = pd.DataFrame(data)
+    df.to_csv(path, index=False)
+    print("+ Done.")
+
+# -----------------------------------------------
 # Export settings
 # -----------------------------------------------
-def export_settings(reactor, config, path):
+def export_settings(reactor, config:dict, path:str):
     print(f"+ Exporting simulation settings to {path}")
 
     all_data = config.copy()
