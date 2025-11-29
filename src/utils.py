@@ -49,7 +49,6 @@ def export_data(reactor, config, output_folder="statistics_output"):
     print(f"========== Exporting Data ({timestamp}) ==========")
     export_react_traj(reactor, history_path)
     export_neutrons_traj(reactor.history, neutrons_path)
-    export_fission_stats(reactor, fission_path)
     export_settings(reactor, config, settings_path)
     print("========== Export Done ==========")
 
@@ -60,6 +59,10 @@ def export_data(reactor, config, output_folder="statistics_output"):
 def export_react_traj(reactor, path:str):
     print(f"+ Exporting reactor metrics to {path}")
     
+    if not reactor.fission_stat_history:
+        print("No fission stats to export.")
+        return
+    
     min_len = min(len(reactor.history), len(reactor.power_history), len(reactor.temp_history))
 
     # Creating data to export 
@@ -67,7 +70,8 @@ def export_react_traj(reactor, path:str):
         "time_step": list(range(min_len)),
         "nb_neutrons": [len(snap) for snap in reactor.history[:min_len]],
         "power_mw": reactor.power_history[:min_len],
-        "temperature_k": reactor.temp_history[:min_len]
+        "temperature_k": reactor.temp_history[:min_len],
+        "time_step": list(range(len(reactor.fission_stat_history)))
     }
 
     # Add rod history
@@ -79,6 +83,14 @@ def export_react_traj(reactor, path:str):
         for rod_id in rod_ids:
             column_name = f"pos_{rod_id}"
             data[column_name] = [snap[rod_id] for snap in reactor.rod_history[:min_len]]
+
+    for nb in [2, 3, 4, 5]:
+        data[f"fissions_prod_{nb}"] = []
+
+    for step_stats in reactor.fission_stat_history:
+        for nb in [2, 3, 4, 5]:
+            count = step_stats.get(nb, 0)
+            data[f"fissions_prod_{nb}"].append(count)
 
     # Write in .CSV file 
     df = pd.DataFrame(data)
@@ -108,32 +120,6 @@ def export_neutrons_traj(history, path:str):
                 })
     print("+ Done.")
 
-
-# -----------------------------------------------
-# Export fission statistics
-# -----------------------------------------------
-def export_fission_stats(reactor, path:str):
-    print(f"+ Exporting fission statistics to {path}")
-    
-    if not reactor.fission_stat_history:
-        print("No fission stats to export.")
-        return
-    
-    data = {
-        "time_step": list(range(len(reactor.fission_stat_history)))
-    }
-    
-    for nb in [2, 3, 4, 5]:
-        data[f"fissions_prod_{nb}"] = []
-
-    for step_stats in reactor.fission_stat_history:
-        for nb in [2, 3, 4, 5]:
-            count = step_stats.get(nb, 0)
-            data[f"fissions_prod_{nb}"].append(count)
-            
-    df = pd.DataFrame(data)
-    df.to_csv(path, index=False)
-    print("+ Done.")
 
 # -----------------------------------------------
 # Export settings

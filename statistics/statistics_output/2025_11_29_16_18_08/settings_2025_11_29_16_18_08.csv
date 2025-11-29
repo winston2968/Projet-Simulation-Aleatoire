@@ -1,0 +1,39 @@
+parameter,value
+n_iter,10
+n_initial,200
+a,0.1
+f,0.6
+d,0.5
+l,5
+n,15
+m,15
+thermic_capacity,10000000.0
+toric,False
+moderator,heavy_water
+initial_distribution,uniform
+max_speed,2
+thermalization_probs,"{'fast_to_epi': 0.5, 'epi_to_thermal': 0.5}"
+display,True
+colorized,True
+verbose,False
+rod_active,True
+scram_threshold,2
+control_rods,"[{'id': 'RE01', 'type': 'regulation'}, {'id': 'SC01', 'type': 'scram'}]"
+--- REACTOR INTERNAL STATE ---,
+final_nominal_power_mw,1400.0
+final_power_level,0.2057142857142857
+final_current_power_mw,288.0
+final_current_temperature,329.7758677291487
+final_n_fissions,6
+physics_fission_energy,3.2e-11
+physics_temp_coolant,300.0
+physics_cooling_coef,500000.0
+--- REGULATION SETTINGS ---,
+scram_triggered,False
+reg_base_position,50.0
+reg_kp,25.0
+reg_ki,10.0
+reg_integral_error,0.4114285714285715
+power_setpoint,1.0
+dt,0.1
+power_scaling_factor,1.5e+17
