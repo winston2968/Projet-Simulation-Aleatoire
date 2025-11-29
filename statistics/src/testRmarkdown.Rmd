@@ -8,62 +8,15 @@ date: "2025-11-27"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-
-
 ```{r}
-library(tidyverse)
-library(gganimate)
+#UNIVARIE
 
-# Simulation de vos données (pour que l'exemple soit reproductible)
+#DUREE DE VIE DES NEUTRONS
 
-ggplot(traj_neutrons, aes(x = x, y = y)) +
-  # On utilise bin2d pour compter les neutrons dans des carrés
-  geom_bin2d(bins = 30) + 
-  
-  # Palette de couleurs "Magma" (très lisible pour la chaleur/densité)
-  scale_fill_viridis_c(option = "magma") +
-  
-  # SÉPARATION MAGIQUE : On crée un graphe par type de neutron
-  facet_wrap(~ type) + 
-  
-  coord_fixed() +
-  theme_minimal() +
-  labs(title = "Distribution spatiale : Rapides vs Épithermiques",
-       fill = "Densité")
-
-
-```
-```{r}
-library(tidyverse)
-
-# --- 1. REMPLACER LA SIMULATION PAR LE CHARGEMENT DE VOTRE FICHIER ---
-# Assurez-vous que le fichier est dans votre dossier de travail ou mettez le chemin complet
-traj_neutrons <- read_csv("votre_fichier.csv") 
-
-# --- 2. VOTRE GRAPHIQUE (Aucune modification nécessaire ici si les noms correspondent) ---
-ggplot(traj_neutrons, aes(x = x, y = y)) +
-  # geom_bin2d compte les points.
-  # Comme vos x/y vont de 0 à 14, binwidth=1 crée des cases de 1x1 unité.
-  geom_bin2d(binwidth = c(1, 1)) + 
-  
-  scale_fill_viridis_c(option = "magma") +
-  
-  # Cela va créer 3 graphiques côte à côte (fast, epithermal, thermal)
-  #facet_wrap(~ type) + 
-  
-  coord_fixed() +
-  theme_minimal() +
-  labs(title = "Distribution spatiale de tous les neutrons",
-       subtitle = "Données cumulées (tous les pas de temps)",
-       fill = "NB Neutrons")
-```
-
-
-```{r}
 library(tidyverse)
 
 # 1. Chargement (si pas déjà fait)
-traj_neutrons <- read_csv("votre_fichier.csv")
+
 
 # 2. Calcul de la durée de vie pour chaque neutron
 # On groupe par ID et on compte le nombre de lignes (n())
@@ -86,11 +39,17 @@ ggplot(duree_vie_df, aes(x = duree_totale)) +
 
 
 ```
+graphe de la duree de vie des neutrons A RAJOUTER CALCUL DE LA MOYENNE EXT 
+
 ```{r}
+#UNIVARIE
+
+#DUREE DE VIE DES NEUTRONS POUR CHAQUE ETAT
+
 library(tidyverse)
 
 # 1. Chargement
-traj_neutrons <- read_csv("votre_fichier.csv")
+
 
 # 2. Calcul de la durée DE CHAQUE ÉTAT pour chaque neutron
 # En ajoutant 'type' dans le group_by, on compte combien de temps
@@ -125,36 +84,189 @@ ggplot(duree_par_type, aes(x = duree_etat, fill = type)) +
   # ou on utilise sqrt() si les écarts sont trop grands
   scale_y_sqrt()
 ```
+graphe pour distinguer difference entre les 3 types de neutrons 
+explications de mathis/axel le pourquoi du comment 
 
 
 ```{r}
-library(ggplot2)
+#BIVARIE
 
-ggplot(reacteur_1000, aes(x = time_step, y = power_mw)) +
-  geom_point() +
-  # method = "lm" signifie "Linear Model"
-  geom_smooth(method = "lm", color = "red") +
-  theme_minimal()
+#PROPORTION DE NEUTRONS DE CHAQUE TYPE POUR CHAQUE TEMPS
+
+library(tidyverse)
+
+# 1. On compte combien il y a de neutrons de chaque type à chaque pas de temps
+evolution_pop <- traj_neutrons %>%
+  count(time_step, type) 
+
+# 2. Graphique en aires empilées
+ggplot(evolution_pop, aes(x = time_step, y = n, fill = type)) +
+  geom_area(alpha = 0.8, color = "white") +
+  
+  # Couleurs intuitives : Rouge (Rapide/Chaud) -> Bleu (Thermal/Froid)
+  scale_fill_manual(values = c("fast" = "#d73027",      # Rouge
+                               "epithermal" = "#fdae61", # Orange
+                               "thermal" = "#4575b4")) + # Bleu
+  
+  theme_minimal() +
+  labs(title = "Dynamique de thermalisation",
+       subtitle = "Évolution des populations de neutrons dans le temps",
+       x = "Temps", y = "Nombre de neutrons")
+
+```
+on peut voir qu'il y a a peut pret la meme proportion de chaque type de neutrons au fil du temps, qu'il n'y a pas de grosses différences 
+
+
+```{r}
+
+#TRAJ NEUTRON
+
+#UNIVARIE
+
+#COUPLER AVEC LES 5 TRAJECTOIRES 
+
+library(tidyverse)
+
+# --- 1. REMPLACER LA SIMULATION PAR LE CHARGEMENT DE VOTRE FICHIER ---
+# Assurez-vous que le fichier est dans votre dossier de travail ou mettez le chemin complet
+
+
+# --- 2. VOTRE GRAPHIQUE (Aucune modification nécessaire ici si les noms correspondent) ---
+ggplot(traj_neutrons, aes(x = x, y = y)) +
+  # geom_bin2d compte les points.
+  # Comme vos x/y vont de 0 à 14, binwidth=1 crée des cases de 1x1 unité.
+  geom_bin2d(binwidth = c(1, 1)) + 
+  
+  scale_fill_viridis_c(option = "magma") +
+  
+  # Cela va créer 3 graphiques côte à côte (fast, epithermal, thermal)
+  #facet_wrap(~ type) + 
+  
+  coord_fixed() +
+  theme_minimal() +
+  labs(title = "Distribution spatiale de tous les neutrons",
+       subtitle = "Données cumulées (tous les pas de temps)",
+       fill = "NB Neutrons")
+```
+les neutrons sont globalement present dans tout le reacteur mais en particulier au centre où leur concentration est maximale 
+
+
+```{r}
+#UNIVARIE
+
+#TRAJECTOIRE DES 5 MEILLEURS NEUTRONS
+
+library(tidyverse)
+
+# 1. Calcul de la distance parcourue pour CHAQUE neutron
+# On veut éviter les neutrons statiques ou ceux qui meurent tout de suite.
+stats_neutrons <- traj_neutrons %>%
+  arrange(neutron_id, time_step) %>% # Important : trier par temps
+  group_by(neutron_id) %>%
+  mutate(
+    # Calcul du déplacement entre chaque pas de temps (Théorème de Pythagore)
+    dx = x - lag(x, default = first(x)),
+    dy = y - lag(y, default = first(y)),
+    dist_step = sqrt(dx^2 + dy^2)
+  ) %>%
+  summarise(
+    distance_totale = sum(dist_step, na.rm = TRUE),
+    duree_vie = n(),
+    .groups = "drop"
+  )
+
+# 2. On sélectionne les "Top 5 Voyageurs"
+# Ceux qui ont vraiment bougé, pas juste vécu longtemps au même endroit
+top_neutrons_ids <- stats_neutrons %>%
+  arrange(desc(distance_totale)) %>% # On prend les plus grandes distances
+  head(5) %>%
+  pull(neutron_id)
+
+# 3. On récupère les données complètes pour ces 5 élus
+data_trajectoires <- traj_neutrons %>%
+  filter(neutron_id %in% top_neutrons_ids) %>%
+  arrange(neutron_id, time_step) # CRUCIAL pour que geom_path relie les points dans l'ordre
+
+# 4. Le Graphique amélioré
+ggplot(data_trajectoires, aes(x = x, y = y, group = neutron_id, color = as.factor(neutron_id))) +
+  
+  # On dessine le chemin complet
+  geom_path(size = 1, alpha = 0.8) + 
+  
+  # On marque le DÉBUT (t_min) par un carré
+  geom_point(data = data_trajectoires %>% group_by(neutron_id) %>% slice(1), 
+             shape = 15, size = 3) +
+  
+  # On marque la FIN (t_max) par un rond
+  geom_point(data = data_trajectoires %>% group_by(neutron_id) %>% slice(n()), 
+             shape = 16, size = 3) +
+  
+  # Cadre du réacteur
+  coord_fixed(xlim = c(0, 14), ylim = c(0, 14)) +
+  theme_bw() +
+  labs(title = "Trajectoires des 5 neutrons les plus actifs",
+       subtitle = "Carré = Départ, Rond = Arrivée",
+       color = "ID Neutron",
+       x = "Position X", y = "Position Y")
+
 ```
 
+on a selectionne les 5 neutrons les plus vieux avec un algo pour observer leur trajectoire et essayer d'oberver pourquoi pas un pattern ou autre, mais les trajectoires ont vraiment l'air totalement aléatoire ce qui est cohérent avec notre code python. 
+
+a regarder la trajectoire des neutrons en vrai pour une perspective d'amelioration et rendre un peu moins totalement imprevisible la trajectoire de ces derniers 
+
+
+
+
+
 
 ```{r}
+
+#1
+
+
+#BIVARIE
+
+
+
+library(tidyverse)
+
+# 1. On transforme les données pour ggplot (format long)
+# On sélectionne les colonnes intéressantes : Puissance, Température, Position Barres
+dashboard_data <- reacteur_1000 %>%
+  select(time_step, power_mw, temperature_k, pos_RE01) %>%
+  pivot_longer(cols = -time_step, names_to = "variable", values_to = "valeur") %>%
+  mutate(variable = factor(variable, levels = c("pos_RE01", "power_mw", "temperature_k")))
+
+# 2. Le graphique "Facet Grid"
+ggplot(dashboard_data, aes(x = time_step, y = valeur, color = variable)) +
+  geom_line(size = 1) +
+  
+  # On sépare en 3 panneaux verticaux
+  facet_grid(variable ~ ., scales = "free_y") + 
+  
+  scale_color_manual(values = c("pos_RE01" = "black", 
+                                "power_mw" = "#E41A1C", 
+                                "temperature_k" = "#377EB8")) +
+  
+  theme_bw() +
+  labs(title = "Tableau de bord du réacteur",
+       subtitle = "Corrélation : Commande (Barres) -> Réaction (Puissance) -> Conséquence (Temp)",
+       x = "Temps (s)", y = "") +
+  theme(legend.position = "none") # Pas besoin de légende grâce aux titres des facettes
+
+
 ```
+tableau de bord du reacteur brut, a voir si on mets un screen des summary de chacune de ses variables, mais au moins mettre les variances les moyennes et medianes 
 
 
 ```{r}
-plot(reacteur_1000$time_step, reacteur_1000$power_mw, 
-     main = "Évolution de la puissance",
-     xlab = "Temps", ylab = "Puissance (MW)")
+#2
 
-# 2. Calcul du modèle linéaire (Puissance en fonction du Temps)
-# Syntaxe : lm(Y ~ X, data = votre_dataframe)
-reg_lineaire <- lm(power_mw ~ time_step, data = reacteur_1000)
 
-# 3. Ajout de la droite rouge par-dessus les points
-abline(reg_lineaire, col = "red", lwd = 2) # lwd = épaisseur du trait
-```
-```{r}
+#BIVARIE
+
+
 library(ggplot2)
 
 ggplot(reacteur_1000, aes(x = time_step, y = power_mw)) +
@@ -168,34 +280,17 @@ ggplot(reacteur_1000, aes(x = time_step, y = power_mw)) +
   labs(title = "Évolution lissée de la puissance")
 
 ```
-```{r}
-library(ggplot2)
+graphique de transition emmenant sur le 3 pour montrer comment on passe du tableau de bord brut a une courbe linéaire assez représentative du comportement de la puissance au fil du temps 
 
-# Calcul du facteur d'échelle pour que les deux courbes aient la même taille visuelle
-scale_factor <- max(reacteur_1000$power_mw) / max(reacteur_1000$nb_neutrons)
-
-ggplot(reacteur_1000, aes(x = time_step)) +
-  
-  # Courbe 1 : Puissance (Rouge)
-  geom_smooth(aes(y = power_mw), method = "loess", span = 0.1, color = "red", size = 1.5, se = FALSE) +
-  
-  # Courbe 2 : Neutrons (Bleu) -> On multiplie par le facteur pour la remonter
-  geom_smooth(aes(y = nb_neutrons * scale_factor), method = "loess", span = 0.1, color = "blue", size = 1.5, se = FALSE) +
-  
-  # Création du 2ème axe Y (qui divise par le facteur pour afficher les vrais chiffres)
-  scale_y_continuous(
-    name = "Puissance (MW)",
-    sec.axis = sec_axis(~ . / scale_factor, name = "Nombre de Neutrons")
-  ) +
-  
-  theme_minimal() +
-  theme(
-    axis.title.y.left = element_text(color = "red"),
-    axis.title.y.right = element_text(color = "blue")
-  ) +
-  labs(title = "Corrélation Puissance / Neutrons")
-```
 ```{r}
+#3
+
+
+
+#BIVARIE
+
+
+
 library(ggplot2)
 
 # --- 1. Calcul des facteurs d'échelle (Pour que tout rentre dans le graphique) ---
@@ -253,8 +348,41 @@ ggplot(reacteur_1000, aes(x = time_step)) +
 
 ```
 
+graphique qui nous permet de supposer que la puissance et le nombre de neutrons est tres fortement correle, comme avec les barres de controles qui plongent quand la puissance augmente et quii se relevent quand elle diminue 
+
+
+
 
 ```{r}
+
+ggplot(reacteur_1000, aes(x = pos_RE01, y = power_mw)) +
+  geom_point(alpha = 0.5, color = "darkgreen") +
+  
+  # On ajoute une courbe de lissage pour voir la tendance moyenne
+  geom_smooth(method = "loess", color = "red", se = FALSE) +
+  
+  # On inverse l'axe X car 100 = Barres enfoncées (gauche) et 0 = Sorties (droite)
+  # C'est plus logique de lire "Barres sorties -> Puissance haute" de gauche à droite
+  scale_x_reverse() +
+  
+  theme_bw() +
+  labs(title = "Courbe d'efficacité des barres de contrôle",
+       subtitle = "Sensibilité du réacteur à la position des barres",
+       x = "Position Barres (0 = Totalement Sorties / 100 = Insérées)",
+       y = "Puissance Générée (MW)")
+
+```
+ce graphique nous montre que la position des barres de controles est tres instable malgres uen puissance stable. les seules certitudes que nous avons sont les faits que quand la puissance est tres faible(moins de 400MW), les barres sont en moyenne plus releve et que quand la puissance est au dessus du seuil de 800(seuil que nous avons mis dans le code) les barres se relevent 
+
+si la puissance se situe entre 550 et 800, nous ne pouvons pas en deduire une position des barres de controles 
+
+  RAJOUTER LA DROITE A 800 DE PUISSANCE MAX
+
+```{r}
+#BIVARIE
+
+
+
 # --- 2. LA CORRECTION CRITIQUE ---
 
 # Pour pos_RE01 : 0 = Sortie, 100 = Enfoncée.
@@ -286,151 +414,40 @@ mosaicplot(table_croisee,
            ylab = "Puissance Thermique")
 ```
 
+
+A REVOIR CAR DIFFICILE A COMPRENDRE 
+
+ce graphique permet de confirmer notre impression de celui de ci dessus, il est difficile de predire la postion des barres quand la puissance est moyenne, mais quand l'une des 2 variables tend vers un extreme, il y a une corrélation tres puissante 
+
+
+RAJOUT KHI 2
+
+
+
 ```{r}
+#je le garderai pas 
+
+
 library(tidyverse)
+library(gganimate)
 
-# 1. On compte combien il y a de neutrons de chaque type à chaque pas de temps
-evolution_pop <- traj_neutrons %>%
-  count(time_step, type) 
+# Simulation de vos données (pour que l'exemple soit reproductible)
 
-# 2. Graphique en aires empilées
-ggplot(evolution_pop, aes(x = time_step, y = n, fill = type)) +
-  geom_area(alpha = 0.8, color = "white") +
+ggplot(traj_neutrons, aes(x = x, y = y)) +
+  # On utilise bin2d pour compter les neutrons dans des carrés
+  geom_bin2d(bins = 30) + 
   
-  # Couleurs intuitives : Rouge (Rapide/Chaud) -> Bleu (Thermal/Froid)
-  scale_fill_manual(values = c("fast" = "#d73027",      # Rouge
-                               "epithermal" = "#fdae61", # Orange
-                               "thermal" = "#4575b4")) + # Bleu
+  # Palette de couleurs "Magma" (très lisible pour la chaleur/densité)
+  scale_fill_viridis_c(option = "magma") +
   
+  # SÉPARATION MAGIQUE : On crée un graphe par type de neutron
+  facet_wrap(~ type) + 
+  
+  coord_fixed() +
   theme_minimal() +
-  labs(title = "Dynamique de thermalisation",
-       subtitle = "Évolution des populations de neutrons dans le temps",
-       x = "Temps", y = "Nombre de neutrons")
+  labs(title = "Distribution spatiale : Rapides vs Épithermiques",
+       fill = "Densité")
+
 
 ```
-```{r}
-library(tidyverse)
-
-# 1. Calcul de la distance parcourue pour CHAQUE neutron
-# On veut éviter les neutrons statiques ou ceux qui meurent tout de suite.
-stats_neutrons <- traj_neutrons %>%
-  arrange(neutron_id, time_step) %>% # Important : trier par temps
-  group_by(neutron_id) %>%
-  mutate(
-    # Calcul du déplacement entre chaque pas de temps (Théorème de Pythagore)
-    dx = x - lag(x, default = first(x)),
-    dy = y - lag(y, default = first(y)),
-    dist_step = sqrt(dx^2 + dy^2)
-  ) %>%
-  summarise(
-    distance_totale = sum(dist_step, na.rm = TRUE),
-    duree_vie = n(),
-    .groups = "drop"
-  )
-
-# 2. On sélectionne les "Top 5 Voyageurs"
-# Ceux qui ont vraiment bougé, pas juste vécu longtemps au même endroit
-top_neutrons_ids <- stats_neutrons %>%
-  arrange(desc(distance_totale)) %>% # On prend les plus grandes distances
-  head(5) %>%
-  pull(neutron_id)
-
-# 3. On récupère les données complètes pour ces 5 élus
-data_trajectoires <- traj_neutrons %>%
-  filter(neutron_id %in% top_neutrons_ids) %>%
-  arrange(neutron_id, time_step) # CRUCIAL pour que geom_path relie les points dans l'ordre
-
-# 4. Le Graphique amélioré
-ggplot(data_trajectoires, aes(x = x, y = y, group = neutron_id, color = as.factor(neutron_id))) +
-  
-  # On dessine le chemin complet
-  geom_path(size = 1, alpha = 0.8) + 
-  
-  # On marque le DÉBUT (t_min) par un carré
-  geom_point(data = data_trajectoires %>% group_by(neutron_id) %>% slice(1), 
-             shape = 15, size = 3) +
-  
-  # On marque la FIN (t_max) par un rond
-  geom_point(data = data_trajectoires %>% group_by(neutron_id) %>% slice(n()), 
-             shape = 16, size = 3) +
-  
-  # Cadre du réacteur
-  coord_fixed(xlim = c(0, 14), ylim = c(0, 14)) +
-  theme_bw() +
-  labs(title = "Trajectoires des 5 neutrons les plus actifs",
-       subtitle = "Carré = Départ, Rond = Arrivée",
-       color = "ID Neutron",
-       x = "Position X", y = "Position Y")
-
-```
-```{r}
-# Centre du réacteur (supposé à 7,7 vu que max est 14)
-centre_x <- 7
-centre_y <- 7
-
-# Calcul de la distance moyenne de TOUS les neutrons par rapport au centre
-diffusion_radiale <- traj_neutrons %>%
-  mutate(distance_centre = sqrt((x - centre_x)^2 + (y - centre_y)^2)) %>%
-  group_by(time_step, type) %>%
-  summarise(dist_moyenne = mean(distance_centre))
-
-ggplot(diffusion_radiale, aes(x = time_step, y = dist_moyenne, color = type)) +
-  geom_line(size = 1) +
-  
-  scale_color_manual(values = c("fast" = "#d73027", "epithermal" = "#fdae61", "thermal" = "#4575b4")) +
-  theme_minimal() +
-  labs(title = "Diffusion Radiale Moyenne",
-       subtitle = "Les neutrons s'éloignent-ils du centre avec le temps ?",
-       x = "Temps",
-       y = "Distance moyenne au centre (cm)")
-```
-
-```{r}
-library(tidyverse)
-
-# 1. On transforme les données pour ggplot (format long)
-# On sélectionne les colonnes intéressantes : Puissance, Température, Position Barres
-dashboard_data <- reacteur_1000 %>%
-  select(time_step, power_mw, temperature_k, pos_RE01) %>%
-  pivot_longer(cols = -time_step, names_to = "variable", values_to = "valeur") %>%
-  mutate(variable = factor(variable, levels = c("pos_RE01", "power_mw", "temperature_k")))
-
-# 2. Le graphique "Facet Grid"
-ggplot(dashboard_data, aes(x = time_step, y = valeur, color = variable)) +
-  geom_line(size = 1) +
-  
-  # On sépare en 3 panneaux verticaux
-  facet_grid(variable ~ ., scales = "free_y") + 
-  
-  scale_color_manual(values = c("pos_RE01" = "black", 
-                                "power_mw" = "#E41A1C", 
-                                "temperature_k" = "#377EB8")) +
-  
-  theme_bw() +
-  labs(title = "Tableau de bord du réacteur",
-       subtitle = "Corrélation : Commande (Barres) -> Réaction (Puissance) -> Conséquence (Temp)",
-       x = "Temps (s)", y = "") +
-  theme(legend.position = "none") # Pas besoin de légende grâce aux titres des facettes
-
-```
-```{r}
-
-ggplot(reacteur_1000, aes(x = pos_RE01, y = power_mw)) +
-  geom_point(alpha = 0.5, color = "darkgreen") +
-  
-  # On ajoute une courbe de lissage pour voir la tendance moyenne
-  geom_smooth(method = "loess", color = "red", se = FALSE) +
-  
-  # On inverse l'axe X car 100 = Barres enfoncées (gauche) et 0 = Sorties (droite)
-  # C'est plus logique de lire "Barres sorties -> Puissance haute" de gauche à droite
-  scale_x_reverse() +
-  
-  theme_bw() +
-  labs(title = "Courbe d'efficacité des barres de contrôle",
-       subtitle = "Sensibilité du réacteur à la position des barres",
-       x = "Position Barres (0 = Totalement Sorties / 100 = Insérées)",
-       y = "Puissance Générée (MW)")
-
-```
-
 
