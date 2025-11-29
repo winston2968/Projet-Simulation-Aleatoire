@@ -8,8 +8,8 @@ library(gganimate)
 plot(test$time_step, test$temperature_k, col='green', main='temperature au cours du tps')
 
 plot(test2$time_step, test2$temperature_k, col='green')
-summary(reacteur_1000)
-summary(traj_neutrons)
+summary(reacteur_3600)
+summary(traj_3600)
 
 boxplot(reacteur_1000$pos_RE01, main = "Diagramme du placement en pourcentage en profondeur des barres de controles", ylab = "Pourcentage en profondeur", col = "green")
 

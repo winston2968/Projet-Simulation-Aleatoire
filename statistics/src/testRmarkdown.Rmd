@@ -8,163 +8,147 @@ date: "2025-11-27"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+Nous avons simulé et récupéré les données de notre reacteur pour 3600 itérations, sachant que chaque itération fait une seconde, donc pour une heure de fonctionnement. Sur cette simulation en particulier, le reacteur a eu un peu de mal aux alentours des 2700 itérations, mais il est interressant de remarquer qu'il a pu regagner en puissance et se restabiliser par la suite 
+
+
 ```{r}
-#UNIVARIE
-
-#DUREE DE VIE DES NEUTRONS
-
 library(tidyverse)
 
-# 1. Chargement (si pas déjà fait)
+sommes_fissions <- reacteur_3600 %>%
+  summarise(
+    Fission_2 = sum(fissions_prod_2, na.rm = TRUE),
+    Fission_3 = sum(fissions_prod_3, na.rm = TRUE),
+    Fission_4 = sum(fissions_prod_4, na.rm = TRUE),
+    Fission_5 = sum(fissions_prod_5, na.rm = TRUE)
+  )
 
+tableau_vertical <- sommes_fissions %>%
+  pivot_longer(cols = everything(), names_to = "Type_Fission", values_to = "Total")
 
-# 2. Calcul de la durée de vie pour chaque neutron
-# On groupe par ID et on compte le nombre de lignes (n())
-duree_vie_df <- traj_neutrons %>%
+print(tableau_vertical)
+```
+L'analyse de la multiplicité lors de la fission des neutrons montre une prédominance écrasante des fissions libérant 2 neutrons (plus de 99,7 % des cas). Bien que rares, des événements générant 3, 4 ou 5 neutrons sont observés, confirmant la nature stochastique du processus. La simulation a été paramétrée avec une borne supérieure fixée à 5 neutrons par fission.
+
+```{r}
+library(tidyverse)
+
+duree_vie_df <- traj_3600 %>%
   group_by(neutron_id) %>%
   summarise(
-    duree_totale = n()  # Nombre de pas de temps vécus
-    # Note : Si vous voulez la durée en temps physique et non en "lignes", 
-    # utilisez : max(time_step) - min(time_step)
+    duree_totale = n()  
   )
 
 ggplot(duree_vie_df, aes(x = duree_totale)) +
-  geom_histogram(binwidth = 1, fill = "#4E79A7") +
+  geom_histogram(binwidth = 1, fill = "purple") +
   
-  # La racine carrée permet de voir les petits effectifs sans les bugs du log(1)=0
   scale_y_sqrt() + 
   
   theme_minimal() +
   labs(title = "Distribution (Échelle Racine Carrée)")
 
-
 ```
-graphe de la duree de vie des neutrons A RAJOUTER CALCUL DE LA MOYENNE EXT 
+Les résultats montrent une disparité significative dans la survie des neutrons. Si la durée de vie moyenne reste faible (4,2 itérations), reflétant une absorption rapide pour la majorité de la population, on note la persistance de certains neutrons jusqu'à 48 itérations (plus de 10 fois la moyenne). Cette asymétrie marquée confirme que le transport des neutrons est dominé par des interactions à court terme, ponctuées d'événements de diffusion plus rares mais longs.
+
 
 ```{r}
-#UNIVARIE
-
-#DUREE DE VIE DES NEUTRONS POUR CHAQUE ETAT
 
 library(tidyverse)
 
-# 1. Chargement
-
-
-# 2. Calcul de la durée DE CHAQUE ÉTAT pour chaque neutron
-# En ajoutant 'type' dans le group_by, on compte combien de temps
-# le neutron #123 a été 'fast', combien de temps il a été 'thermal', etc.
-duree_par_type <- traj_neutrons %>%
+duree_par_type_indiv <- traj_3600 %>%
   group_by(neutron_id, type) %>%
   summarise(duree_etat = n(), .groups = "drop")
 
-# 3. Affichage avec Facetting (3 graphiques côte à côte)
-ggplot(duree_par_type, aes(x = duree_etat, fill = type)) +
+moyenne_par_type <- duree_par_type_indiv %>%
+  group_by(type) %>%
+  summarise(
+    duree_moyenne = mean(duree_etat),
+    ecart_type = sd(duree_etat),
+    nombre_neutrons_concernes = n()
+  )
+
+moyenne_par_type$type <- factor(moyenne_par_type$type, 
+                                levels = c("fast", "epithermal", "thermal"))
+
+ggplot(moyenne_par_type, aes(x = type, y = duree_moyenne, fill = type)) +
+  geom_col(color = "black", alpha = 1) +
   
-  # Histogramme avec des barres fines (binwidth=1)
-  geom_histogram(binwidth = 1, color = "white", alpha = 0.8) +
+  geom_text(aes(label = round(duree_moyenne, 1)), vjust = -0.5, fontface = "bold") + 
   
-  # Séparation en 3 panneaux
-  facet_wrap(~ type, scales = "free_y") + 
-  # Note: scales="free_y" est utile car on a souvent BEAUCOUP plus de
-  # neutrons rapides (très courts) que de thermiques.
-  
-  # Couleurs distinctes
-  scale_fill_manual(values = c("fast" = "#E41A1C", 
-                               "epithermal" = "#4DAF4A", 
-                               "thermal" = "#377EB8")) +
+  scale_fill_manual(values = c(
+    "fast"       = "#4575b4", 
+    "epithermal" = "#fdae61", 
+    "thermal"    = "#d73027"  
+  )) +
   
   theme_minimal() +
-  labs(title = "Distribution des temps de résidence par type",
-       subtitle = "Combien de temps les neutrons passent-ils dans chaque état d'énergie ?",
-       x = "Durée (nombre de pas de temps)",
-       y = "Nombre de neutrons") +
-       
-  # Pour éviter le bug visuel des valeurs négatives, on reste en linéaire
-  # ou on utilise sqrt() si les écarts sont trop grands
-  scale_y_sqrt()
+  labs(title = "Temps de résidence moyen par état",
+       y = "Durée moyenne (pas de temps)",
+       x = "Type de neutron")
 ```
-graphe pour distinguer difference entre les 3 types de neutrons 
-explications de mathis/axel le pourquoi du comment 
+
+L'analyse par niveau d'énergie révèle une dynamique contrastée : la phase thermique est prédominante (5,8 pas), correspondant à une longue période de diffusion stable, tandis que le processus de modération (phases rapide et épithermique) est beaucoup plus bref (cumul de 4 pas), les neutrons perdant leur énergie très vite par collisions.
+
+On observe par ailleurs que la somme des durées moyennes par état (9,8 pas) est nettement supérieure à l'espérance de vie globale (4,2 pas). Ce phénomène s'explique par la "mortalité" en cours de route : de nombreux neutrons sont absorbés ou fuient le réacteur dès les phases rapides ou épithermiques. N'atteignant jamais le stade thermique, ils tirent la moyenne globale vers le bas.
+
+
 
 
 ```{r}
-#BIVARIE
-
-#PROPORTION DE NEUTRONS DE CHAQUE TYPE POUR CHAQUE TEMPS
-
 library(tidyverse)
 
-# 1. On compte combien il y a de neutrons de chaque type à chaque pas de temps
-evolution_pop <- traj_neutrons %>%
-  count(time_step, type) 
+evolution_pop <- traj_3600 %>%
+  count(time_step, type) %>%
+  mutate(type = factor(type, levels = c("fast", "epithermal", "thermal")))
 
-# 2. Graphique en aires empilées
 ggplot(evolution_pop, aes(x = time_step, y = n, fill = type)) +
-  geom_area(alpha = 0.8, color = "white") +
+  geom_area(alpha = 0.9, size = 0) + 
   
-  # Couleurs intuitives : Rouge (Rapide/Chaud) -> Bleu (Thermal/Froid)
-  scale_fill_manual(values = c("fast" = "#d73027",      # Rouge
-                               "epithermal" = "#fdae61", # Orange
-                               "thermal" = "#4575b4")) + # Bleu
+  scale_fill_manual(
+    values = c(
+      "fast"       = "#d73027", 
+      "epithermal" = "#fdae61", 
+      "thermal"    = "#4575b4" 
+    ),
+    
+    labels = c(
+      "fast"       = "thermal",    
+      "epithermal" = "epithermal", 
+      "thermal"    = "fast"       
+    ),
+    
+    name = "Type de Neutron"
+  ) +
   
   theme_minimal() +
   labs(title = "Dynamique de thermalisation",
-       subtitle = "Évolution des populations de neutrons dans le temps",
-       x = "Temps", y = "Nombre de neutrons")
-
+       x = "Temps", 
+       y = "Nombre de neutrons")
 ```
-on peut voir qu'il y a a peut pret la meme proportion de chaque type de neutrons au fil du temps, qu'il n'y a pas de grosses différences 
+On constate que la composition du flux neutronique est conservée au fil du temps. Si le nombre total de neutrons varie, la part respective de chaque catégorie reste stable, sans qu'aucun type ne devienne soudainement prédominant ou ne disparaisse.
 
 
 ```{r}
-
-#TRAJ NEUTRON
-
-#UNIVARIE
-
-#COUPLER AVEC LES 5 TRAJECTOIRES 
-
 library(tidyverse)
 
-# --- 1. REMPLACER LA SIMULATION PAR LE CHARGEMENT DE VOTRE FICHIER ---
-# Assurez-vous que le fichier est dans votre dossier de travail ou mettez le chemin complet
-
-
-# --- 2. VOTRE GRAPHIQUE (Aucune modification nécessaire ici si les noms correspondent) ---
-ggplot(traj_neutrons, aes(x = x, y = y)) +
-  # geom_bin2d compte les points.
-  # Comme vos x/y vont de 0 à 14, binwidth=1 crée des cases de 1x1 unité.
+ggplot(traj_3600, aes(x = x, y = y)) +
   geom_bin2d(binwidth = c(1, 1)) + 
-  
   scale_fill_viridis_c(option = "magma") +
-  
-  # Cela va créer 3 graphiques côte à côte (fast, epithermal, thermal)
-  #facet_wrap(~ type) + 
-  
   coord_fixed() +
   theme_minimal() +
   labs(title = "Distribution spatiale de tous les neutrons",
        subtitle = "Données cumulées (tous les pas de temps)",
        fill = "NB Neutrons")
 ```
-les neutrons sont globalement present dans tout le reacteur mais en particulier au centre où leur concentration est maximale 
+Malgrès le positionnement et les déplacements aléatoires des neutrons, leur positionnement est massivement concentré au coeur du réacteur, même si ils occupent tout l'espace disponible. Leur nombre diminue progressivement à mesure qu'on s'approche des bords.
 
 
 ```{r}
-#UNIVARIE
-
-#TRAJECTOIRE DES 5 MEILLEURS NEUTRONS
-
 library(tidyverse)
 
-# 1. Calcul de la distance parcourue pour CHAQUE neutron
-# On veut éviter les neutrons statiques ou ceux qui meurent tout de suite.
-stats_neutrons <- traj_neutrons %>%
-  arrange(neutron_id, time_step) %>% # Important : trier par temps
+stats_neutrons <- traj_3600 %>%
+  arrange(neutron_id, time_step) %>% 
   group_by(neutron_id) %>%
   mutate(
-    # Calcul du déplacement entre chaque pas de temps (Théorème de Pythagore)
     dx = x - lag(x, default = first(x)),
     dy = y - lag(y, default = first(y)),
     dist_step = sqrt(dx^2 + dy^2)
@@ -174,34 +158,25 @@ stats_neutrons <- traj_neutrons %>%
     duree_vie = n(),
     .groups = "drop"
   )
-
-# 2. On sélectionne les "Top 5 Voyageurs"
-# Ceux qui ont vraiment bougé, pas juste vécu longtemps au même endroit
 top_neutrons_ids <- stats_neutrons %>%
-  arrange(desc(distance_totale)) %>% # On prend les plus grandes distances
+  arrange(desc(distance_totale)) %>%
   head(5) %>%
   pull(neutron_id)
 
-# 3. On récupère les données complètes pour ces 5 élus
-data_trajectoires <- traj_neutrons %>%
+data_trajectoires <- traj_3600 %>%
   filter(neutron_id %in% top_neutrons_ids) %>%
-  arrange(neutron_id, time_step) # CRUCIAL pour que geom_path relie les points dans l'ordre
+  arrange(neutron_id, time_step)
 
-# 4. Le Graphique amélioré
 ggplot(data_trajectoires, aes(x = x, y = y, group = neutron_id, color = as.factor(neutron_id))) +
   
-  # On dessine le chemin complet
   geom_path(size = 1, alpha = 0.8) + 
   
-  # On marque le DÉBUT (t_min) par un carré
   geom_point(data = data_trajectoires %>% group_by(neutron_id) %>% slice(1), 
              shape = 15, size = 3) +
   
-  # On marque la FIN (t_max) par un rond
   geom_point(data = data_trajectoires %>% group_by(neutron_id) %>% slice(n()), 
              shape = 16, size = 3) +
   
-  # Cadre du réacteur
   coord_fixed(xlim = c(0, 14), ylim = c(0, 14)) +
   theme_bw() +
   labs(title = "Trajectoires des 5 neutrons les plus actifs",
@@ -210,130 +185,93 @@ ggplot(data_trajectoires, aes(x = x, y = y, group = neutron_id, color = as.facto
        x = "Position X", y = "Position Y")
 
 ```
+Nous avons isolé les 5 neutrons ayant la plus longue durée de vie pour analyser leurs déplacements. Le graphique montre des trajectoires en zigzag, sans direction précise ni motif particulier. Ce mouvement totalement aléatoire est logique et confirme que notre programme de simulation fonctionne comme prévu.
 
-on a selectionne les 5 neutrons les plus vieux avec un algo pour observer leur trajectoire et essayer d'oberver pourquoi pas un pattern ou autre, mais les trajectoires ont vraiment l'air totalement aléatoire ce qui est cohérent avec notre code python. 
-
-a regarder la trajectoire des neutrons en vrai pour une perspective d'amelioration et rendre un peu moins totalement imprevisible la trajectoire de ces derniers 
-
-
-
-
+Piste d'amélioration : Pour la suite, il serait intéressant de comparer ces résultats avec des modèles physiques plus poussés. Cela permettrait de voir si les vrais neutrons se déplacent de façon aussi chaotique ou s'ils suivent des règles de trajectoire un peu moins imprévisibles.
 
 
 ```{r}
-
-#1
-
-
-#BIVARIE
-
-
-
 library(tidyverse)
 
-# 1. On transforme les données pour ggplot (format long)
-# On sélectionne les colonnes intéressantes : Puissance, Température, Position Barres
-dashboard_data <- reacteur_1000 %>%
+dashboard_data <- reacteur_3600 %>%
   select(time_step, power_mw, temperature_k, pos_RE01) %>%
   pivot_longer(cols = -time_step, names_to = "variable", values_to = "valeur") %>%
   mutate(variable = factor(variable, levels = c("pos_RE01", "power_mw", "temperature_k")))
 
-# 2. Le graphique "Facet Grid"
 ggplot(dashboard_data, aes(x = time_step, y = valeur, color = variable)) +
-  geom_line(size = 1) +
+  geom_line(aes(size = variable)) + 
   
-  # On sépare en 3 panneaux verticaux
   facet_grid(variable ~ ., scales = "free_y") + 
   
-  scale_color_manual(values = c("pos_RE01" = "black", 
+  scale_color_manual(values = c("pos_RE01" = "#4DAF4A", 
                                 "power_mw" = "#E41A1C", 
                                 "temperature_k" = "#377EB8")) +
+  
+  scale_size_manual(values = c("pos_RE01" = 1,       
+                               "power_mw" = 0.5,     
+                               "temperature_k" = 1)) + 
   
   theme_bw() +
   labs(title = "Tableau de bord du réacteur",
        subtitle = "Corrélation : Commande (Barres) -> Réaction (Puissance) -> Conséquence (Temp)",
        x = "Temps (s)", y = "") +
-  theme(legend.position = "none") # Pas besoin de légende grâce aux titres des facettes
-
-
+  theme(legend.position = "none") 
 ```
-tableau de bord du reacteur brut, a voir si on mets un screen des summary de chacune de ses variables, mais au moins mettre les variances les moyennes et medianes 
+L'étude des données sur les 3600 étapes de la simulation révèle un comportement dynamique marqué par d'importantes fluctuations des paramètres principaux.
+
+Puissance thermique (power_mw) : La production d'énergie est instable, avec une moyenne s'établissant à 610,1 MW et une médiane légèrement inférieure à 576,0 MW. La plage de variation est très large, allant de l'arrêt complet (0 MW) jusqu'à un pic de 1584 MW, ce qui indique une forte variabilité du régime de fonctionnement.
+
+Température du cœur (temperature_k) : Ce paramètre montre une plus grande stabilité due à l'inertie thermique. La moyenne se situe à 1453 K (médiane à 1487 K). Une fois la phase de démarrage passée, le réacteur se maintient majoritairement dans une plage de températures élevées, entre 1400 et 1600 K.
+
+Barres de contrôle (pos_RE01) : Le système de pilotage est fortement sollicité. La position moyenne des barres est de 51,47 % (médiane à 63,14 %). L'utilisation de l'intégralité de la course des barres (de 0 à 100 %) témoigne d'un effort constant pour réguler la réactivité du cœur. 
 
 
 ```{r}
-#2
-
-
-#BIVARIE
-
-
 library(ggplot2)
 
-ggplot(reacteur_1000, aes(x = time_step, y = power_mw)) +
-  geom_point(alpha = 0.4) + # alpha rend les points transparents pour mieux voir la densité
+ggplot(reacteur_3600, aes(x = time_step, y = power_mw)) +
+  geom_point(alpha = 0.4) + 
   
-  # method = "loess" est le standard pour ce type de lissage
-  # span joue le même rôle que 'f' (0.1 = suivi précis)
-  geom_smooth(method = "loess", span = 0.1, color = "red", size = 1.5) +
+  geom_smooth(method = "loess", span = 0.1, color = "#E41A1C", size = 1.5) +
   
   theme_minimal() +
   labs(title = "Évolution lissée de la puissance")
 
 ```
-graphique de transition emmenant sur le 3 pour montrer comment on passe du tableau de bord brut a une courbe linéaire assez représentative du comportement de la puissance au fil du temps 
+Ce premier graphique illustre la méthode utilisée pour rendre les données exploitables. Le nuage de points noirs représente les mesures brutes du tableau de bord à chaque pas de temps : on y voit un signal très "bruité", dispersé par la nature stochastique de la simulation.
+
+Pour analyser le comportement réel du réacteur sans se perdre dans ces fluctuations, nous avons tracé une courbe de tendance (en rouge). Ce lissage permet d'éliminer le bruit numérique pour révéler la dynamique physique sous-jacente de la puissance.
+
 
 ```{r}
-#3
-
-
-
-#BIVARIE
-
-
-
 library(ggplot2)
 
-# --- 1. Calcul des facteurs d'échelle (Pour que tout rentre dans le graphique) ---
-max_power <- max(reacteur_1000$power_mw, na.rm = TRUE)
-max_neutrons <- max(reacteur_1000$nb_neutrons, na.rm = TRUE)
-max_rods <- 100 # Les barres vont de 0 à 100%
+max_power <- max(reacteur_3600$power_mw, na.rm = TRUE)
+max_neutrons <- max(reacteur_3600$nb_neutrons, na.rm = TRUE)
+max_rods <- 100 
 
-# Facteur pour gonfler les neutrons à la taille de la puissance
 coeff_neutrons <- max_power / max_neutrons
-
-# Facteur pour gonfler les barres (0-100) à la taille de la puissance (ex: 0-1200)
 coeff_rods <- max_power / max_rods
 
-# --- 2. Le Graphique ---
 ggplot(reacteur_1000, aes(x = time_step)) +
-  
-  # --- COURBE 1 : PUISSANCE (Rouge) ---
-  # C'est notre référence, on ne la touche pas
   geom_smooth(aes(y = power_mw, color = "Puissance (MW)"), 
               method = "loess", span = 0.1, size = 1, se = FALSE) +
-  
-  # --- COURBE 2 : NEUTRONS (Bleu Pointillé) ---
-  # On multiplie par le coeff pour qu'elle se superpose à la puissance
+
   geom_smooth(aes(y = nb_neutrons * coeff_neutrons, color = "Neutrons"), 
               method = "loess", span = 0.1, size = 1, se = FALSE) +
-  
-  # --- COURBE 3 : BARRES DE CONTROLE (Vert) ---
-  # On multiplie par le coeff pour qu'elle soit visible
+ 
   geom_smooth(aes(y = pos_RE01 * coeff_rods, color = "Barres (%)"), 
               method = "loess", linetype = "dashed", span = 0.1, size = 1, se = FALSE) +
   
-  # --- GESTION DES AXES ---
   scale_y_continuous(
-    name = "Puissance (MW)", # Axe de Gauche
+    name = "Puissance (MW)", 
     
-    # Axe de Droite : On divise par coeff_rods pour retrouver les valeurs 0-100
     sec.axis = sec_axis(~ . / coeff_rods, name = "Position Barres (%)")
   ) +
-  
-  # --- COULEURS MANUELLES ---
+
   scale_color_manual(name = "Légende", values = c(
     "Puissance (MW)" = "#E41A1C", # Rouge
-    "Neutrons" = "#377EB8",       # Bleu
+    "Neutrons" = "orange",       # Bleu
     "Barres (%)" = "#4DAF4A"      # Vert
   )) +
   
@@ -348,21 +286,22 @@ ggplot(reacteur_1000, aes(x = time_step)) +
 
 ```
 
-graphique qui nous permet de supposer que la puissance et le nombre de neutrons est tres fortement correle, comme avec les barres de controles qui plongent quand la puissance augmente et quii se relevent quand elle diminue 
+Une fois le signal propre obtenu, nous pouvons le confronter aux autres variables du système. Notez que pour permettre cette superposition visuelle, le nombre de neutrons et la puissance ont été rapportés à une échelle commune (normalisation), leurs ordres de grandeur bruts étant très différents.
 
+Ce graphique comparatif révèle ainsi deux phénomènes physiques majeurs :
 
+Corrélation Flux/Puissance : Les courbes rouge (Puissance) et jaune (Neutrons) épousent parfaitement les mêmes variations, confirmant que la puissance thermique est bien proportionnelle au flux neutronique instantané.
+
+L'effet miroir du pilotage : On observe une corrélation inverse nette avec la position des barres de contrôle (en vert). Lorsque la courbe verte descend (retrait des barres), la puissance monte immédiatement, et inversement. Cela démontre la réactivité directe du cœur aux commandes de pilotage.
 
 
 ```{r}
 
-ggplot(reacteur_1000, aes(x = pos_RE01, y = power_mw)) +
+ggplot(reacteur_3600, aes(x = pos_RE01, y = power_mw)) +
   geom_point(alpha = 0.5, color = "darkgreen") +
   
-  # On ajoute une courbe de lissage pour voir la tendance moyenne
   geom_smooth(method = "loess", color = "red", se = FALSE) +
   
-  # On inverse l'axe X car 100 = Barres enfoncées (gauche) et 0 = Sorties (droite)
-  # C'est plus logique de lire "Barres sorties -> Puissance haute" de gauche à droite
   scale_x_reverse() +
   
   theme_bw() +
@@ -372,39 +311,24 @@ ggplot(reacteur_1000, aes(x = pos_RE01, y = power_mw)) +
        y = "Puissance Générée (MW)")
 
 ```
-ce graphique nous montre que la position des barres de controles est tres instable malgres uen puissance stable. les seules certitudes que nous avons sont les faits que quand la puissance est tres faible(moins de 400MW), les barres sont en moyenne plus releve et que quand la puissance est au dessus du seuil de 800(seuil que nous avons mis dans le code) les barres se relevent 
+L'analyse de l'efficacité des barres de contrôle révèle une corrélation imparfaite. Si l'on voit bien que sortir les barres (aller vers 0 sur l'axe X) fait généralement monter la puissance, la relation n'est pas linéaire.
 
-si la puissance se situe entre 550 et 800, nous ne pouvons pas en deduire une position des barres de controles 
+Les certitudes se limitent aux extrêmes : une puissance faible correspond systématiquement à des barres enfoncées, tandis qu'une puissance forte (> 800 MW) nécessite des barres relevées. Entre ces deux états, notamment entre 550 et 800 MW, le nuage de points est très étalé, ce qui signifie que le réacteur peut se trouver à cette puissance avec des configurations de barres très différentes.
 
-  RAJOUTER LA DROITE A 800 DE PUISSANCE MAX
+
 
 ```{r}
-#BIVARIE
+library(tidyverse)
 
-
-
-# --- 2. LA CORRECTION CRITIQUE ---
-
-# Pour pos_RE01 : 0 = Sortie, 100 = Enfoncée.
-# cut() prend les petits chiffres en premier.
-# Donc le PREMIER label doit être "Sortie" (pour les valeurs proches de 0).
-reacteur_1000$cat_barre <- cut(reacteur_1000$pos_RE01, 
+reacteur_3600$cat_barre <- cut(reacteur_3600$pos_RE01, 
                                breaks = 3, 
                                labels = c("Sortie", "Milieu", "Enfoncée"))
 
-# Pour la puissance : 0 = Faible, 1200 = Forte.
-# Ici l'ordre est naturel.
-reacteur_1000$cat_power <- cut(reacteur_1000$power_mw, 
+reacteur_3600$cat_power <- cut(reacteur_3600$power_mw, 
                                breaks = 3, 
                                labels = c("Faible", "Moyenne", "Forte"))
 
-# --- 3. VERIFICATION AVANT GRAPHIQUE ---
-# On vérifie une ligne "Haute puissance" (ex: ligne 49 dans vos données brutes)
-# pos=0 -> Doit être "Sortie". Power=863 -> Doit être "Forte".
-head(reacteur_1000[reacteur_1000$pos_RE01 < 10, c("pos_RE01", "power_mw", "cat_barre", "cat_power")])
-
-# --- 4. LE GRAPHIQUE FINAL ---
-table_croisee <- table(reacteur_1000$cat_barre, reacteur_1000$cat_power)
+table_croisee <- table(reacteur_3600$cat_barre, reacteur_3600$cat_power)
 
 mosaicplot(table_croisee, 
            main = "Corrélation Physique : Barres vs Puissance",
@@ -412,15 +336,29 @@ mosaicplot(table_croisee,
            las = 1,
            xlab = "Position Barres (0=Sortie / 100=Enfoncée)",
            ylab = "Puissance Thermique")
+
 ```
 
+Le graphique met en évidence une structure diagonale très nette :
 
-A REVOIR CAR DIFFICILE A COMPRENDRE 
+Les rectangles bleus indiquent une forte sur-représentation des couples logiques : les barres "Sorties" sont massivement associées aux puissances "Moyennes" et "Fortes", tandis que les barres "Enfoncées" correspondent quasi-exclusivement à une puissance "Faible".
 
-ce graphique permet de confirmer notre impression de celui de ci dessus, il est difficile de predire la postion des barres quand la puissance est moyenne, mais quand l'une des 2 variables tend vers un extreme, il y a une corrélation tres puissante 
+Les rectangles rouges signalent une incompatibilité physique : il est statistiquement impossible d'observer une puissance forte avec des barres enfoncées.
+
+```{r}
+test_khi2 <- chisq.test(table_croisee)
+print(test_khi2)
+```
+Ce constat visuel est validé par le test de Pearson, qui rejette formellement l'hypothèse d'indépendance entre les variables :
+
+Significativité ($p < 2.2 \times 10^{-16}$) : La probabilité que cette répartition soit due au hasard est quasi-nulle. Le lien est donc statistiquement avéré.
+
+Intensité ($\chi^2 = 906.53$) : La valeur extrêmement élevée de la statistique de test (bien supérieure au seuil critique pour 4 degrés de liberté) quantifie la force de cette relation. Elle indique une dépendance massive : la position des barres est bien le facteur déterminant qui dicte le niveau de puissance du réacteur.
 
 
-RAJOUT KHI 2
+
+
+
 
 
 
@@ -451,3 +389,49 @@ ggplot(traj_neutrons, aes(x = x, y = y)) +
 
 ```
 
+
+
+
+```{r}
+#UNIVARIE
+
+#DUREE DE VIE DES NEUTRONS POUR CHAQUE ETAT
+
+library(tidyverse)
+
+# 1. Chargement
+
+
+# 2. Calcul de la durée DE CHAQUE ÉTAT pour chaque neutron
+# En ajoutant 'type' dans le group_by, on compte combien de temps
+# le neutron #123 a été 'fast', combien de temps il a été 'thermal', etc.
+duree_par_type <- traj_3600 %>%
+  group_by(neutron_id, type) %>%
+  summarise(duree_etat = n(), .groups = "drop")
+
+# 3. Affichage avec Facetting (3 graphiques côte à côte)
+ggplot(duree_par_type, aes(x = duree_etat, fill = type)) +
+  
+  # Histogramme avec des barres fines (binwidth=1)
+  geom_histogram(binwidth = 1, color = "white", alpha = 0.8) +
+  
+  # Séparation en 3 panneaux
+  facet_wrap(~ type, scales = "free_y") + 
+  # Note: scales="free_y" est utile car on a souvent BEAUCOUP plus de
+  # neutrons rapides (très courts) que de thermiques.
+  
+  # Couleurs distinctes
+  scale_fill_manual(values = c("fast" = "#E41A1C", 
+                               "epithermal" = "#4DAF4A", 
+                               "thermal" = "#377EB8")) +
+  
+  theme_minimal() +
+  labs(title = "Distribution des temps de résidence par type",
+       subtitle = "Combien de temps les neutrons passent-ils dans chaque état d'énergie ?",
+       x = "Durée (nombre de pas de temps)",
+       y = "Nombre de neutrons") +
+       
+  # Pour éviter le bug visuel des valeurs négatives, on reste en linéaire
+  # ou on utilise sqrt() si les écarts sont trop grands
+  scale_y_sqrt()
+```
