@@ -594,7 +594,21 @@ Dans notre simulation en temps discret, l'intégrale mathématique est approxim�
 
 \subsection{Paramètres de l'étude}
 
-comment on a fait les fichiers css, quelles données ils contiennent etc
+Afin d'étudier le comportement de notre modèle, nous avons mis en place un système d'exportation automatique des données de simulation.
+
+\paragraph{Génération des fichiers.}
+À la fin de chaque simulation, notre programme Python génère un dossier horodaté contenant trois CSV :
+
+\begin{itemize}
+    \item \texttt{settings\_<timestamp>.csv} : Ce fichier est une "photographie" de l'état initial et final du système. Il contient l'ensemble des paramètres de configuration
+     ainsi que les valeurs finales des variables d'état.
+    \item \texttt{reactor\_history\_<timestamp>.csv} : Il s'agit d'une série temporelle enregistrant l'évolution macroscopique du réacteur à chaque itération \(dt\).
+    \item \texttt{neutrons\_trajectories\_<timestamp>.csv} : Sont recensés dans ce CSV tous les neutrons contenus dans le réacteur à chaque pas de temps ainsi que leurs paramètres associés.
+\end{itemize}
+
+\paragraph{Traitement des données.}
+Ces fichiers bruts sont ensuite traités avec R. Nous utilisons les librairies RAJOUTER\texttt{ggplot2} et \texttt{dplyr} pour nettoyer les données, calculer les corrélations et générer les visualisations présentées ci-après.
+
 
 \subsection{Conjectures}
 
