@@ -14,6 +14,11 @@ Nous avons simulé et récupéré les données de notre reacteur pour 3600 itér
 ```{r}
 library(tidyverse)
 
+reacteur_3600 <- read.csv("C:\\Users\\Mathis\\OneDrive\\Documents\\PROJET\\Projet-Simulation-Aleatoire\\statistics\\statistics_output\\2025_11_29_17_51_29\\reactor_history_2025_11_29_17_51_29.csv")
+view(reacteur_3600)
+
+traj_3600 <- read.csv("C:\\Users\\Mathis\\OneDrive\\Documents\\PROJET\\Projet-Simulation-Aleatoire\\statistics\\statistics_output\\2025_11_29_17_51_29\\neutrons_trajectories_2025_11_29_17_51_29.csv")
+
 sommes_fissions <- reacteur_3600 %>%
   summarise(
     Fission_2 = sum(fissions_prod_2, na.rm = TRUE),
@@ -30,8 +35,6 @@ print(tableau_vertical)
 L'analyse de la multiplicité lors de la fission des neutrons montre une prédominance écrasante des fissions libérant 2 neutrons (plus de 99,7 % des cas). Bien que rares, des événements générant 3, 4 ou 5 neutrons sont observés, confirmant la nature stochastique du processus. La simulation a été paramétrée avec une borne supérieure fixée à 5 neutrons par fission.
 
 ```{r}
-library(tidyverse)
-
 duree_vie_df <- traj_3600 %>%
   group_by(neutron_id) %>%
   summarise(
@@ -44,7 +47,9 @@ ggplot(duree_vie_df, aes(x = duree_totale)) +
   scale_y_sqrt() + 
   
   theme_minimal() +
-  labs(title = "Distribution (Échelle Racine Carrée)")
+  labs(title = "Distribution (Échelle Racine Carrée)",
+       x = "Durée totale",
+       y = "Nombre de neutrons")
 
 ```
 Les résultats montrent une disparité significative dans la survie des neutrons. Si la durée de vie moyenne reste faible (4,2 itérations), reflétant une absorption rapide pour la majorité de la population, on note la persistance de certains neutrons jusqu'à 48 itérations (plus de 10 fois la moyenne). Cette asymétrie marquée confirme que le transport des neutrons est dominé par des interactions à court terme, ponctuées d'événements de diffusion plus rares mais longs.
