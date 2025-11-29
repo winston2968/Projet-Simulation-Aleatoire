@@ -18,12 +18,12 @@
 % ==================================================================================================================================
 % Introduction 
 
-\newpage
 \section*{Introduction}
 
 % ==================================================================================================================================
 % La fission nucléaire
 
+\newpage 
 \section{La fission nucléaire : De la théorie à la pratique}
 
 Avant d'introduire et de modéliser un réacteur nucléaire, commençons par nous pencher sur ses mécanismes 
@@ -256,16 +256,16 @@ Ce facteur dépend directement de la composition du combustible, du taux d’abs
 % ==================================================================================================================================
 % Modélisation physique
 
-\newpage
 \section{Modélisation Physique}
 
 \subsection{Modèle Global des Barres de Contrôle}
 
-
 Les barres de contrôle sont le principal mécanisme de pilotage et d'arrêt d'urgence d'un réacteur nucléaire. 
 Elles servent à contrôler la population de neutrons et, par conséquent, la puissance thermique du cœur.
 
-\paragraph{Objectif et principe.} Leur fonctionnement repose sur l'\textbf{absorption neutronique}. 
+\subsubsection{Objectif et principe} 
+
+Leur fonctionnement repose sur l'\textbf{absorption neutronique}. 
 Elles sont fabriquées à partir d'éléments dits \textbf{poisons à neutrons}, c'est-à-dire des matériaux ayant
 une très haute probabilité d'absorber les neutrons sans provoquer de fission. 
 Les matériaux couramment utilisés sont le Bore (B), le Cadmium (Cd), l'Hafnium (Hf) ou le Gadolinium (Gd).
@@ -278,7 +278,9 @@ En insérant ces barres dans le cœur du réacteur, on introduit un \textbf{puit
 
 A l'inverse, en les retirant, on augmente la réactivité et la puissance croît.
 
-\paragraph{Type et rôle.} Les barres ne sont pas toutes identiques et ont chacune une vitesse ainsi qu'une amplitude différente :
+\subsubsection{Type et rôle} 
+
+Les barres ne sont pas toutes identiques et ont chacune une vitesse ainsi qu'une amplitude différente :
 \begin{itemize}
     \item \emph{Barres de Régulation (ou de Pilotage)} :  
     Ont un "poids" (valeur d'antiréactivité) relativement faible. Elles sont conçues pour se déplacer rapidement et continuellement. 
@@ -297,7 +299,8 @@ A l'inverse, en les retirant, on augmente la réactivité et la puissance croît
 Pour des raisons pratiques, nous choisirons d'implémenter uniquement les barres de régulation ainsi que les barres SCRAM.
 En effet, les barres de compensation sont utilisées sur des temps très long et pour des tâches qui dépassent notre simulation.
 
-\paragraph{Modélisation de l'antiréactivité.}
+
+\subsubsection{Modélisation de l'antiréactivité}
 
 Pour simuler l'impact des barres de pilotage sur la réactivité du cœur, nous utilisons un modèle global
 \footnote{L'implémentation d'un modèle spatial, prenant en compte la position des barres dans le réacteur, n'était pas approprié pour une modélisation de cette ampleur.}.
@@ -318,7 +321,7 @@ Nous approcherons cette courbe par la formule suivante, où \(z \in [0,1]\) repr
 
 Dans notre simulation, cette valeur \(\rho(z)\) (exprimée en pcm\footnote{Unité de réactivité, abréviation de "pour cent mille".})
 est convertie en un facteur multiplicatif appliqués aux probabilités de fission \(f\) et d'absorption \(a\) du modèle stochastique.
-Etant donné que les barres de pilotage n'ont d'effet que sur les neutrons les plus lents ({thermiques}\footnote{Il est nécessaire de nuancer nos propos. 
+Etant donné que les barres de pilotage n'ont d'effet que sur les neutrons les plus lents ({thermiques voir \ref{subsec:neutron-type}}\footnote{Il est nécessaire de nuancer nos propos. 
 Les neutrons épithermiques sont également capturés via un système de résonance par effet Dopler avec des barres 
 spéciales. Mais pour des besoins de simplification, nous avons choisi de rendre uniquement les neutrons 
 \textit{thermiques} absorbables par le système de contrôle.}), les probabilités concernant les autres types restent 
@@ -335,7 +338,7 @@ inchangées.
 \subsection{Modèle Thermique et Loi de Newton}
 
 La température du réacteur est une variable d'état résultant d'un bilan énergétique. 
-Pour la calculer, nous appliquons le \textbf{Premier Principe de la Thermodynamique}\textsuperscript{\parencite{pp-thermodynamique}} : pour un système fermé, la variation de son énergie interne \((U)\) au cour du temps est égale à la somme des puissances thermiques reçues et perdues, moins le travail mécanique effectué par le système.
+Pour la calculer, nous appliquons le \textbf{Premier Principe de la Thermodynnamique}\textsuperscript{\parencite{pp-thermodynamique}} : pour un système fermé, la variation de son énergie interne \((U)\) au cour du temps est égale à la somme des puissances thermiques reçues et perdues, moins le travail mécanique effectué par le système.
 
     \begin{equation}
         \frac{dU}{dt} = \dot{Q} - \dot{W}
@@ -352,26 +355,33 @@ Ici, le coeur du réacteur ne fournit aucun travail mécanique. Le flux thermiqu
 la variation d'énergie interne du système est égale à la différence entre la puissance produite et la puissance évacuée.
 
     \begin{equation}
-        \frac{dU}{dt} = P_{\text{in}}(t) - P_{\text{out}}(t)
-    \end{equation}capacite-thermique
+        \frac{dU}{dt} = P_{\text{in}}(t) - P_{\text{out}}(t)^\text{\parencite{capacite-thermique}}
+    \end{equation}
 
-Sachant que\footnote{Cette égalité vient de la définition de la capacité thermique\textsuperscript{\parencite{capacite-thermique}} d'un corps. 
+Or $ P_{\text{in}}(t)$ est la puissance générée par la fission dans le réacteur et $  P_{\text{out}}(t)$ 
+correspond à celle perdue par reffroidissement. 
+De plus, sachant que\footnote{Cette égalité vient de la définition de la capacité thermique\textsuperscript{\parencite{capacite-thermique}} d'un corps. 
 Elle énonce que pour un système incompressible, la variation d'énergie interne est proportionnelle à 
 la variation de température. Le coefficient de proportionnalité est la \textbf{capacité thermique} du système, 
 notée \(C\).} \(dU = C \cdot dT\) (où \(C\) est la capacité thermique totale du cœur 
-en \(J \cdot K^{-1}\)), l'équation d'évolution de la température s'écrit :
+en \(J \cdot K^{-1}\)), l'équation d'évolution de la température s'écrit donc : 
 
-    \begin{equation}
-        C \cdot \frac{dT(t)}{dt} = P_{\text{fission}}(t) - P_{\text{refroidissement}}(t)
-    \end{equation}
+    \begin{align}
+        & C \cdot \frac{dT(t)}{dt} = P_{\text{fission}}(t) - P_{\text{refroidissement}}(t) \\ 
+        \iff & \frac{dT(t)}{dt} = \frac{1}{C} \left( P_{\text{fission}}(t) - P_{\text{refroidissement}}(t) \right) 
+    \end{align}
 
-\subsubsection{Production de Chaleur (\(P_{\text{in}}\))}
+La capacité thermique $C$ du modèle sera une valeur fixée à son initialisation. 
 
-La puissance entrant dans le système, \(P_{\text{fission}}\), est directement proportionnelle au nombre de fissions par seconde simulées par notre modèle de neutrons.
+La puissance entrant dans le système, \(P_{\text{fission}}\), est directement proportionnelle au 
+nombre de fissions par seconde simulées par notre modèle de neutrons. L'énergie perdue par reffroidissement est, 
+quand à elle, plus difficile à calculer. 
 
 \subsubsection{Évacuation de Chaleur (\(P_{\text{out}}\)) - Loi de Newton}
 
-Pour modéliser l'échange thermique entre le cœur et le liquide de refroidissement (modérateur), nous utilisons la \textbf{Loi de Refroidissement de Newton}\textsuperscript{\parencite{loi-refroidissement-newton}}.
+Nous allons considérer que l'échange d'énergie thermique se fait uniquement entre le noyau et le sytème 
+de reffroidissement du réacteur (généralement de l'eau). 
+Ainsi, pour modéliser cet échange, nous utilisons la \textbf{Loi de Refroidissement de Newton}\textsuperscript{\parencite{loi-refroidissement-newton}}.
 Elle énonce que le taux de perte de chaleur d'un corps est proportionnel à la différence 
 de température entre le corps et le milieu environnant :
 
@@ -381,17 +391,23 @@ de température entre le corps et le milieu environnant :
 
 Où :
 \begin{itemize}
-    \item \(h\) : Le coefficient global de transfert thermique\footnote{Il s'agit du coefficient de refroidissement et dépend de la surface de contact ainsi que du modérateur utilisé. Il est défini dans notre code par : \(cooling\_coef = thermic\_capacity * \tau\,\text{avec}\,\tau=0.05\).} (\(W \cdot K^{-1}\)).
+    \item \(h\) : Le coefficient global de transfert thermique\footnote{Il s'agit du coefficient de 
+        refroidissement et dépend de la surface de contact ainsi que du modérateur utilisé. Il est défini 
+        dans notre code par : \(cooling\_coef = thermic\_capacity * \tau\,\text{avec}\,\tau=0.05\).} 
+        en \(W \cdot K^{-1}\).
     \item \(T(t)\) : La température du réacteur à l'instant \(t\).
-    \item \(T_{\text{eau}}\) : La température du fluide de refroidissement (\(300K\)\footnote{Cette valeur choisit arbitrairement correspond à environ \(26^\circ C\), elle doit être comprise entre \(0^\circ C\) et \(30^\circ C\)} dans notre modèle).
+    \item \(T_{\text{eau}}\) : La température du fluide de refroidissement que nous fixerons à \(300K\)\footnote{Cette 
+        valeur choisit arbitrairement correspond à environ \(26^\circ C\), elle doit être comprise 
+        entre \(0^\circ C\) et \(30^\circ C\)} dans notre modèle.
 \end{itemize}
 
 \subsubsection{Paramétrage de l'Inertie Thermique}
-En combinant les équations précédentes, l'évolution de la température est régie par l'équation différentielle :
 
-\begin{equation}
-    \frac{dT}{dt} = \frac{P_{\text{fission}}}{C} - \frac{h}{C} (T - T_{\text{eau}})
-\end{equation}
+En combinant les équations précédentes, l'évolution de la température du réacteur est régie par l'équation différentielle :
+
+    \begin{equation}
+        \frac{dT}{dt} = \frac{P_{\text{fission}}}{C} - \frac{h}{C} (T - T_{\text{eau}})
+    \end{equation}
 
 Le terme \(\frac{h}{C}\) représente l'inverse de la constante de temps thermique du système, notée \(\tau_{\text{th}}\). 
 Elle caractérise la vitesse à laquelle le réacteur se refroidit naturellement. Dans notre code, nous avons fixé empiriquement ce ratio à :
@@ -400,11 +416,11 @@ Elle caractérise la vitesse à laquelle le réacteur se refroidit naturellement
     \frac{h}{C} = 0.05 \, s^{-1}
 \]
 
-Cela correspond à une constante de temps \(\tau_{\text{th}} = \frac{1}{0.05} = 20\) secondes. Ce choix nous permet d'obtenir une simulation viable où la température 
-réagit aux variations de puissance de façon adaptée.
-
-Ainsi, en suivant cette loi de Newton, la température d'un corps dont la température est supérieure à son environnement 
-suit un courbe similaire à celle-ci dessous\footnote{Aussi, plus la différence de température est grande plus elle va diminuer rapidement jusqu'à l'état d'équilibre.} :
+Cela correspond à une constante de temps \(\tau_{\text{th}} = \frac{1}{0.05} = 20\) secondes. Ce choix nous permet 
+d'obtenir une simulation viable où la température réagit aux variations de puissance de façon adaptée où 
+le système de refroidissement du réacteur est très performant. 
+Ainsi, en suivant cette loi, la température d'un corps dont la température est supérieure à son environnement 
+suit une courbe similaire à celle-ci dessous\footnote{Aussi, plus la différence de température est grande plus elle va diminuer rapidement jusqu'à l'état d'équilibre.} :
 
 \begin{figure}[H]
     \centering
@@ -416,7 +432,6 @@ suit un courbe similaire à celle-ci dessous\footnote{Aussi, plus la différence
 % ==================================================================================================================================
 % Modélisation 
 
-\newpage
 \section{Simulation}
 
 \subsection{Objectif et principe}
@@ -511,14 +526,13 @@ La méthode \texttt{self.diffuse} calcule, quand à elle, les nouvelles coordonn
 doit se déplacer. Un neutrons se déplace de façon uniforme dans un cercle définit autour de lui 
 de rayon \texttt{self.max\_speed}.
 
-\subsection{La gestion de la réaction : barres de contrôle}\label{subsec:comportement-barres}
+\subsection{La gestion de la réaction : Les barres de contrôle}\label{subsec:comportement-barres}
 
 D'un point de vue informatique, ce système repose sur l'interaction de trois composants distincts : 
 la modélisation physique de la barre, l'automate de pilotage ainsi que la boucle de rétroaction sur les neutrons.
 
-\subsubsection{Structure des classes}
+\subsubsection{La classe \texttt{ControlRod}}
 
-\paragraph{La classe \texttt{ControlRod}.}
 Chaque barre est un agent indépendant défini par ses caractéristiques physiques et son état dynamique :
 \begin{itemize}
     \item \textbf{Attributs statiques :} Un type définissant son poids neutronique total et sa vitesse maximale de déplacement (\(\% \cdot s^{-1}\)).
@@ -547,34 +561,35 @@ Chaque barre est un agent indépendant défini par ses caractéristiques physiqu
 
 \subsubsection{Algorithme de Pilotage : Le Régulateur PI}\label{algo-pi}
 
-Pour ajuster automatiquement la position des barres de régulation, nous avons implémenté un correcteur \textbf{Proportionnel-Intégral (PI)}\textsuperscript{\parencite{reg-pi}}}. C'est un mécanisme de rétroaction : le système observe l'écart entre la puissance réelle et la puissance voulue pour corriger sa commande en temps réel.
-
+Pour ajuster automatiquement la position des barres de régulation, nous avons implémenté un correcteur 
+\textbf{Proportionnel-Intégral (PI)}\textsuperscript{\parencite{reg-pi}}. C'est un mécanisme de rétroaction : 
+le système observe l'écart entre la puissance réelle et la puissance voulue pour corriger sa commande en temps réel.
 L'objectif est d'annuler l'\textbf{erreur} \(\varepsilon(t)\), définie par :
-\begin{equation}
-    \varepsilon(t) = P_{\text{consigne}} - P_{\text{réelle}}(t)
-\end{equation}
+
+    \begin{equation}
+        \varepsilon(t) = P_{\text{consigne}} - P_{\text{réelle}}(t)
+    \end{equation}
 
 La nouvelle position cible est la somme de deux termes complémentaires :
 
-\begin{equation}
-    \text{Position}(t) = \text{Base} + \underbrace{K_p \cdot \varepsilon(t)}_{\text{Terme Proportionnel}} + \underbrace{K_i \cdot \int_{0}^{t} \varepsilon(\tau) d\tau}_{\text{Terme Intégral}}
-\end{equation}
+    \begin{equation}
+        \text{Position}(t) = \text{Base} + \underbrace{K_p \cdot \varepsilon(t)}_{\text{Terme Proportionnel}} + \underbrace{K_i \cdot \int_{0}^{t} \varepsilon(\tau) d\tau}_{\text{Terme Intégral}}
+    \end{equation}
 
 \begin{itemize}
-    \item \textbf{Le Terme Proportionnel (\(P : K_p\)) :} Il assure la réactivité du système. La correction est directement proportionnelle à l'erreur instantanée. Si l'écart de puissance est grand, la barre bouge vite.
-    
-    \item \textbf{Le Terme Intégral (\(I : K_i\)) :} Il assure la précision. Il correspond à la somme des erreurs passées. Si une petite erreur persiste, le terme intégral va augmenter progressivement jusqu'à forcer la barre à bouger pour éliminer totalement l'écart.
+    \item \textbf{Le Terme Proportionnel (\(P : K_p\)) :} Il assure la réactivité du système. La correction 
+        est directement proportionnelle à l'erreur instantanée. Si l'écart de puissance est grand, la barre bouge vite.
+    \item \textbf{Le Terme Intégral (\(I : K_i\)) :} Il assure la précision. Il correspond à la somme des 
+        erreurs passées. Si une petite erreur persiste, le terme intégral va augmenter progressivement jusqu'à 
+        forcer la barre à bouger pour éliminer totalement l'écart.
 \end{itemize}
 
 Dans notre simulation en temps discret, l'intégrale mathématique est approximée par une somme cumulée à chaque pas de temps :
-\[ 
-    \int \varepsilon \, dt \approx \sum \varepsilon \cdot dt 
-\]
+    \[ \int \varepsilon \, dt \approx \sum \varepsilon \cdot dt \]
 
 % ==================================================================================================================================
 % Études statistiques 
 
-\newpage
 \section{Études Statistiques}
 
 \subsection{Paramètres de l'étude}
@@ -646,7 +661,7 @@ C'est pour cette raison que le terme \textit{intégral (I)} a été inventé plu
 \newpage
 \section*{Annexe 2 - Qu'en est-il de notre système d'urgence européen ?\textsuperscript{\parencite{control-rod-europe}}}
 \addcontentsline{toc}{section}{Annexe 2 - Qu'en est-il de notre système d'urgence européen ?}
-control-rod-europe
+
 En Europe, et particulièrement en France, le type de réacteur dominant est le \emph{Réacteur à Eau Pressurisée} (REP).\\
 Dans un REP, le contrôle de la réactivité est géré par deux systèmes complémentaires :
 \begin{enumerate}
