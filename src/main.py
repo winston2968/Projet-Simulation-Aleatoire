@@ -10,7 +10,7 @@ config = {
     'a' : 0.1,          # proba for absorption
     'f' : 0.6,          # proba for fission
     'd' : 0.5,          # proba for diffusion
-    'l' : 5,            # Parameter of the fish law
+    'l' : 3,            # Parameter of the fish law
     # === Reactor settings ===&
     'n' : 15, 
     'm' : 15,
