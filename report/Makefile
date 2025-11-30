@@ -41,3 +41,6 @@ build:
 # Juste la bibliographie
 bib:
 	$(BIB) $(MAIN)
+
+compile-short: 
+	make cleanall && $(LATEX) $(MAIN).tex && make clean
