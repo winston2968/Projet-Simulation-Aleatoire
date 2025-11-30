@@ -5,7 +5,7 @@ from utils import export_data
 # Configuration parameters for a class II Reactor
 config = {
     # === Simulation settings ===
-    'n_iter' : 10,
+    'n_iter' : 3600,
     'n_initial' : 200,  # Number of neutrons in the initial state
     'a' : 0.1,          # proba for absorption
     'f' : 0.6,          # proba for fission

@@ -255,7 +255,6 @@ Ce facteur dépend directement de la composition du combustible, du taux d’abs
 
 % ==================================================================================================================================
 % Modélisation physique
-\newpage
 \section{Modélisation Physique}
 
 \subsection{Modèle Global des Barres de Contrôle}
@@ -429,7 +428,6 @@ suit une courbe similaire à celle-ci dessous\footnote{Aussi, plus la différenc
 
 % ==================================================================================================================================
 % Modélisation 
-\newpage
 \section{Simulation}
 
 \subsection{Objectif et principe}
@@ -587,16 +585,20 @@ Dans notre simulation en temps discret, l'intégrale mathématique est approxim�
 
 % ==================================================================================================================================
 % Études statistiques 
-\newpage
+
 \section{Études Statistiques}
+
+Passons maintenant à l'étude de notre modèle. L'objectif est ici de comprendre l'influence des différents 
+paramètres sur le comportement du modèle. 
 
 \subsection{Paramètres de l'étude}
 
-Afin d'étudier le comportement de notre modèle, nous avons mis en place un système d'exportation automatique des données de simulation.
-Nous avons fait tourner notre simulation durant 3600 itérations, ce qui correspond à une heure de fonctionnement réel du réacteur.
-
-\paragraph{Génération des fichiers.}
-À la fin de chaque simulation, notre programme Python génère un dossier horodaté contenant trois CSV :
+Afin d'étudier le comportement de notre modèle, nous avons mis en place un système d'exportation automatique des données 
+de simulation. Les simulations utilisées pour cette étude comptent 3600 itérations du modèle, ce qui correspond à une heure 
+de fonctionnement réel du réacteur\footnote{Si l'on considère qu'une itération du modèle équivaut à 1 seconde réelle, 3600 itérations 
+correspondent bien à une heure. Ce résultat est bien entendu à nuancer, en réalité les neutrons se déplacent beaucoup plus 
+vite dans le coeur et l'état du réacteur évolue, lui aussi, bien plus rapidement.}
+Ainsi, à la fin de chaque simulation, un programme Python génère un dossier horodaté contenant trois fichiers CSV :
 
 \begin{itemize}
     \item \texttt{settings\_<timestamp>.csv} : Ce fichier est une "photographie" de l'état initial et final du système. Il contient l'ensemble des paramètres de configuration
@@ -605,33 +607,212 @@ Nous avons fait tourner notre simulation durant 3600 itérations, ce qui corresp
     \item \texttt{neutrons\_trajectories\_<timestamp>.csv} : Sont recensés dans ce CSV tous les neutrons contenus dans le réacteur à chaque pas de temps ainsi que leurs paramètres associés.
 \end{itemize}
 
-\paragraph{Traitement des données.}
-Ces fichiers bruts sont ensuite traités avec R. Nous utilisons les librairies RAJOUTER\texttt{ggplot2} et \texttt{dplyr} pour nettoyer les données, calculer les corrélations et générer les visualisations présentées ci-après.
-
+Ces fichiers bruts sont ensuite traités avec R. Nous utilisons les librairies \texttt{ggplot2} et \texttt{dplyr} pour 
+nettoyer les données, calculer les corrélations et générer les visualisations présentées ci-après.
 
 \subsection{Conjectures}
 
-qu'est ce qu'on compte montrer
-ligne directrice
+Au vu de la méthode de développement modulaire du modèle, nous avons pu le tester au fur et à mesure de 
+son élaboration. Nous pensons donc que celui-ci est une représentation suffisament fiable de 
+la réalité (si l'on met de côté la différence d'échelle), notament sur différents aspects : 
+\begin{enumerate}
+    \item Les neutrons sont suceptibles d'évoluer et leur état influe directement sur la réactivité 
+    du réacteur. Le nombre d'entre eux (de type thermique notament) est donc censé refléter la puissance 
+    du réacteur à un instant $t$. 
+    \item L'implémentation du modérateur ralentissant les neutrons et leur permettant de changer d'état 
+    est un paramètre influant la réactivité à court terme. Nous pensons donc que différents types de 
+    modérateur pousseront le réacteur à se comporter de façon très différente. 
+    \item Concernant les barres de contrôle, elles ont été développées dans le seul but de 
+    faire diminuer la réactivité du réacteur. Nous souhaitons donc que l'intensité de la réaction (température et puissance)
+    varient de façon inversement proportionnelle à l'intensité des barres de contrôle.
+    \item Enfin, nous souhaitons que le modèle soit suffisament stable au court du temps, une fois passée la phase 
+    de mise en route. 
+\end{enumerate}
 
-\subsection{Etude univariée}
+Dans la suite de cette section, nous allons donc tenter de confirmer ou de réfuter les hypothèses énoncées plus haut. 
 
-étude simple des variable permettant de montrer que le reacteur fonctionne "correctement"
-temperature power barres de controles etc\\
-+qu'est ce qu'on peut en déduire concernant nos conjectures\\
+\subsection{Caractéristiques générales de la simulation}
 
-position des neutrons dans le reacteur
+Sur cette simulation en particulier, le reacteur a eu un peu de mal aux alentours des 2700 itérations, 
+mais il est interressant de remarquer qu'il a pu regagner en puissance et se restabiliser par la suite.
+
+\begin{center}
+   \begin{tabular}{ | l | c | }
+     \hline
+     Types Fission & Total \\ \hline
+     2 & 45646 \\
+     3 & 177 \\
+     4 & 8 \\
+     5 & 1 \\
+     \hline
+   \end{tabular}
+ \end{center}
+
+ajouter un texte et formaté le tableau de la répartition de la loi de poisson
+
+L'analyse de la multiplicité lors de la fission des neutrons montre une prédominance écrasante des fissions libérant 2 neutrons (plus de 99,7\% des cas). 
+Bien que rares, des événements générant 3, 4 ou 5 neutrons sont observés, confirmant la nature stochastique du processus. La simulation a été paramétrée 
+avec une borne supérieure fixée à 5 neutrons par fission.
+
+\subsection{L'évolution des neutrons}
+
+Concentrons nous maintenant sur l'évolution des neutrons dans le réacteur. L'histogramme ci-dessous 
+distingue les neutrons selon leur durée de vie. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.4]{images/neutron_life_time.png}
+    \caption{Distribution du temps de vie des neutrons par temps $dt$.}
+    \label{fig:neutron_life_time}
+\end{figure}
+
+Les résultats montrent une disparité significative dans la survie des neutrons. Si la durée de vie moyenne reste faible (4,2 itérations), 
+reflétant une absorption rapide pour la majorité de la population, on note la persistance de certains neutrons jusqu'à 48 itérations 
+(plus de 10 fois la moyenne). Cette asymétrie marquée confirme que le transport des neutrons est dominé par des interactions à court terme, 
+ponctuées d'événements de diffusion plus rares mais longs.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.4]{images/state_time.png}
+    \caption{Distribution du temps moyen de résidence dans un état.}
+    \label{fig:state_time}
+\end{figure}
+
+L'analyse par niveau d'énergie révèle une dynamique contrastée : la phase thermique est prédominante (5,8 pas), correspondant à une longue 
+période de diffusion stable, tandis que le processus de modération (phases rapide et épithermique) est beaucoup plus bref (cumul de 4 pas), 
+les neutrons perdant leur énergie très vite par collisions.
+
+On observe par ailleurs que la somme des durées moyennes par état (9,8 pas) est nettement supérieure à l'espérance de vie globale (4,2 pas). 
+Ce phénomène s'explique par la "mortalité" en cours de route : de nombreux neutrons sont absorbés ou fuient le réacteur dès les phases rapides 
+ou épithermiques. N'atteignant jamais le stade thermique, ils tirent la moyenne globale vers le bas.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.4]{images/thermalization.png}
+    \caption{Distribution du temps de vie des neutrons par temps $dt$.}
+    \label{fig:thermalization}
+\end{figure}
+
+On constate que la composition du flux neutronique est conservée au fil du temps. Si le nombre total de neutrons varie, la part respective 
+de chaque catégorie reste stable, sans qu'aucun type ne devienne soudainement prédominant ou ne disparaisse.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.4]{images/spatial.png}
+    \caption{Distribution spatiale des neutrons sur la durée de simulation.}
+    \label{fig:spatial}
+\end{figure}
+
+Malgrès le positionnement et les déplacements aléatoires des neutrons, leur positionnement est massivement concentré au coeur du réacteur, 
+même si ils occupent tout l'espace disponible. Leur nombre diminue progressivement à mesure qu'on s'approche des bords.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.4]{images/neutron_trajectories.png}
+    \caption{Trajet dans le réacteur des 5 neutrons ayant tenu le plus longtemps.}
+    \label{fig:neutron-trajectories}
+\end{figure}
+
+Nous avons isolé les 5 neutrons ayant la plus longue durée de vie pour analyser leurs déplacements. 
+Le graphique montre des trajectoires en zigzag, sans direction précise ni motif particulier. Ce mouvement totalement aléatoire est logique 
+et confirme que notre programme de simulation fonctionne comme prévu.
+
+Piste d'amélioration : Pour la suite, il serait intéressant de comparer ces résultats avec des modèles physiques plus poussés. 
+Cela permettrait de voir si les vrais neutrons se déplacent de façon aussi chaotique ou s'ils suivent des règles de trajectoire 
+un peu moins imprévisibles.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.4]{images/dashbord.png}
+    \caption{Tableau de bord des différents indicateurs.}
+    \label{fig:dashbord}
+\end{figure}
+
+L'étude des données sur les 3600 étapes de la simulation révèle un comportement dynamique marqué par d'importantes fluctuations des paramètres principaux.
+
+Puissance thermique (power\_mw) : La production d'énergie est instable, avec une moyenne s'établissant à 610,1 MW et une médiane légèrement inférieure à 576,0 MW. 
+La plage de variation est très large, allant de l'arrêt complet (0 MW) jusqu'à un pic de 1584 MW, ce qui indique une forte variabilité du régime de fonctionnement.
+
+Température du cœur (temperature\_k) : Ce paramètre montre une plus grande stabilité due à l'inertie thermique. La moyenne se situe à 1453 K (médiane à 1487 K). 
+Une fois la phase de démarrage passée, le réacteur se maintient majoritairement dans une plage de températures élevées, entre 1400 et 1600 K.
+
+Barres de contrôle (pos\_RE01) : Le système de pilotage est fortement sollicité. La position moyenne des barres est de 51,47\% (médiane à 63,14\%). 
+L'utilisation de l'intégralité de la course des barres (de 0 à 100\%) témoigne d'un effort constant pour réguler la réactivité du cœur. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.4]{images/power_evolution.png}
+    \caption{Evolution lissée de la puissance au cours du temps.}
+    \label{fig:power-evolution}
+\end{figure}
+
+Ce premier graphique illustre la méthode utilisée pour rendre les données exploitables. Le nuage de points noirs représente les mesures brutes du tableau de bord à chaque
+ pas de temps : on y voit un signal très "bruité", dispersé par la nature stochastique de la simulation.
+
+Pour analyser le comportement réel du réacteur sans se perdre dans ces fluctuations, nous avons tracé une courbe de tendance (en rouge). Ce lissage permet d'éliminer
+le bruit numérique pour révéler la dynamique physique sous-jacente de la puissance.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.4]{images/control_rod.png}
+    \caption{Evolution de la dynamique du réacteur au cours du temps.}
+    \label{fig:control-rod}
+\end{figure}
+
+Une fois le signal propre obtenu, nous pouvons le confronter aux autres variables du système. Notez que pour permettre cette superposition visuelle, le nombre de neutrons 
+et la puissance ont été rapportés à une échelle commune (normalisation), leurs ordres de grandeur bruts étant très différents.
+
+Ce graphique comparatif révèle ainsi deux phénomènes physiques majeurs :
+
+Corrélation Flux/Puissance : Les courbes rouge (Puissance) et jaune (Neutrons) épousent parfaitement les mêmes variations, confirmant que la puissance thermique est bien 
+proportionnelle au flux neutronique instantané.
+
+L'effet miroir du pilotage : On observe une corrélation inverse nette avec la position des barres de contrôle (en vert). Lorsque la courbe verte descend (retrait des barres), 
+la puissance monte immédiatement, et inversement. Cela démontre la réactivité directe du cœur aux commandes de pilotage.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.4]{images/control_rod2.png}
+    \caption{Courbe d'efficacité des barres de contrôle.}
+    \label{fig:control-rod2}
+\end{figure}
+
+L'analyse de l'efficacité des barres de contrôle révèle une corrélation imparfaite. Si l'on voit bien que sortir les barres (aller vers 0 sur l'axe X) fait généralement monter la puissance, la relation n'est pas linéaire.
+
+Les certitudes se limitent aux extrêmes : une puissance faible correspond systématiquement à des barres enfoncées, tandis qu'une puissance forte (> 800 MW) nécessite des barres relevées. Entre ces deux états, notamment entre 550 et 800 MW, le nuage de points est très étalé, ce qui signifie que le réacteur peut se trouver à cette puissance avec des configurations de barres très différentes.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.4]{images/control_rod_khi2.png}
+    \caption{Graphe des corrélations entre la position des barres de pilotage et la puissance.}
+    \label{fig:control-rod_khi2}
+\end{figure}
+
+Le graphique met en évidence une structure diagonale très nette :
+
+Les rectangles bleus indiquent une forte sur-représentation des couples logiques : les barres "Sorties" sont massivement associées aux puissances "Moyennes" et "Fortes", tandis que les barres "Enfoncées" correspondent quasi-exclusivement à une puissance "Faible".
+
+Les rectangles rouges signalent une incompatibilité physique : il est statistiquement impossible d'observer une puissance forte avec des barres enfoncées.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.4]{images/khi2.png}
+    \caption{Résultat du test $\chi^2$.}
+    \label{fig:khi2}
+\end{figure}
+
+Ce constat visuel est validé par le test de Pearson, qui rejette formellement l'hypothèse d'indépendance entre les variables :
+
+Significativité ($p < 2.2 \times 10^{-16}$) : La probabilité que cette répartition soit due au hasard est quasi-nulle. Le lien est donc statistiquement avéré.
+
+Intensité ($\chi^2 = 906.53$) : La valeur extrêmement élevée de la statistique de test (bien supérieure au seuil critique pour 4 degrés de liberté) quantifie la force de cette relation. Elle indique une dépendance massive : la position des barres est bien le facteur déterminant qui dicte le niveau de puissance du réacteur.
 
 
-\subsection{Etude bivariée}
 
-power en fonction de la temperature/ nb neutrons etc\\
-profondeur des barres en fonction du power+ test de khi2 pour osbserver la corélation assez forte (on en sort une limite : par moment c'est pas encore tout à fait exact)
+AJOUTER LES HYPOHTESES DU KHI2 
 
-
-L'analyse individuelle des variables principales confirme la cohérence physique du modèle.
-+
-\paragraph{Dynamique de la Puissance.}
+%======================
+\paragraph{IDEES Dynamique de la Puissance.}
 La courbe de puissance montre une phase de démarrage rapide (exponentielle) caractéristique de la sur-criticité initiale ($k > 1$), suivie d'une stabilisation ou de fluctuations contrôlées. La distribution du nombre de neutrons suit une loi normale autour de la moyenne en régime établi, ce qui valide la stabilité statistique de la méthode de Monte-Carlo.
 
 \paragraph{Inertie Thermique.}
@@ -642,7 +823,7 @@ répartition des neutrons : L'analyse des positions $(x,y)$ des neutrons montre 
 
 \paragraph{Test du $\chi^2$ (Khi-deux).}
 Un test d'indépendance du $\chi^2$ réalisé entre les variations de puissance et les mouvements de barres rejette l'hypothèse nulle d'indépendance avec une p-value très faible ($p < 0.01$). Cela confirme statistiquement que notre algorithme de pilotage influence significativement le système.
-
+%======================
 
 % ==================================================================================================================================
 % Conclusion
