@@ -354,7 +354,7 @@ Les rectangles rouges signalent une incompatibilité physique : il est statistiq
 test_khi2 <- chisq.test(table_croisee)
 print(test_khi2)
 ```
-Ce constat visuel est validé par le test de Pearson, qui rejette formellement l'hypothèse d'indépendance entre les variables :
+Ce constat visuel est validé par le test de Pearson, qui rejette formellement l'hypothèse nulle d'indépendance entre les variables :
 
 Significativité ($p < 2.2 \times 10^{-16}$) : La probabilité que cette répartition soit due au hasard est quasi-nulle. Le lien est donc statistiquement avéré.
 
@@ -364,7 +364,27 @@ Intensité ($\chi^2 = 906.53$) : La valeur extrêmement élevée de la statistiq
 
 
 
+Conclusion de l'analyse statistique et validation des conjectures
 
+L'exploration statistique approfondie des données de la simulation (séries temporelles, suivi de particules et tests de corrélation) nous permet de confronter le modèle numérique aux hypothèses physiques formulées initialement.
+
+1. Relation Neutrons-Puissance (Conjecture validée)
+L'analyse des séries temporelles lissées a mis en évidence une superposition quasi-parfaite entre la courbe de puissance thermique et celle du flux neutronique global. Cette corrélation positive forte confirme que le modèle traduit fidèlement la physique du réacteur : la puissance instantanée est une conséquence directe de la population neutronique présente dans le cœur.
+
+2. Impact du Modérateur et Thermalisation (Conjecture validée)
+L'étude des temps de résidence a démontré que la phase thermique est prédominante (durée moyenne de 5,8 pas contre ~4 pas pour la modération), preuve que le modérateur joue son rôle de "piège" utile pour la fission. De plus, l'analyse temporelle des populations (graphique des aires empilées) montre une stabilité remarquable du spectre neutronique : bien que la puissance fluctue, les proportions relatives entre neutrons rapides, épithermiques et thermiques restent constantes, attestant d'un équilibre physique atteint par le modèle.
+
+3. Efficacité des Barres de Contrôle (Conjecture validée)
+L'influence des barres sur la réactivité est incontestable. L'effet "miroir" observé sur le tableau de bord (baisse des barres = hausse de la puissance) est corroboré mathématiquement par le test du $\chi^2$ ($\chi^2 \approx 906$, $p < 2.2 \times 10^{-16}$) et le Mosaic Plot. Ces outils ont prouvé une dépendance statistique massive et inversement proportionnelle : le pilotage est bien le facteur déterminant de l'état du réacteur. Cependant, le graphique de dispersion a révélé une zone d'incertitude (entre 550 et 800 MW) où la position des barres présente une forte variance.
+
+4. Stabilité du Modèle (Conjecture partiellement validée)
+Si les stabilités spatiales et spectrales sont acquises, la stabilité "opérationnelle" est plus nuancée. Les statistiques descriptives (forte variance de la puissance, écarts-types élevés) et les cycles d'hystérésis sur le diagramme Puissance/Température montrent que le réacteur ne se stabilise pas sur un point fixe mais tend vers un régime oscillatoire permanent. Bien que le système ne diverge pas (il reste borné), il peine à trouver un équilibre stationnaire, probablement en raison de l'inertie thermique et de la réponse stochastique du flux neutronique.
+
+Bilan Global :
+
+Pour résumer, notre simulation réussit bien à reproduire la physique d'un réacteur : le lien entre le nombre de neutrons et l'énergie produite est correct, et les commandes (les barres) fonctionnent comme prévu. Les trajets "au hasard" des neutrons confirment aussi que la partie probabiliste du code marche bien.
+
+Le seul point faible reste la stabilité : le réacteur a du mal à se caler sur une puissance fixe. Il a tendance à osciller en permanence, ce qui montre qu'il est peut-être un peu trop sensible dès qu'on touche aux barres de contrôle.
 
 
 ```{r}
