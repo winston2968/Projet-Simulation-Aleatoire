@@ -4,7 +4,6 @@
 
 import numpy.random as npr 
 
-
 class Neutron: 
     """
         Define neutron type to allows the reactor to contain different neutron types. 
@@ -17,7 +16,7 @@ class Neutron:
         self.y = y 
         self.id = id 
         self.speed = speed 
-        self.type = type # "thermal", "fast", "epithermal"
+        self.type = type    # "thermal", "fast", "epithermal"
         
         # Probability to change state 
         self.thermalization_probs = thermalization_probs
@@ -28,6 +27,7 @@ class Neutron:
         # Time memory 
         self.age = 0 
         self.is_alive = True 
+
 
     # -----------------------
     # Diffusion Behavior
@@ -50,6 +50,7 @@ class Neutron:
             dy = npr.choice([-1, 0, 1])
             if dx != 0 or dy != 0: 
                 return dx, dy 
+
 
     # -----------------------
     # Evolution Step 

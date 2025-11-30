@@ -11,8 +11,9 @@ def simul_poisson(l):
     import numpy as np 
     from numpy import random as npr
     # We take min (5,.) because the fission can produce max 5 neutrons
-    # We take min(2,.) beacause the fission cant produce less than 2 neutrons
+    # We take max(2,.) beacause the fission cant produce less than 2 neutrons
     return min(5, max(2, int(np.ceil(-(1/l) * np.log(npr.rand())))))
+
 
 # ---------------------------- CSV Export --------------------------------------------------
 import pandas as pd

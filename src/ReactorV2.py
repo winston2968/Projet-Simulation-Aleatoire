@@ -10,7 +10,7 @@ from rich import box
 from rich.text import Text
 from rich.panel import Panel 
 from rich.console import Group 
-from os import system 
+from os import system
 
 from utils import simul_poisson
 from Neutron import Neutron
@@ -98,12 +98,11 @@ class ReactorV2:
         self.reg_kp = 25.0              # Proportional gain for
         self.reg_ki = 10.0              # Integral gain
         self.reg_integral_error = 0.0   # Memory of the integral error
-        #--------------------------------------
+        
         # Sensor to move the bars in critical situations
         self.force_pull_up_active = False   # If its to hot
         self.force_pull_down_active = False # If its to cold
-        #-------------------------------------
-
+        
         # === Moderator Parameters ===
         MODERATORS = {
             "light_water": Moderator("light_water", absorb_coeff=1.0, diffuse_coeff=1.2, fission_coeff=0.8, slow_fast=0.3, slow_epi=0.5),
@@ -175,7 +174,7 @@ class ReactorV2:
     # ------------------------------------------------------------------
     def simulate(self): 
         next_id = len(self.neutrons)
-        print("----------------------------------------------------")
+        
         # === 0. Initialization of probabilities at the first turn ===
         if self.moderator:
             base_a = self.moderator.absorb_coeff
@@ -237,12 +236,6 @@ class ReactorV2:
 
                 # Launch automatic pilote
                 self.update_automatic_control_rods()
-                
-                #-------------------DEBUG-------------------
-                for rod in self.control_rods:
-                    print(f"target position {rod.id}", rod.target_position)
-                    print(f"current position {rod.id}", rod.position_percent)
-                #------------------------------------------
 
                 # Move the bars accordingly
                 # Their new position will be taken into account in the next round
@@ -301,12 +294,10 @@ class ReactorV2:
             if action == 0: 
                 # Diffusion 
                 neutron.diffuse(self.max_speed)
-            
             elif action == 1: 
                 # Absorption 
                 neutron.is_alive = False 
                 return next_id, new_neutrons, alive_neutrons 
-
             else :
                 n_new = simul_poisson(self.l)
 
@@ -329,7 +320,6 @@ class ReactorV2:
             if action == 0: 
                 # Diffusion 
                 neutron.diffuse(self.max_speed)
-            
             elif action == 1: 
                 # Absorption 
                 neutron.is_alive = False 
@@ -541,7 +531,6 @@ class ReactorV2:
 
         # === 1. Calculate error between current power and target power ===
         error = self.power_setpoint - self.power_level
-        print("test power error", error)
 
         # === 2. Simple proportional control ===
         # Calculation of the static error
@@ -549,8 +538,6 @@ class ReactorV2:
         
         # === 3. Integral term (with anti-windup) ===
         # Error history calculation
-        # In continuous time, summing the errors involves calculating the integral.
-        # In discrete time (as here), it is a simple sum
         self.reg_integral_error += error * self.dt
         self.reg_integral_error = max(-1.0, min(1.0, self.reg_integral_error))
         i_term = self.reg_ki * self.reg_integral_error
@@ -570,7 +557,7 @@ class ReactorV2:
 
         # === 6.1. Control ===
         # === 6.1.1. RUNBACK ===
-        # If current_power > 900 MW, the drop is activated. It is only deactivated if < 850 MW.
+        # If current_power > 700 MW, the drop is activated. It is only deactivated if < 650 MW.
         if self.current_power_mw > 700:
             self.force_pull_up_active = True
         elif self.current_power_mw < 650:
@@ -600,22 +587,17 @@ class ReactorV2:
         for rod in self.regulation_rods:
             rod.target_position = final_target
 
+
     # ------------------------------------------------------------------
     # Check if an emergency scram is needed based on reactor conditions
     # If so, insert scram rods fully and immediately
     # ------------------------------------------------------------------
     def check_emergency_scram(self):
         if not self.scram_rods:
-            return "ALERT : emergency scram undected."
+            print("ALERT : emergency scram undected.")
+            return
 
         if self.power_level > self.scram_threshold and not self.scram_triggered:            
-            
-            #-------------DEBUG-------------
-            print(f"!!! EMERGENCY SCRAM ACTIVATED !!!")
-            print("scram_threshold", self.scram_threshold)
-            print("scram_triggered", self.scram_triggered)
-            #--------------------------------
-
             self.scram_triggered = True
             self.regulation_rods = None     # Disable autopilote
             

@@ -1,3 +1,7 @@
+# ==========================================================================================
+#                                      Main
+# ==========================================================================================
+
 from rich.live import Live
 from ReactorV2 import ReactorV2
 from utils import export_data
@@ -40,11 +44,3 @@ with Live(refresh_per_second=10) as live:
 
 # Data export
 export_data(reactorV2, config)
-
-# ==================== TODO ====================
-# 
-# - [DONE] rajouter répartition aléatoire des neutrons au départ 
-# - [DONE] calculer la température moyenne à chaque iter  
-# - [DONE] intégrer les barres de contrôle
-# - [IN PROGRESS] implémenter l'algo des branchements - Marco
-# - [DONE] exporter trajectoire dans un fichier 

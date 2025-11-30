@@ -7,16 +7,17 @@ from rich.live import Live
 from ReactorV2 import ReactorV2
 from matplotlib import pyplot as plt
 
-
 # ==========================================================================================
 #                          Visualization and Statistical Analysis Tools
 # ==========================================================================================
+
 
 # --------------------------------------------
 # Extract neutrons trajectories from history
 # --------------------------------------------
 def get_trajectories(history): 
     pass
+
 
 # --------------------------------------------
 # Calculate the nb of neutrons by generations
@@ -26,6 +27,7 @@ def get_neutrons_count(history):
     for period in history: 
         n_neutrons.append(len(period))
     return n_neutrons
+
 
 # --------------------------------------------
 # Plot the Number of Neutrons per Generation
@@ -46,8 +48,6 @@ def plot_k_value(history):
     plt.ylabel("k values")
     plt.title("k value evolution by generation")
     plt.show()
-
-
 
 
 # -------------------------------------------
@@ -91,7 +91,6 @@ def plot_trajectories(history, n_traj=5):
 #                        Statistical Analysis: Extinction and Mean Lifetime
 # ==========================================================================================
 
-
 # ---------------------------------------
 # Estimate the Extinction Probability
 # ---------------------------------------
@@ -130,7 +129,6 @@ def plot_infos(config, n_runs=20):
     plot_neutron_count(history)
     plot_spatial_distribution(config, history)
     plot_k_value(history)
-
 
 
 # ---------------------------------------
