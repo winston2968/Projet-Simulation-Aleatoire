@@ -255,7 +255,6 @@ Ce facteur dépend directement de la composition du combustible, du taux d’abs
 
 % ==================================================================================================================================
 % Modélisation physique
-\newpage
 \section{Modélisation Physique}
 
 \subsection{Modèle Global des Barres de Contrôle}
@@ -429,7 +428,6 @@ suit une courbe similaire à celle-ci dessous\footnote{Aussi, plus la différenc
 
 % ==================================================================================================================================
 % Modélisation 
-\newpage
 \section{Simulation}
 
 \subsection{Objectif et principe}
@@ -587,16 +585,20 @@ Dans notre simulation en temps discret, l'intégrale mathématique est approxim�
 
 % ==================================================================================================================================
 % Études statistiques 
-\newpage
+
 \section{Études Statistiques}
+
+Passons maintenant à l'étude de notre modèle. L'objectif est ici de comprendre l'influence des différents 
+paramètres sur le comportement du modèle. 
 
 \subsection{Paramètres de l'étude}
 
-Afin d'étudier le comportement de notre modèle, nous avons mis en place un système d'exportation automatique des données de simulation.
-Nous avons fait tourner notre simulation durant 3600 itérations, ce qui correspond à une heure de fonctionnement réel du réacteur.
-
-\paragraph{Génération des fichiers.}
-À la fin de chaque simulation, notre programme Python génère un dossier horodaté contenant trois CSV :
+Afin d'étudier le comportement de notre modèle, nous avons mis en place un système d'exportation automatique des données 
+de simulation. Les simulations utilisées pour cette étude comptent 3600 itérations du modèle, ce qui correspond à une heure 
+de fonctionnement réel du réacteur\footnote{Si l'on considère qu'une itération du modèle équivaut à 1 seconde réelle, 3600 itérations 
+correspondent bien à une heure. Ce résultat est bien entendu à nuancer, en réalité les neutrons se déplacent beaucoup plus 
+vite dans le coeur et l'état du réacteur évolue, lui aussi, bien plus rapidement.}
+Ainsi, à la fin de chaque simulation, un programme Python génère un dossier horodaté contenant trois fichiers CSV :
 
 \begin{itemize}
     \item \texttt{settings\_<timestamp>.csv} : Ce fichier est une "photographie" de l'état initial et final du système. Il contient l'ensemble des paramètres de configuration
@@ -605,15 +607,31 @@ Nous avons fait tourner notre simulation durant 3600 itérations, ce qui corresp
     \item \texttt{neutrons\_trajectories\_<timestamp>.csv} : Sont recensés dans ce CSV tous les neutrons contenus dans le réacteur à chaque pas de temps ainsi que leurs paramètres associés.
 \end{itemize}
 
-\paragraph{Traitement des données.}
-Ces fichiers bruts sont ensuite traités avec R. Nous utilisons les librairies RAJOUTER\texttt{ggplot2} et \texttt{dplyr} pour nettoyer les données, calculer les corrélations et générer les visualisations présentées ci-après.
-
+Ces fichiers bruts sont ensuite traités avec R. Nous utilisons les librairies \texttt{ggplot2} et \texttt{dplyr} pour 
+nettoyer les données, calculer les corrélations et générer les visualisations présentées ci-après.
 
 \subsection{Conjectures}
 
-A REMPLIR
+Au vu de la méthode de développement modulaire du modèle, nous avons pu le tester au fur et à mesure de 
+son élaboration. Nous pensons donc que celui-ci est une représentation suffisament fiable de 
+la réalité (si l'on met de côté la différence d'échelle), notament sur différents aspects : 
+\begin{enumerate}
+    \item Les neutrons sont suceptibles d'évoluer et leur état influe directement sur la réactivité 
+    du réacteur. Le nombre d'entre eux (de type thermique notament) est donc censé refléter la puissance 
+    du réacteur à un instant $t$. 
+    \item L'implémentation du modérateur ralentissant les neutrons et leur permettant de changer d'état 
+    est un paramètre influant la réactivité à court terme. Nous pensons donc que différents types de 
+    modérateur pousseront le réacteur à se comporter de façon très différente. 
+    \item Concernant les barres de contrôle, elles ont été développées dans le seul but de 
+    faire diminuer la réactivité du réacteur. Nous souhaitons donc que l'intensité de la réaction (température et puissance)
+    varient de façon inversement proportionnelle à l'intensité des barres de contrôle.
+    \item Enfin, nous souhaitons que le modèle soit suffisament stable au court du temps, une fois passée la phase 
+    de mise en route. 
+\end{enumerate}
 
-\subsection{Etude des résultats}
+Dans la suite de cette section, nous allons donc tenter de confirmer ou de réfuter les hypothèses énoncées plus haut. 
+
+\subsection{Caractéristiques générales de la simulation}
 
 Sur cette simulation en particulier, le reacteur a eu un peu de mal aux alentours des 2700 itérations, 
 mais il est interressant de remarquer qu'il a pu regagner en puissance et se restabiliser par la suite.
@@ -635,6 +653,11 @@ ajouter un texte et formaté le tableau de la répartition de la loi de poisson
 L'analyse de la multiplicité lors de la fission des neutrons montre une prédominance écrasante des fissions libérant 2 neutrons (plus de 99,7\% des cas). 
 Bien que rares, des événements générant 3, 4 ou 5 neutrons sont observés, confirmant la nature stochastique du processus. La simulation a été paramétrée 
 avec une borne supérieure fixée à 5 neutrons par fission.
+
+\subsection{L'évolution des neutrons}
+
+Concentrons nous maintenant sur l'évolution des neutrons dans le réacteur. L'histogramme ci-dessous 
+distingue les neutrons selon leur durée de vie. 
 
 \begin{figure}[H]
     \centering
@@ -707,13 +730,13 @@ un peu moins imprévisibles.
 
 L'étude des données sur les 3600 étapes de la simulation révèle un comportement dynamique marqué par d'importantes fluctuations des paramètres principaux.
 
-Puissance thermique (power_mw) : La production d'énergie est instable, avec une moyenne s'établissant à 610,1 MW et une médiane légèrement inférieure à 576,0 MW. 
+Puissance thermique (power\_mw) : La production d'énergie est instable, avec une moyenne s'établissant à 610,1 MW et une médiane légèrement inférieure à 576,0 MW. 
 La plage de variation est très large, allant de l'arrêt complet (0 MW) jusqu'à un pic de 1584 MW, ce qui indique une forte variabilité du régime de fonctionnement.
 
-Température du cœur (temperature_k) : Ce paramètre montre une plus grande stabilité due à l'inertie thermique. La moyenne se situe à 1453 K (médiane à 1487 K). 
+Température du cœur (temperature\_k) : Ce paramètre montre une plus grande stabilité due à l'inertie thermique. La moyenne se situe à 1453 K (médiane à 1487 K). 
 Une fois la phase de démarrage passée, le réacteur se maintient majoritairement dans une plage de températures élevées, entre 1400 et 1600 K.
 
-Barres de contrôle (pos_RE01) : Le système de pilotage est fortement sollicité. La position moyenne des barres est de 51,47\% (médiane à 63,14\%). 
+Barres de contrôle (pos\_RE01) : Le système de pilotage est fortement sollicité. La position moyenne des barres est de 51,47\% (médiane à 63,14\%). 
 L'utilisation de l'intégralité de la course des barres (de 0 à 100\%) témoigne d'un effort constant pour réguler la réactivité du cœur. 
 
 \begin{figure}[H]
@@ -774,7 +797,7 @@ Les rectangles rouges signalent une incompatibilité physique : il est statistiq
 \begin{figure}[H]
     \centering
     \includegraphics[scale=0.4]{images/khi2.png}
-    \caption{Résultat du test \chi^2.}
+    \caption{Résultat du test $\chi^2$.}
     \label{fig:khi2}
 \end{figure}
 

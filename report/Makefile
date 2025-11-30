@@ -35,6 +35,9 @@ cleanall: clean
 view: $(MAIN).pdf
 	open $(MAIN).pdf
 
+build: 
+	make cleanall && make compile && make clean
+
 # Juste la bibliographie
 bib:
 	$(BIB) $(MAIN)
