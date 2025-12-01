@@ -2,7 +2,8 @@
 
 ![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
-![Status](https://img.shields.io/badge/Status-En_Développement-orange)
+![Status](https://img.shields.io/badge/Status-Termin%C3%A9-brightgreen)
+![Version](https://img.shields.io/badge/Version-v1.0-blue)
 
 Ce projet implémente une simulation numérique d'un cœur de réacteur nucléaire en 2D. Il combine une approche **stochastique** (Monte-Carlo) pour la neutronique et une approche **déterministe** pour la thermohydraulique et le pilotage automatique.
 
@@ -92,21 +93,13 @@ config = {
 
  ```bash
 .
-
 ├── src/
-
 │   ├── main.py           # Entry Point and Configuration
-
 │   ├── ReactorV2.py      # Core of the simulation (Logic, PID, Physics)
-
 │   ├── Neutron.py        # Neutron Agent Class
-
 │   ├── controlRod.py     # Agent Class Control Bar
-
 │   └── utils.py          # Utility functions (CSV export, Maths)
-
 ├── statistics/           # Data output folder
-
 └── README.md             # Documentation
 ```
 
@@ -115,13 +108,9 @@ Résultats
 
 ```bash
 statistics/
-
 └── 2023_10_27_14_30_00/
-
     ├── settings_*.csv          # Configuration used
-    
     ├── reactor_history_*.csv   # Time data (for plotting curves)
-    
     └── fission_stats_*.csv     # Statistics of the Poisson distribution
 ```
 
