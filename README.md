@@ -74,39 +74,56 @@ python src/main.py
 ```
 
 Configuration
+
 Tous les paramètres sont modifiables dans le dictionnaire config du fichier src/main.py
 
 ```Python
 
 config = {
-    'n_initial': 200,       # Neutrons au démarrage
-    'l': 1.1,               # Facteur de multiplication (k)
+    'n_initial': 200,       # Neutrons at startup
+    'l': 1.1,               # Multiplication factor (k)
     'moderator': 'heavy_water', 
-    'rod_active': True,     # Activer les barres de contrôle
-    'scram_threshold': 1.5, # Seuil d'arrêt d'urgence (150% P_nom)
+    'rod_active': True,     # Enable control bars
+    'scram_threshold': 1.5, # Emergency stop threshold (150% P_nom)
     # ...
 }
 ```
 ## 📂 Structure du Projet
- 
+
+ ```bash
 .
+
 ├── src/
+
 │   ├── main.py           # Entry Point and Configuration
+
 │   ├── ReactorV2.py      # Core of the simulation (Logic, PID, Physics)
+
 │   ├── Neutron.py        # Neutron Agent Class
+
 │   ├── controlRod.py     # Agent Class Control Bar
+
 │   └── utils.py          # Utility functions (CSV export, Maths)
+
 ├── statistics/           # Data output folder
+
 └── README.md             # Documentation
+```
 
 Résultats
 À la fin de la simulation, un dossier est créé dans statistics/ :
 
+```bash
 statistics/
+
 └── 2023_10_27_14_30_00/
+
     ├── settings_*.csv          # Configuration used
+    
     ├── reactor_history_*.csv   # Time data (for plotting curves)
+    
     └── fission_stats_*.csv     # Statistics of the Poisson distribution
+```
 
 ## 👥 Auteurs
 Ce projet a été réalisé dans le cadre du M1 IMA/RO en UE Simulation aléatoire :
