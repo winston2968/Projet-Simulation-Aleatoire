@@ -3,7 +3,7 @@
 ![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Status](https://img.shields.io/badge/Status-Termin%C3%A9-brightgreen)
-![Version](https://img.shields.io/badge/Version-v1.0-blue)
+![Version](https://img.shields.io/badge/Version-v12.5-blue)
 
 Ce projet implémente une simulation numérique d'un cœur de réacteur nucléaire en 2D. Il combine une approche **stochastique** (Monte-Carlo) pour la neutronique et une approche **déterministe** pour la thermohydraulique et le pilotage automatique.
 
