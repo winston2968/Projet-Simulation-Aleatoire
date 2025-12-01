@@ -46,8 +46,7 @@ L'objectif est d'étudier le comportement dynamique d'une population de neutrons
 
 1.  **Cloner le dépôt :**
     ```bash
-    git clone [https://github.com/votre-nom/projet-simulation-nucleaire.git](https://github.com/votre-nom/projet-simulation-nucleaire.git)
-    cd projet-simulation-nucleaire
+    git clone [https://github.com/winston2968/Projet-Simulation-Aleatoire.git](https://github.com/winston2968/Projet-Simulation-Aleatoire.git)
     ```
 
 2.  **Créer un environnement virtuel (recommandé) :**
@@ -82,13 +81,14 @@ Tous les paramètres sont modifiables dans le dictionnaire config du fichier src
 
 config = {
     'n_initial': 200,       # Neutrons at startup
-    'l': 1.1,               # Multiplication factor (k)
+    'l': 3,                 # Multiplication factor (k)
     'moderator': 'heavy_water', 
     'rod_active': True,     # Enable control bars
     'scram_threshold': 1.5, # Emergency stop threshold (150% P_nom)
     # ...
 }
 ```
+
 ## 📂 Structure du Projet
 
  ```bash
@@ -117,6 +117,9 @@ statistics/
 ## 👥 Auteurs
 Ce projet a été réalisé dans le cadre du M1 IMA/RO en UE Simulation aléatoire :
 
--  PIGEON Axel
--  SANFILIPPO Marco
--  FRANCINE-HABAS Mathis
+-  PIGEON Axel.
+  axel.pigeon@univ-tlse3.fr 
+-  SANFILIPPO Marco.
+  marco.sanfilippo@univ-tlse3.fr
+-  FRANCINE-HABAS Mathis.
+  mathis.francine-habas@univ-tlse3.fr
